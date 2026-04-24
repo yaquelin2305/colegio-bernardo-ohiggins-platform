@@ -65,6 +65,27 @@ spring:
                 name: academicoCB
                 fallbackUri: forward:/fallback/academico
 
+        # -----------------------------------------------
+        # RUTA: MS-COMUNICACIONES
+        # ID:   comunicaciones-route
+        # -----------------------------------------------
+        - id: comunicaciones-route
+          uri: lb://MS-COMUNICACIONES
+          predicates:
+            - Path=/api/v1/comunicaciones/**
+          filters:
+            # Reescribe /api/v1/comunicaciones/notificaciones → /api/notificaciones
+            - RewritePath=/api/v1/comunicaciones/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: comunicacionesCB
+                fallbackUri: forward:/fallback/default
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET
+
       # Timeout global para todas las rutas
       httpclient:
         connect-timeout: 3000     # 3s para establecer conexión
@@ -120,6 +141,14 @@ resilience4j:
           - java.io.IOException
           - java.util.concurrent.TimeoutException
           - org.springframework.cloud.gateway.support.NotFoundException
+      # Circuit Breaker para MS-Comunicaciones
+      comunicacionesCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 80
       # Circuit Breaker genérico (fallback para otros MSs futuros)
       defaultCB:
         sliding-window-size: 10
