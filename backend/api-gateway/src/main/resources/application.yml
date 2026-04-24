@@ -201,8 +201,6 @@ spring:
   config:
     activate:
       on-profile: dev
-  profiles:
-    active: dev
 
 logging:
   level:
@@ -218,8 +216,6 @@ spring:
   config:
     activate:
       on-profile: prod
-  profiles:
-    active: prod
 
 logging:
   level:
