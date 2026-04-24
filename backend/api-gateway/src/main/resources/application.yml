@@ -1,0 +1,227 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # =============================================
+  # SPRING CLOUD GATEWAY — Definición de Rutas
+  # =============================================
+  cloud:
+    gateway:
+      # Habilita integración con Eureka para lb:// URIs
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO (Gestión Académica)
+        # ID:   academico-route
+        # -----------------------------------------------
+        - id: academico-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/gestion/**
+          filters:
+            # Remueve el prefijo /api/v1/gestion antes de reenviar al MS
+            - RewritePath=/api/v1/gestion/(?<segment>.*), /api/v1/${segment}
+            # Circuit Breaker con fallback
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            # Retry ante fallos transitorios (no en errores 4xx)
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+            # Rate Limiting básico (Green IT: evitar saturar el MS)
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                redis-rate-limiter.requestedTokens: 1
+
+        # -----------------------------------------------
+        # RUTA DIRECTA: MS-ACADÉMICO (acceso interno BFF)
+        # Para que el BFF acceda sin prefijo de gateway
+        # -----------------------------------------------
+        - id: academico-direct-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/estudiantes/**, /api/v1/notas/**, /api/v1/asistencias/**, /api/v1/reportes/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+
+        # -----------------------------------------------
+        # RUTA: MS-COMUNICACIONES
+        # ID:   comunicaciones-route
+        # -----------------------------------------------
+        - id: comunicaciones-route
+          uri: lb://MS-COMUNICACIONES
+          predicates:
+            - Path=/api/v1/comunicaciones/**
+          filters:
+            # Reescribe /api/v1/comunicaciones/notificaciones → /api/notificaciones
+            - RewritePath=/api/v1/comunicaciones/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: comunicacionesCB
+                fallbackUri: forward:/fallback/default
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET
+
+      # Timeout global para todas las rutas
+      httpclient:
+        connect-timeout: 3000     # 3s para establecer conexión
+        response-timeout: 10s     # 10s para recibir respuesta completa
+
+      # Headers de respuesta CORS globales
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+    # Desactivar Eureka si no está disponible en dev
+    discovery:
+      enabled: true
+
+  # Gateway es reactivo (WebFlux) — NO usar spring-web aquí
+  main:
+    web-application-type: reactive
+
+# =============================================
+# EUREKA CLIENT
+# =============================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# =============================================
+# RESILIENCE4J — Circuit Breaker
+# =============================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Circuit Breaker para MS-Académico
+      academicoCB:
+        # Ventana deslizante de 10 llamadas para calcular tasa de fallo
+        sliding-window-size: 10
+        # Si el 50% de las llamadas fallan → abre el circuito
+        failure-rate-threshold: 50
+        # Tiempo que el circuito permanece abierto antes de intentar HALF-OPEN
+        wait-duration-in-open-state: 10s
+        # Llamadas permitidas en estado HALF-OPEN para probar recuperación
+        permitted-number-of-calls-in-half-open-state: 3
+        # Tiempo mínimo de duración de llamada para considerarla lenta
+        slow-call-duration-threshold: 5s
+        # Si el 80% de llamadas son lentas → también abre el circuito
+        slow-call-rate-threshold: 80
+        # Registrar excepciones que cuentan como fallo
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.cloud.gateway.support.NotFoundException
+      # Circuit Breaker para MS-Comunicaciones
+      comunicacionesCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 80
+      # Circuit Breaker genérico (fallback para otros MSs futuros)
+      defaultCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 2
+
+  timelimiter:
+    instances:
+      academicoCB:
+        timeout-duration: 8s
+      defaultCB:
+        timeout-duration: 8s
+
+# =============================================
+# CONFIGURACIÓN JWT
+# =============================================
+gateway:
+  jwt:
+    secret: ${JWT_SECRET:colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret}
+
+# =============================================
+# ACTUATOR
+# =============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway, circuitbreakers, metrics
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# =============================================
+# LOGGING
+# =============================================
+logging:
+  level:
+    cl.duoc.colegio.gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    io.github.resilience4j: INFO
+
+---
+# =============================================
+# PERFIL: dev (desarrollo local)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  profiles:
+    active: dev
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
+
+---
+# =============================================
+# PERFIL: prod (producción — Railway)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  profiles:
+    active: prod
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: WARN
+    org.springframework.cloud.gateway: WARN
