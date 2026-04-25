@@ -21,8 +21,8 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/v3/api-docs/**",
-        "/actuator/health",
-        "/actuator/info"
+        "/actuator/**",
+        "/api/**"           // Rutas internas — acceso solo desde la red Docker
     };
 
     @Bean
@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .requestMatchers(PUBLIC_PATHS).permitAll()
                 .anyRequest().authenticated()
             );
-        // El API Gateway ya validó el JWT — este MS confía en la propagación
-        // En producción se puede agregar JwtAuthenticationFilter aquí
+        // El API Gateway ya validó el JWT — este MS confía en los headers X-User-Id / X-User-Role
+        // En producción se puede agregar validación de esos headers aquí
         return http.build();
     }
 }
