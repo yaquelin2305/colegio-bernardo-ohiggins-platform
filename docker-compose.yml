@@ -1,6 +1,6 @@
 # =============================================================
 # DOCKER COMPOSE — Plataforma Colegio Bernardo O'Higgins
-# Levanta: PostgreSQL → MS-Académico → API Gateway
+# Levanta: PostgreSQL → MS-Académico → MS-Usuario → API Gateway
 # =============================================================
 # Uso:
 #   docker compose up --build       (primer arranque)
@@ -34,7 +34,28 @@ services:
       - "5432:5432"   # Expone la BD para conectarte con DBeaver/TablePlus
 
   # ─────────────────────────────────────────────────────────
-  # 2. MS-ACADÉMICO — espera a que postgres esté healthy
+  # 2. BD EXCLUSIVA PARA MS-USUARIO (buenas prácticas: BD por MS)
+  # ─────────────────────────────────────────────────────────
+  postgres-usuario:
+    image: postgres:16-alpine
+    container_name: usuario-db
+    environment:
+      POSTGRES_DB: usuario_db
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: usuario123
+    volumes:
+      - ./backend/ms-usuario/src/main/resources/db/init-usuario.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_usuario_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario -d usuario_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5433:5432"   # Puerto diferente para no chocar con postgres principal
+
+  # ─────────────────────────────────────────────────────────
+  # 3. MS-ACADÉMICO
   # ─────────────────────────────────────────────────────────
   ms-academico:
     build:
@@ -42,19 +63,15 @@ services:
       dockerfile: Dockerfile
     container_name: ms-academico
     environment:
-      # Apunta a postgres por nombre de red Docker (NO localhost)
       DB_URL: jdbc:postgresql://postgres:5432/academico_db
       DB_USERNAME: academico
       DB_PASSWORD: academico123
-      # Perfil dev: desactiva JWT y logs verbose
       SPRING_PROFILES_ACTIVE: dev
-      # Eureka apuntando a ningún lado — se ignora con cloud.discovery.enabled=false
       EUREKA_URL: http://localhost:8761/eureka
       SPRING_CLOUD_DISCOVERY_ENABLED: "false"
       EUREKA_CLIENT_ENABLED: "false"
       EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
       EUREKA_CLIENT_FETCH-REGISTRY: "false"
-      # ddl-auto override: crea/valida las tablas (init-db.sql ya las creó)
       SPRING_JPA_HIBERNATE_DDL-AUTO: validate
     depends_on:
       postgres:
@@ -64,12 +81,44 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-      start_period: 90s    # Le da tiempo al JVM de arrancar (~40-60s)
+      start_period: 90s
     ports:
-      - "8082:8082"        # Acceso directo al MS (para pruebas sin gateway)
+      - "8082:8082"
 
   # ─────────────────────────────────────────────────────────
-  # 3. API GATEWAY — espera a que ms-academico esté healthy
+  # 4. MS-USUARIO — Auth y Autorización
+  # ─────────────────────────────────────────────────────────
+  ms-usuario:
+    build:
+      context: ./backend/ms-usuario
+      dockerfile: Dockerfile
+    container_name: ms-usuario
+    environment:
+      DB_URL: jdbc:postgresql://postgres-usuario:5432/usuario_db
+      DB_USERNAME: usuario
+      DB_PASSWORD: usuario123
+      SPRING_PROFILES_ACTIVE: dev
+      JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
+      EUREKA_URL: http://localhost:8761/eureka
+      SPRING_CLOUD_DISCOVERY_ENABLED: "false"
+      EUREKA_CLIENT_ENABLED: "false"
+      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
+      EUREKA_CLIENT_FETCH-REGISTRY: "false"
+      SPRING_JPA_HIBERNATE_DDL-AUTO: update
+    depends_on:
+      postgres-usuario:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8083:8083"
+
+  # ─────────────────────────────────────────────────────────
+  # 5. API GATEWAY — espera a que ms-academico y ms-usuario estén healthy
   # ─────────────────────────────────────────────────────────
   api-gateway:
     build:
@@ -77,19 +126,21 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
-      # Perfil dev (bypass JWT) + local (URIs fijas sin Eureka)
       SPRING_PROFILES_ACTIVE: dev,local
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      # Override de las URIs del perfil local para Docker (nombre de red)
       ACADEMICO_URI: http://ms-academico:8082
+      USUARIO_URI: http://ms-usuario:8083
     depends_on:
       ms-academico:
         condition: service_healthy
+      ms-usuario:
+        condition: service_healthy
     ports:
-      - "8080:8080"        # Punto de entrada principal
+      - "8080:8080"
 
 volumes:
   postgres_data:
+  postgres_usuario_data:
 
 networks:
   default:

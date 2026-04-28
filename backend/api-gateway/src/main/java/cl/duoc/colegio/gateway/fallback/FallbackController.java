@@ -59,6 +59,34 @@ public class FallbackController {
     }
 
     /**
+     * Fallback para MS-Usuario (Autenticación y Autorización).
+     * Se activa cuando usuarioCB (Circuit Breaker) está abierto.
+     * CRÍTICO: Si auth no responde, el usuario no puede autenticarse.
+     */
+    @GetMapping("/usuario")
+    public Mono<ResponseEntity<Map<String, Object>>> usuarioFallback(
+            ServerWebExchange exchange) {
+
+        log.warn("[CIRCUIT BREAKER] MS-Usuario no disponible — activando fallback de auth");
+
+        Map<String, Object> body = Map.of(
+                "type", "about:blank",
+                "title", "Servicio de autenticación no disponible",
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "detail", "El servicio de autenticación no está disponible. " +
+                          "Por favor, intente nuevamente en unos minutos.",
+                "service", "ms-usuario",
+                "timestamp", Instant.now().toString()
+        );
+
+        return Mono.just(
+                ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body(body)
+        );
+    }
+
+    /**
      * Fallback genérico — para cualquier MS sin fallback específico.
      */
     @GetMapping("/default")
