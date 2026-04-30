@@ -1,0 +1,24 @@
+import { LogOut } from 'lucide-react';
+import '../../styles/Header.css';
+
+const USUARIO_MOCK = { nombre: 'Prof. Alexis Jiménez', iniciales: 'AJ' };
+
+function Header({ titulo = 'Dashboard' }) {
+  return (
+    <header className="header">
+      <h1 className="header__titulo">{titulo}</h1>
+
+      <div className="header__usuario">
+        <div className="header__info">
+          <span className="header__avatar" aria-hidden="true">{USUARIO_MOCK.iniciales}</span>
+          <span className="header__nombre">{USUARIO_MOCK.nombre}</span>
+        </div>
+        <button className="header__btn-salir" aria-label="Cerrar sesión" title="Cerrar sesión">
+          <LogOut size={18} />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+export default Header;
