@@ -1,0 +1,36 @@
+/* Configuración de Colores Institucionales */
+:root {
+  --color-primary: #1A2B48;    /* Azul Marino */
+  --color-secondary: #FFFFFF;  /* Blanco */
+  --color-background: #F4F7F9; /* Gris Claro */
+  --color-accent: #26A69A;     /* Verde Azulado */
+  --color-warning: #FF9800;    /* Naranja */
+  --font-main: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-background);
+  color: var(--color-primary);
+  line-height: 1.6;
+}
+
+/* Estilo básico para botones primarios */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #2c4166;
+}
