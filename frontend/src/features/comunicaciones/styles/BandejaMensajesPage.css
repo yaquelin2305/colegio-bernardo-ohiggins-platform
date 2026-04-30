@@ -16,7 +16,7 @@
 
 .bandeja__subtitulo {
   font-size: 0.88rem;
-  color: #666;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -36,7 +36,7 @@
   transition: background-color 0.2s, transform 0.1s;
 }
 
-.bandeja__btn-redactar:hover  { background-color: #253d65; }
+.bandeja__btn-redactar:hover  { background-color: var(--color-primary-dark); }
 .bandeja__btn-redactar:active { transform: scale(0.98); }
 
 /* ── Lista de mensajes ────────────────────────────── */
@@ -82,7 +82,7 @@
 }
 
 .bandeja__icono--alerta { color: var(--color-accent); }
-.bandeja__icono--leido  { color: #aab4c0; }
+.bandeja__icono--leido  { color: var(--color-text-secondary); }
 
 /* ── Contenido ────────────────────────────────────── */
 .bandeja__contenido {
@@ -108,7 +108,7 @@
 
 .bandeja__tarjeta--leido .bandeja__remitente {
   font-weight: 500;
-  color: #667080;
+  color: var(--color-text-secondary);
 }
 
 .bandeja__asunto {
@@ -121,7 +121,7 @@
 
 .bandeja__tarjeta--leido .bandeja__asunto {
   font-weight: 400;
-  color: #7a8a99;
+  color: var(--color-text-secondary);
 }
 
 .bandeja__tarjeta--no-leido .bandeja__asunto {
@@ -158,7 +158,7 @@
 /* ── Fecha ────────────────────────────────────────── */
 .bandeja__fecha {
   font-size: 0.78rem;
-  color: #999;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
   align-self: flex-start;
