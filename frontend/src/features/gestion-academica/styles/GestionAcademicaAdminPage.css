@@ -1,0 +1,136 @@
+.gestion-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.gestion-admin__seccion {
+  background-color: var(--color-secondary);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.gestion-admin__titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1.25rem;
+}
+
+.gestion-admin__formulario {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.gestion-admin__campos {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.gestion-admin__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 180px;
+}
+
+.gestion-admin__label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.gestion-admin__input {
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #d1d9e0;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  transition: border-color 0.2s;
+}
+
+.gestion-admin__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.gestion-admin__input--anio {
+  max-width: 140px;
+}
+
+.gestion-admin__btn-agregar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  background-color: var(--color-accent);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.gestion-admin__btn-agregar:hover {
+  opacity: 0.88;
+}
+
+.gestion-admin__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.gestion-admin__tabla thead {
+  background-color: var(--color-background);
+}
+
+.gestion-admin__tabla th {
+  padding: 0.65rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #e4eaf0;
+}
+
+.gestion-admin__tabla td {
+  padding: 0.75rem 1rem;
+  color: var(--color-primary);
+  border-bottom: 1px solid #f0f3f6;
+}
+
+.gestion-admin__btn-eliminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  background: none;
+  border: 1.5px solid var(--color-warning);
+  border-radius: 6px;
+  color: var(--color-warning);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.gestion-admin__btn-eliminar:hover {
+  background-color: #fff3e0;
+}

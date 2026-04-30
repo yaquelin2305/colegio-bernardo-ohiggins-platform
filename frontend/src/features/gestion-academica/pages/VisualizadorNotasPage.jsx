@@ -1,4 +1,4 @@
-import { TrendingUp, CalendarCheck, UserCircle, MessageSquare } from 'lucide-react';
+import { TrendingUp, CalendarCheck, UserCircle } from 'lucide-react';
 import MainLayout from '../../../shared/components/layout/MainLayout';
 import '../styles/VisualizadorNotasPage.css';
 
@@ -6,7 +6,6 @@ const alumno = null;
 
 const asignaturas = [];
 
-const observaciones = '';
 
 function clasificarNota(nota) {
   if (nota >= 6.0) return 'celda-nota--alta';
@@ -95,15 +94,6 @@ function VisualizadorNotasPage() {
               ))}
             </tbody>
           </table>
-        </section>
-
-        {/* ── Observaciones ── */}
-        <section className="boletin__observaciones" aria-label="Comentarios del profesor jefe">
-          <h3 className="boletin__seccion-titulo">
-            <MessageSquare size={17} aria-hidden="true" />
-            Comentarios del Profesor Jefe
-          </h3>
-          <p className="boletin__observaciones-texto">{observaciones}</p>
         </section>
 
       </div>
