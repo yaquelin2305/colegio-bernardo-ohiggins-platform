@@ -1,12 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, CalendarCheck, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CalendarCheck, MessageSquare, Settings, ClipboardList } from 'lucide-react';
 import '../../styles/Sidebar.css';
 
 const navLinks = [
-  { to: '/dashboard',      label: 'Dashboard',      icono: <LayoutDashboard size={18} /> },
-  { to: '/calificaciones', label: 'Calificaciones', icono: <BookOpen size={18} /> },
-  { to: '/asistencia',     label: 'Asistencia',     icono: <CalendarCheck size={18} /> },
-  { to: '/comunicaciones', label: 'Comunicaciones', icono: <MessageSquare size={18} /> },
+  { to: '/dashboard',               label: 'Dashboard',      icono: <LayoutDashboard size={18} /> },
+  { to: '/calificaciones',          label: 'Calificaciones',    icono: <BookOpen size={18} /> },
+  { to: '/mis-calificaciones',      label: 'Mis Calificaciones', icono: <ClipboardList size={18} /> },
+  { to: '/asistencia',              label: 'Asistencia',     icono: <CalendarCheck size={18} /> },
+  { to: '/comunicaciones',          label: 'Comunicaciones', icono: <MessageSquare size={18} /> },
+  { to: '/admin/gestion-academica', label: 'Administración', icono: <Settings size={18} /> },
 ];
 
 function Sidebar() {
