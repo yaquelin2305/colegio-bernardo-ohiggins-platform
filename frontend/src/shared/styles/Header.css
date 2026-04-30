@@ -1,0 +1,67 @@
+.header {
+  height: 64px;
+  background-color: var(--color-secondary);
+  border-bottom: 1px solid rgba(26, 43, 72, 0.1);
+  box-shadow: 0 1px 6px rgba(26, 43, 72, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  flex-shrink: 0;
+}
+
+.header__titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.header__usuario {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header__info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.header__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.header__nombre {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.header__btn-salir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(26, 43, 72, 0.5);
+  padding: 0.4rem;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.header__btn-salir:hover {
+  color: var(--color-warning);
+  background-color: rgba(255, 152, 0, 0.08);
+}
