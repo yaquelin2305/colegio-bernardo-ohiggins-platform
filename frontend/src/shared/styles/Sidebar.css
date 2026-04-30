@@ -1,0 +1,63 @@
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar__marca {
+  padding: 1.75rem 1.5rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar__marca-titulo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+  letter-spacing: 0.05em;
+}
+
+.sidebar__marca-subtitulo {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.25rem 0.75rem;
+  flex: 1;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: var(--font-main);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.sidebar__link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-secondary);
+}
+
+.sidebar__link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--color-secondary);
+  border-left-color: var(--color-accent);
+  font-weight: 600;
+}
