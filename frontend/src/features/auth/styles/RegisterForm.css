@@ -19,7 +19,7 @@
 .register-form__subtitulo {
   text-align: center;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 1.75rem;
 }
 
@@ -44,9 +44,9 @@
 .register-form__input-wrapper {
   display: flex;
   align-items: center;
-  border: 1.5px solid #dde3ec;
+  border: 1.5px solid var(--color-border);
   border-radius: 8px;
-  background-color: #fafbfc;
+  background-color: var(--color-background);
   transition: border-color 0.2s;
   overflow: hidden;
 }
@@ -83,7 +83,7 @@
 }
 
 .register-form__select option[value=""] {
-  color: #999;
+  color: var(--color-text-secondary);
 }
 
 .register-form__error {
@@ -129,7 +129,7 @@
 }
 
 .register-form__btn:hover:not(:disabled) {
-  background-color: #2c4166;
+  background-color: var(--color-primary-dark);
 }
 
 .register-form__btn:disabled {

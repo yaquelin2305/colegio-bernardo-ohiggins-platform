@@ -52,7 +52,7 @@
 
 .gestion-admin__input {
   padding: 0.55rem 0.75rem;
-  border: 1.5px solid #d1d9e0;
+  border: 1.5px solid var(--color-border);
   border-radius: 8px;
   font-family: var(--font-main);
   font-size: 0.9rem;
@@ -109,13 +109,13 @@
   color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-bottom: 2px solid #e4eaf0;
+  border-bottom: 2px solid var(--color-border-light);
 }
 
 .gestion-admin__tabla td {
   padding: 0.75rem 1rem;
   color: var(--color-primary);
-  border-bottom: 1px solid #f0f3f6;
+  border-bottom: 1px solid var(--color-bg-row-hover);
 }
 
 .gestion-admin__btn-eliminar {
@@ -132,5 +132,5 @@
 }
 
 .gestion-admin__btn-eliminar:hover {
-  background-color: #fff3e0;
+  background-color: rgba(255, 152, 0, 0.08);
 }

@@ -55,7 +55,7 @@
 .redactar__select,
 .redactar__input {
   padding: 10px 13px;
-  border: 1px solid #dce3ea;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   font-family: var(--font-main);
   font-size: 0.9rem;
@@ -74,7 +74,7 @@
 
 .redactar__textarea {
   padding: 12px 13px;
-  border: 1px solid #dce3ea;
+  border: 1px solid var(--color-border);
   border-radius: 7px;
   font-family: var(--font-main);
   font-size: 0.9rem;
@@ -105,7 +105,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 13px 16px;
-  border: 1px solid #dce3ea;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s;
@@ -139,7 +139,7 @@
 
 .redactar__canal-desc {
   font-size: 0.78rem;
-  color: #777;
+  color: var(--color-text-secondary);
 }
 
 /* ── Botón enviar ─────────────────────────────────── */
@@ -165,7 +165,7 @@
   transition: background-color 0.2s, transform 0.1s;
 }
 
-.redactar__btn-enviar:hover  { background-color: #253d65; }
+.redactar__btn-enviar:hover  { background-color: var(--color-primary-dark); }
 .redactar__btn-enviar:active { transform: scale(0.98); }
 
 /* ── Responsive ───────────────────────────────────── */

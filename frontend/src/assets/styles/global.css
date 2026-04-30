@@ -1,10 +1,15 @@
 /* Configuración de Colores Institucionales */
 :root {
-  --color-primary: #1A2B48;    /* Azul Marino */
-  --color-secondary: #FFFFFF;  /* Blanco */
-  --color-background: #F4F7F9; /* Gris Claro */
-  --color-accent: #26A69A;     /* Verde Azulado */
-  --color-warning: #FF9800;    /* Naranja */
+  --color-primary:          #1A2B48; /* Azul Marino */
+  --color-primary-dark:     #253d65; /* Hover de botones primarios */
+  --color-secondary:        #FFFFFF; /* Blanco */
+  --color-background:       #F4F7F9; /* Gris Claro */
+  --color-accent:           #26A69A; /* Verde Azulado */
+  --color-warning:          #FF9800; /* Naranja */
+  --color-text-secondary:   #666666; /* Textos de apoyo, fechas, subtítulos */
+  --color-border:           #dce3ea; /* Bordes de inputs, tablas */
+  --color-border-light:     #edf0f4; /* Separadores entre filas */
+  --color-bg-row-hover:     #f0f4f8; /* Fondo hover de filas de tabla */
   --font-main: 'Inter', system-ui, sans-serif;
 }
 
@@ -19,18 +24,4 @@ body {
   background-color: var(--color-background);
   color: var(--color-primary);
   line-height: 1.6;
-}
-
-/* Estilo básico para botones primarios */
-.btn-primary {
-  background-color: var(--color-primary);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background-color: #2c4166;
 }
