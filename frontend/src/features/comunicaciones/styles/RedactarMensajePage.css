@@ -1,0 +1,175 @@
+.redactar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  max-width: 760px;
+}
+
+/* ── Botón volver ─────────────────────────────────── */
+.redactar__volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s;
+}
+
+.redactar__volver:hover { opacity: 1; }
+
+/* ── Tarjeta formulario ───────────────────────────── */
+.redactar__tarjeta {
+  background-color: var(--color-secondary);
+  border-radius: 14px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 4px 20px rgba(26, 43, 72, 0.07);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── Campos ───────────────────────────────────────── */
+.redactar__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.redactar__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.redactar__select,
+.redactar__input {
+  padding: 10px 13px;
+  border: 1px solid #dce3ea;
+  border-radius: 7px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.redactar__select:focus,
+.redactar__input:focus {
+  border-color: var(--color-accent);
+  background-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+.redactar__textarea {
+  padding: 12px 13px;
+  border: 1px solid #dce3ea;
+  border-radius: 7px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  resize: vertical;
+  min-height: 160px;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.redactar__textarea:focus {
+  border-color: var(--color-accent);
+  background-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+/* ── Canal de envío (Strategy) ────────────────────── */
+.redactar__canales {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.redactar__canal-opcion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 13px 16px;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+  background-color: var(--color-background);
+}
+
+.redactar__canal-opcion:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(38, 166, 154, 0.04);
+}
+
+.redactar__canal-opcion--activo {
+  border-color: var(--color-accent);
+  background-color: rgba(38, 166, 154, 0.07);
+  box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
+}
+
+.redactar__radio-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.redactar__canal-nombre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.redactar__canal-desc {
+  font-size: 0.78rem;
+  color: #777;
+}
+
+/* ── Botón enviar ─────────────────────────────────── */
+.redactar__acciones {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.redactar__btn-enviar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.redactar__btn-enviar:hover  { background-color: #253d65; }
+.redactar__btn-enviar:active { transform: scale(0.98); }
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 600px) {
+  .redactar { padding: 16px; max-width: 100%; }
+  .redactar__tarjeta { padding: 1.25rem; }
+}
