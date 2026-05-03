@@ -118,24 +118,18 @@ Flujo completo de una petición desde el cliente hasta la base de datos:
 Cliente / Frontend
         │
         ▼
-   ┌──────────────┐
-   │  MS-Usuario   │  ← POST /api/v1/auth/login → JWT con claims de rol
-   │  (port 8083)  │
-   └──────┬───────┘
-          │  JWT (firmado HMAC-SHA256)
-          ▼
-   ┌──────────────┐
-   │  API Gateway  │  ← Valida JWT, enruta a ms-academico, Circuit Breaker
-   │  (port 8080)  │
-   └──────┬───────┘
-          │  HTTP / Service Discovery (Eureka)
-          ▼
-   ┌──────────────┐
-   │     BFF       │  ← Orquesta múltiples MSs (pendiente de implementar)
-   │  (port 8090)  │
-   └──────┬───────┘
-          │  HTTP → ms-academico
-          ▼
+  ┌──────────────┐
+  │  API Gateway  │  ← Valida JWT, enruta a ms-academico
+  │  (port 8080)  │
+  └──────┬───────┘
+         │  HTTP / Service Discovery (Eureka)
+         ▼
+  ┌──────────────┐
+  │     BFF       │  ← Orquesta múltiples MSs (opcional)
+  │  (port 8090)  │
+  └──────┬───────┘
+         │  HTTP → ms-academico
+         ▼
   ┌──────────────────────────────────────────┐
   │            MS-ACADÉMICO (port 8082)       │
   │                                           │
