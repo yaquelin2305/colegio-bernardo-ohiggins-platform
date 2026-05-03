@@ -4,13 +4,15 @@ import cl.duoc.colegio.academico.infrastructure.adapter.out.persistence.entity.G
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
- * Repositorio Spring Data JPA para GradeEntity.
+ * Repositorio Spring Data JPA para GradeEntity (calificaciones).
  */
 public interface GradeJpaRepository extends JpaRepository<GradeEntity, Long> {
 
-    List<GradeEntity> findByStudentId(Long studentId);
+    List<GradeEntity> findByUsuarioUuid(UUID usuarioUuid);
 
-    List<GradeEntity> findByStudentIdAndAsignatura(Long studentId, String asignatura);
+    Optional<GradeEntity> findByUsuarioUuidAndAsignaturaId(UUID usuarioUuid, Long asignaturaId);
 }
