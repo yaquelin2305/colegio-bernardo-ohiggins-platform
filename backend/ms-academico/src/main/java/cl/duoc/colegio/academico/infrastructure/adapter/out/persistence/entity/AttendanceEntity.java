@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Entidad JPA — Registro de asistencia en base de datos.
  */
 @Entity
-@Table(name = "asistencias")
+@Table(name = "asistencias", schema = "academico_schema")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
@@ -19,11 +20,17 @@ public class AttendanceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "student_id", nullable = false)
-    private Long studentId;
+    /**
+     * Referencia lógica al UUID del usuario/estudiante en MS-Usuario.
+     */
+    @Column(name = "usuario_uuid", nullable = false, columnDefinition = "uuid")
+    private UUID usuarioUuid;
 
-    @Column(nullable = false, length = 100)
-    private String asignatura;
+    /**
+     * FK lógica a academico_schema.asignaturas.id
+     */
+    @Column(name = "asignatura_id", nullable = false)
+    private Long asignaturaId;
 
     @Column(nullable = false)
     private LocalDate fecha;

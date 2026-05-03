@@ -2,7 +2,9 @@ package cl.duoc.colegio.usuario.infrastructure.adapter.out.security;
 
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.AuthorizationStrategy;
+import cl.duoc.colegio.usuario.domain.model.RefreshToken;
 import cl.duoc.colegio.usuario.domain.model.Usuario;
+import cl.duoc.colegio.usuario.domain.port.out.RefreshTokenRepositoryPort;
 import cl.duoc.colegio.usuario.domain.port.out.TokenGeneratorPort;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -12,64 +14,94 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Adaptador de salida: Generación y validación de JWT.
  *
- * Genera tokens con claims personalizados según el rol del usuario.
- * El API Gateway usa estos claims para autorizar sin consultar este MS.
+ * ACCESS TOKEN (24h):
+ *   sub  = RUT del usuario (identificador de negocio, no técnico)
+ *   rol  = ADMIN | DOCENTE | ESTUDIANTE | APODERADO
+ *   userId = UUID interno (para correlación interna entre MSs)
+ *   nombre = nombre completo
+ *   + claims específicos del rol via Strategy
  *
- * Claims incluidos:
- * - sub: email del usuario
- * - rol: DOCENTE | APODERADO | ESTUDIANTE | ADMIN
- * - nombre: nombre completo
- * - permisos: recursos accesibles
- * - Claims específicos del rol (pupiloId, estudianteId, perfilId, etc.)
+ * REFRESH TOKEN (7 días):
+ *   Token opaco UUID v4 persistido en users_schema.refresh_tokens.
+ *   Se rota en cada uso (one-time use).
  */
 @Component
 public class JwtTokenAdapter implements TokenGeneratorPort {
 
     private static final Logger log = LoggerFactory.getLogger(JwtTokenAdapter.class);
 
-    private static final long EXPIRACION_MS = 86_400_000L; // 24 horas
+    private static final long ACCESS_TOKEN_TTL_MS   = 86_400_000L;        // 24 horas
+    private static final long REFRESH_TOKEN_TTL_DAYS = 7L;
 
     private final Key secretKey;
     private final UserStrategyFactory strategyFactory;
+    private final RefreshTokenRepositoryPort refreshTokenRepository;
 
     public JwtTokenAdapter(
             @Value("${jwt.secret:colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret}")
             String secret,
-            UserStrategyFactory strategyFactory) {
+            UserStrategyFactory strategyFactory,
+            RefreshTokenRepositoryPort refreshTokenRepository) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.strategyFactory = strategyFactory;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
+
+    // ── Access Token ──────────────────────────────────────────────────────────
 
     @Override
     public String generarToken(Usuario usuario) {
-        // Obtener claims adicionales según el rol via Strategy
         AuthorizationStrategy strategy = strategyFactory.crear(usuario.getRol());
         Map<String, Object> claimsAdicionales = strategy.generarClaimsAdicionales(usuario);
 
         long ahora = System.currentTimeMillis();
 
         JwtBuilder builder = Jwts.builder()
-                .setSubject(usuario.getEmail())
+                // FIX CRÍTICO: sub = RUT (identificador de negocio, no email)
+                .setSubject(usuario.getRut())
                 .setIssuedAt(new Date(ahora))
-                .setExpiration(new Date(ahora + EXPIRACION_MS))
+                .setExpiration(new Date(ahora + ACCESS_TOKEN_TTL_MS))
                 .setIssuer("ms-usuario")
+                // userId en claim separado para correlación interna entre MSs
                 .claim("userId", usuario.getId().toString())
+                .claim("email", usuario.getEmail())
                 .claim("nombre", usuario.getNombreCompleto())
-                .claim("rol", usuario.getRol().name());
+                // Claim "role" (singular) — consistente con lo que lee el Gateway
+                .claim("role", usuario.getRol().name());
 
-        // Añadir claims específicos del rol (pupiloId, estudianteId, etc.)
         claimsAdicionales.forEach(builder::claim);
 
         return builder
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    // ── Refresh Token ─────────────────────────────────────────────────────────
+
+    @Override
+    public String generarRefreshToken(Usuario usuario) {
+        // Invalidar tokens anteriores del usuario (previene acumulación)
+        refreshTokenRepository.revocarTodosPorUsuario(usuario.getId());
+
+        String tokenValue = UUID.randomUUID().toString();
+        LocalDateTime expiracion = LocalDateTime.now().plusDays(REFRESH_TOKEN_TTL_DAYS);
+
+        RefreshToken refreshToken = new RefreshToken(tokenValue, usuario.getId(), expiracion);
+        refreshTokenRepository.guardar(refreshToken);
+
+        log.debug("[AUTH] Refresh token generado para usuario: {}", usuario.getRut());
+        return tokenValue;
+    }
+
+    // ── Validación ─────────────────────────────────────────────────────────────
 
     @Override
     public boolean validarToken(String token) {
@@ -92,12 +124,12 @@ public class JwtTokenAdapter implements TokenGeneratorPort {
     }
 
     @Override
-    public String extraerEmail(String token) {
+    public String extraerRut(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject();
+                .getSubject(); // sub = RUT
     }
 }

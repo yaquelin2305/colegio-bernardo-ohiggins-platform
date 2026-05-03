@@ -1,0 +1,23 @@
+# ── IDE ──────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.code-workspace
+
+# ── Maven ────────────────────────────────────────────
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ── Spring Boot ──────────────────────────────────────
+**/application-local.yml
+**/application-local.properties
+
+# ── OS ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────
+*.log
+logs/

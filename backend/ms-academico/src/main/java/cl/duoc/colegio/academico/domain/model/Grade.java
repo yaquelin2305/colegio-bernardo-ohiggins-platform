@@ -1,39 +1,42 @@
 package cl.duoc.colegio.academico.domain.model;
 
-import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Entidad de dominio: Nota académica.
+ * Entidad de dominio: Calificación académica.
+ *
+ * Modelo flexible: una instancia = una nota con tipo (PRUEBA, TAREA, EXAMEN, TRABAJO).
+ * El GradeContractMapper agrupa N notas → {nota_1, nota_2, nota_3, promedio}
+ * para satisfacer el contrato PUT /calificaciones/guardar.
+ *
  * Escala chilena: 1.0 a 7.0
  */
 public class Grade {
 
     private final Long id;
-    private final Long studentId;
-    private final String asignatura;
+    private final UUID usuarioUuid;   // Referencia lógica al MS-Usuario
+    private final Long asignaturaId;  // FK lógica a Asignatura
     private final double nota;
-    private final String tipo;       // PRUEBA, TAREA, EXAMEN, TRABAJO
-    private final LocalDate fecha;
+    private final String tipo;        // PRUEBA, TAREA, EXAMEN, TRABAJO
     private final String descripcion;
 
-    public Grade(Long id, Long studentId, String asignatura, double nota,
-                 String tipo, LocalDate fecha, String descripcion) {
+    public Grade(Long id, UUID usuarioUuid, Long asignaturaId,
+                 double nota, String tipo, String descripcion) {
         this.id = id;
-        this.studentId = Objects.requireNonNull(studentId, "studentId no puede ser nulo");
-        this.asignatura = Objects.requireNonNull(asignatura, "Asignatura no puede ser nula");
+        this.usuarioUuid = Objects.requireNonNull(usuarioUuid, "usuarioUuid no puede ser nulo");
+        this.asignaturaId = Objects.requireNonNull(asignaturaId, "asignaturaId no puede ser nulo");
         this.tipo = Objects.requireNonNull(tipo, "Tipo no puede ser nulo");
-        this.fecha = Objects.requireNonNull(fecha, "Fecha no puede ser nula");
         this.descripcion = descripcion;
         this.nota = validarNota(nota);
     }
 
-    // ===== LÓGICA DE NEGOCIO =====
+    // ── Lógica de negocio ──────────────────────────────────────────────────────
 
     private double validarNota(double nota) {
         if (nota < 1.0 || nota > 7.0) {
             throw new IllegalArgumentException(
-                "Nota inválida: " + nota + ". Debe estar entre 1.0 y 7.0");
+                "Nota inválida: " + nota + ". Debe estar entre 1.0 y 7.0 (escala chilena)");
         }
         return nota;
     }
@@ -42,12 +45,11 @@ public class Grade {
         return nota >= 4.0;
     }
 
-    // ===== GETTERS =====
-    public Long getId() { return id; }
-    public Long getStudentId() { return studentId; }
-    public String getAsignatura() { return asignatura; }
-    public double getNota() { return nota; }
-    public String getTipo() { return tipo; }
-    public LocalDate getFecha() { return fecha; }
+    // ── Getters ────────────────────────────────────────────────────────────────
+    public Long getId()            { return id; }
+    public UUID getUsuarioUuid()   { return usuarioUuid; }
+    public Long getAsignaturaId()  { return asignaturaId; }
+    public double getNota()        { return nota; }
+    public String getTipo()        { return tipo; }
     public String getDescripcion() { return descripcion; }
 }

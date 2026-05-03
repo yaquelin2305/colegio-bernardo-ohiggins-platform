@@ -12,14 +12,20 @@ import java.util.UUID;
  * mapea entre la BD y el modelo de dominio.
  */
 @Entity
-@Table(name = "usuarios", schema = "public",
-        uniqueConstraints = @UniqueConstraint(columnNames = "email"))
+@Table(name = "usuarios", schema = "users_schema",
+        uniqueConstraints = {
+            @UniqueConstraint(columnNames = "email"),
+            @UniqueConstraint(columnNames = "rut")
+        })
 public class UsuarioEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid")
     private UUID id;
+
+    @Column(nullable = false, unique = true, length = 12)
+    private String rut;
 
     @Column(nullable = false, unique = true, length = 255)
     private String email;
@@ -62,6 +68,8 @@ public class UsuarioEntity {
     // Getters y setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+    public String getRut() { return rut; }
+    public void setRut(String rut) { this.rut = rut; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPasswordHash() { return passwordHash; }
