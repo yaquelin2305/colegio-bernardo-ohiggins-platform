@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Caso de Uso: Registro de nuevo usuario.
+ * Caso de Uso: Registro de nuevo usuario (POST /admin/crear).
  *
- * 1. Verifica que el email no esté registrado.
+ * 1. Verifica unicidad de RUT y email.
  * 2. Hashea la contraseña.
  * 3. Crea y persiste el usuario.
  * 4. Resuelve permisos via Strategy.
@@ -44,16 +44,22 @@ public class RegistroUseCaseImpl implements RegistroUseCase {
     @Override
     @Transactional
     public AuthResponseDto registrar(RegistroRequestDto request) {
-        // 1. Verificar unicidad del email
+        // 1. Verificar unicidad de RUT
+        if (repositoryPort.existePorRut(request.rut())) {
+            throw new EmailYaRegistradoException("RUT ya registrado: " + request.rut());
+        }
+
+        // 2. Verificar unicidad de email
         if (repositoryPort.existePorEmail(request.email())) {
             throw new EmailYaRegistradoException(request.email());
         }
 
-        // 2. Hashear contraseña
+        // 3. Hashear contraseña
         String passwordHash = passwordEncoderPort.encodear(request.password());
 
-        // 3. Crear entidad de dominio
+        // 4. Crear entidad de dominio con RUT
         Usuario nuevoUsuario = new Usuario(
+                request.rut(),
                 request.email(),
                 passwordHash,
                 request.rol(),
@@ -61,19 +67,19 @@ public class RegistroUseCaseImpl implements RegistroUseCase {
                 request.apellido()
         );
 
-        // 4. Asociar perfil si viene en el request
+        // 5. Asociar perfil si viene en el request
         if (request.perfilId() != null) {
             nuevoUsuario.asociarPerfil(request.perfilId());
         }
 
-        // 5. Persistir
+        // 6. Persistir
         Usuario guardado = repositoryPort.guardar(nuevoUsuario);
 
-        // 6. Strategy para permisos
+        // 7. Strategy para permisos
         AuthorizationStrategy strategy = strategyFactory.crear(guardado.getRol());
         Permisos permisos = strategy.resolverPermisos(guardado);
 
-        // 7. Generar token de sesión automática
+        // 8. Generar token de sesión automática
         String token = tokenGeneratorPort.generarToken(guardado);
 
         return AuthResponseDto.of(

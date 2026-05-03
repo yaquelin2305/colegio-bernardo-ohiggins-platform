@@ -18,19 +18,19 @@ import org.springframework.stereotype.Service;
 /**
  * Caso de Uso: Login de usuario.
  *
- * Orquesta la autenticación completa:
- * 1. Busca el usuario por email.
+ * 1. Busca el usuario por RUT.
  * 2. Verifica que esté activo.
  * 3. Verifica las credenciales.
  * 4. Usa el Factory para obtener la Strategy del rol.
  * 5. Resuelve los permisos via Strategy.
- * 6. Genera el JWT con claims personalizados.
+ * 6. Genera access token (sub=RUT) + refresh token (UUID opaco).
  *
- * Este servicio NO conoce JPA, JWT concreto, ni BCrypt.
- * Trabaja SOLO con puertos (interfaces). Eso es Arquitectura Hexagonal.
+ * NO conoce JPA, JWT concreto ni BCrypt — solo trabaja con puertos.
  */
 @Service
 public class LoginUseCaseImpl implements LoginUseCase {
+
+    private static final long ACCESS_TTL_MS = 86_400_000L; // 24h
 
     private final UsuarioRepositoryPort repositoryPort;
     private final PasswordEncoderPort passwordEncoderPort;
@@ -49,14 +49,14 @@ public class LoginUseCaseImpl implements LoginUseCase {
 
     @Override
     public AuthResponseDto login(LoginRequestDto request) {
-        // 1. Buscar usuario — lanza excepción si no existe
+        // 1. Buscar por RUT
         Usuario usuario = repositoryPort
-                .buscarPorEmail(request.email())
-                .orElseThrow(() -> new UsuarioNoEncontradoException(request.email()));
+                .buscarPorRut(request.rut())
+                .orElseThrow(() -> new UsuarioNoEncontradoException(request.rut()));
 
-        // 2. Verificar que la cuenta esté activa
+        // 2. Cuenta activa
         if (!usuario.puedeAutenticarse()) {
-            throw new UsuarioInactivoException(request.email());
+            throw new UsuarioInactivoException(request.rut());
         }
 
         // 3. Verificar contraseña
@@ -64,22 +64,22 @@ public class LoginUseCaseImpl implements LoginUseCase {
             throw new CredencialesInvalidasException();
         }
 
-        // 4. Obtener Strategy según rol (Factory Method)
+        // 4. Strategy por rol
         AuthorizationStrategy strategy = strategyFactory.crear(usuario.getRol());
-
-        // 5. Resolver permisos via Strategy
         Permisos permisos = strategy.resolverPermisos(usuario);
 
-        // 6. Generar JWT con claims personalizados
-        String token = tokenGeneratorPort.generarToken(usuario);
+        // 5. Generar access token (sub=RUT) + refresh token (opaco, 7 días)
+        String accessToken  = tokenGeneratorPort.generarToken(usuario);
+        String refreshToken = tokenGeneratorPort.generarRefreshToken(usuario);
 
         return AuthResponseDto.of(
-                token,
-                usuario.getEmail(),
+                accessToken,
+                refreshToken,
+                usuario.getRut(),
                 usuario.getNombreCompleto(),
                 usuario.getRol().name(),
                 permisos.getRecursosPermitidos(),
-                System.currentTimeMillis() + 86400000L // 24 horas
+                System.currentTimeMillis() + ACCESS_TTL_MS
         );
     }
 }

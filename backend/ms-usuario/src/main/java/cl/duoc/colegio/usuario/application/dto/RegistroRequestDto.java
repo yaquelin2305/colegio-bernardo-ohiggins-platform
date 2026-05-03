@@ -4,12 +4,17 @@ import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO de entrada para el caso de uso de Registro.
+ * DTO de entrada para el caso de uso de Registro (POST /admin/crear).
  */
 public record RegistroRequestDto(
+
+        @NotBlank(message = "El RUT es obligatorio")
+        @Pattern(regexp = "^[0-9]{7,8}-[0-9Kk]$", message = "Formato de RUT inválido (ej: 12345678-9)")
+        String rut,
 
         @NotBlank(message = "El email es obligatorio")
         @Email(message = "El formato del email no es válido")

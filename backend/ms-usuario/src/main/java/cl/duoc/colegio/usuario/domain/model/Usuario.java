@@ -13,6 +13,7 @@ import java.util.UUID;
 public class Usuario {
 
     private UUID id;
+    private String rut;
     private String email;
     private String passwordHash;
     private RolUsuario rol;
@@ -25,8 +26,9 @@ public class Usuario {
     private LocalDateTime actualizadoEn;
 
     // Constructor para creación de nuevos usuarios
-    public Usuario(String email, String passwordHash, RolUsuario rol, String nombre, String apellido) {
+    public Usuario(String rut, String email, String passwordHash, RolUsuario rol, String nombre, String apellido) {
         this.id = UUID.randomUUID();
+        this.rut = rut;
         this.email = email;
         this.passwordHash = passwordHash;
         this.rol = rol;
@@ -38,10 +40,11 @@ public class Usuario {
     }
 
     // Constructor para reconstrucción desde persistencia
-    public Usuario(UUID id, String email, String passwordHash, RolUsuario rol,
+    public Usuario(UUID id, String rut, String email, String passwordHash, RolUsuario rol,
                    String nombre, String apellido, Long perfilId,
                    boolean activo, LocalDateTime creadoEn, LocalDateTime actualizadoEn) {
         this.id = id;
+        this.rut = rut;
         this.email = email;
         this.passwordHash = passwordHash;
         this.rol = rol;
@@ -81,6 +84,7 @@ public class Usuario {
     // ── Getters ────────────────────────────────────────────────────────────────
 
     public UUID getId() { return id; }
+    public String getRut() { return rut; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
     public RolUsuario getRol() { return rol; }
