@@ -1,13 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './core/context/AuthContext';
 import ProtectedRoute from './shared/components/layout/ProtectedRoute';
-import RegisterPage from './features/auth/pages/RegisterPage';
 import DashboardPage from './features/gestion-academica/pages/DashboardPage';
 import RegistroNotasPage from './features/gestion-academica/pages/RegistroNotasPage';
 import VisualizadorNotasPage from './features/gestion-academica/pages/VisualizadorNotasPage';
+import GestionAcademicaAdminPage from './features/gestion-academica/pages/GestionAcademicaAdminPage';
+import AsignacionDocentesPage from './features/gestion-academica/pages/AsignacionDocentesPage';
+import ListadoEstudiantesCursoPage from './features/gestion-academica/pages/ListadoEstudiantesCursoPage';
 import BandejaMensajesPage from './features/comunicaciones/pages/BandejaMensajesPage';
 import RedactarMensajePage from './features/comunicaciones/pages/RedactarMensajePage';
-import GestionAcademicaAdminPage from './features/gestion-academica/pages/GestionAcademicaAdminPage';
+import DetalleMensajePage from './features/comunicaciones/pages/DetalleMensajePage';
+import RegistroAnotacionesPage from './features/asistencia/pages/RegistroAnotacionesPage';
+import HistorialAsistenciaPage from './features/asistencia/pages/HistorialAsistenciaPage';
+import JustificacionInasistenciasPage from './features/asistencia/pages/JustificacionInasistenciasPage';
+import GestionUsuariosPage from './features/usuarios/pages/GestionUsuariosPage';
 
 function App() {
   return (
@@ -15,7 +21,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/registro" element={<RegisterPage />} />
 
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -35,21 +40,60 @@ function App() {
             </ProtectedRoute>
           } />
 
+          {/* ── Asistencia ── */}
+          <Route path="/asistencia" element={<Navigate to="/asistencia/anotaciones" replace />} />
+          <Route path="/asistencia/anotaciones" element={
+            <ProtectedRoute>
+              <RegistroAnotacionesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/asistencia/historial" element={
+            <ProtectedRoute>
+              <HistorialAsistenciaPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/asistencia/justificar" element={
+            <ProtectedRoute>
+              <JustificacionInasistenciasPage />
+            </ProtectedRoute>
+          } />
+
+          {/* ── Comunicaciones ── */}
           <Route path="/comunicaciones" element={
             <ProtectedRoute>
               <BandejaMensajesPage />
             </ProtectedRoute>
           } />
-
           <Route path="/comunicaciones/redactar" element={
             <ProtectedRoute>
               <RedactarMensajePage />
             </ProtectedRoute>
           } />
+          <Route path="/comunicaciones/:id" element={
+            <ProtectedRoute>
+              <DetalleMensajePage />
+            </ProtectedRoute>
+          } />
 
+          {/* ── Administración ── */}
           <Route path="/admin/gestion-academica" element={
             <ProtectedRoute>
               <GestionAcademicaAdminPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/asignacion-docentes" element={
+            <ProtectedRoute>
+              <AsignacionDocentesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/usuarios" element={
+            <ProtectedRoute>
+              <GestionUsuariosPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/cursos/:cursoId/estudiantes" element={
+            <ProtectedRoute>
+              <ListadoEstudiantesCursoPage />
             </ProtectedRoute>
           } />
         </Routes>
