@@ -12,12 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * POST /api/v1/matriculas/matricular
- *
- * Valida integridad referencial:
- *  - cursoId debe existir
- *  - El estudiante no debe estar ya matriculado en el mismo curso
+ * GET  /api/v1/matriculas/curso/{cursoId}/estudiantes
  */
 @RestController
 @RequestMapping("/api/v1/matriculas")
@@ -36,8 +36,6 @@ public class MatriculaController {
     @PostMapping("/matricular")
     @Operation(summary = "Matricular un estudiante en un curso")
     public ResponseEntity<Matricula> matricular(@Valid @RequestBody MatriculaRequest request) {
-
-        // ── Integridad referencial ────────────────────────────────────────────
         if (!cursoRepository.existePorId(request.getCursoId())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Curso no encontrado: id=" + request.getCursoId());
@@ -47,9 +45,35 @@ public class MatriculaController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "El estudiante ya está matriculado en este curso");
         }
-        // ─────────────────────────────────────────────────────────────────────
-
         Matricula nueva = new Matricula(null, request.getUsuarioUuid(), request.getCursoId());
         return ResponseEntity.status(HttpStatus.CREATED).body(matriculaRepository.guardar(nueva));
+    }
+
+    /**
+     * Lista los UUIDs de los estudiantes matriculados en un curso.
+     * Consumido por ListadoEstudiantesCursoPage del front.
+     *
+     * GET /api/v1/matriculas/curso/{cursoId}/estudiantes
+     */
+    @GetMapping("/curso/{cursoId}/estudiantes")
+    @Operation(summary = "Listar estudiantes matriculados en un curso")
+    public ResponseEntity<List<Map<String, Object>>> listarEstudiantesPorCurso(
+            @PathVariable Long cursoId) {
+
+        if (!cursoRepository.existePorId(cursoId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Curso no encontrado: id=" + cursoId);
+        }
+
+        List<Map<String, Object>> resultado = matriculaRepository.buscarPorCursoId(cursoId)
+                .stream()
+                .map(m -> Map.<String, Object>of(
+                        "matriculaId",  m.getId(),
+                        "usuarioUuid",  m.getUsuarioUuid().toString(),
+                        "cursoId",      m.getCursoId()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(resultado);
     }
 }

@@ -1,5 +1,6 @@
 package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest;
 
+import cl.duoc.colegio.usuario.application.dto.ActualizarUsuarioRequestDto;
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
 import cl.duoc.colegio.usuario.application.dto.RefreshRequestDto;
@@ -25,6 +26,7 @@ import java.util.UUID;
  * Adaptador de entrada: Controller REST del MS-Usuario.
  *
  * Rutas alineadas con el Contrato de API:
+ *  PUT    /api/v1/admin/actualizar/{id}   → Actualizar datos de usuario (solo ADMIN)
  *  POST   /api/v1/auth/login            → Autenticación pública (rut + password)
  *  POST   /api/v1/auth/refresh          → Renovar access token (pública)
  *  POST   /api/v1/auth/logout           → Revocar refresh token (pública)
@@ -115,6 +117,31 @@ public class AuthController {
                 ))
                 .toList();
         return ResponseEntity.ok(usuarios);
+    }
+
+    /**
+     * Actualizar usuario: nombre, apellido y email (RUT y rol son inmutables).
+     * Solo ADMIN — validado por RBAC en Gateway.
+     */
+    @PutMapping("/api/v1/admin/actualizar/{id}")
+    public ResponseEntity<Map<String, Object>> actualizar(
+            @PathVariable UUID id,
+            @Valid @RequestBody ActualizarUsuarioRequestDto request) {
+
+        Usuario usuario = repositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(id.toString()));
+
+        usuario.actualizar(request.nombre(), request.apellido(), request.email());
+        Usuario actualizado = repositoryPort.guardar(usuario);
+
+        return ResponseEntity.ok(Map.of(
+                "id",            actualizado.getId(),
+                "rut",           actualizado.getRut(),
+                "nombreCompleto", actualizado.getNombreCompleto(),
+                "email",         actualizado.getEmail(),
+                "rol",           actualizado.getRol().name(),
+                "activo",        actualizado.isActivo()
+        ));
     }
 
     /**

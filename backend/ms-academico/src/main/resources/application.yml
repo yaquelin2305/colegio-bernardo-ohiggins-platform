@@ -6,9 +6,9 @@ spring:
     name: ms-academico
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/academico_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${DB_USERNAME:colegio}
+    password: ${DB_PASSWORD:colegio123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5          # Green IT: pool pequeño, suficiente para el MS
@@ -68,3 +68,68 @@ logging:
     cl.duoc.colegio.academico: INFO
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
+
+---
+# =============================================
+# PERFIL: prod (docker-compose y Railway)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    hibernate:
+      ddl-auto: update      # crea/altera tablas si faltan — init-db.sql ya crea el schema
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: academico_schema
+
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.academico: WARN
+    org.hibernate.SQL: WARN
+
+---
+# =============================================
+# PERFIL: dev (local sin Eureka)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: academico_schema
+        format_sql: true
+
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.academico: DEBUG
+    org.hibernate.SQL: DEBUG

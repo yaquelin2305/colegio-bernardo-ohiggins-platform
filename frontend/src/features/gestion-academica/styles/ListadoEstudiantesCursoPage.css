@@ -1,0 +1,284 @@
+.listado-estudiantes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+/* ── Tarjeta info del curso ── */
+.listado-estudiantes__info-curso {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0;
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  overflow: hidden;
+}
+
+.listado-estudiantes__info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.1rem 1.5rem;
+  border-right: 1px solid var(--color-border-light);
+}
+
+.listado-estudiantes__info-item:last-child {
+  border-right: none;
+}
+
+.listado-estudiantes__info-item--accion {
+  justify-content: flex-end;
+  flex: 1;
+}
+
+/* ── Botón matricular ── */
+.listado-estudiantes__btn-matricular {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: var(--color-accent);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.listado-estudiantes__btn-matricular:hover  { opacity: 0.88; }
+.listado-estudiantes__btn-matricular:active { transform: scale(0.98); }
+
+/* ── Panel de matrícula ── */
+.listado-estudiantes__panel-matricula {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  border-left: 3px solid var(--color-accent);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  padding: 1.25rem 1.5rem;
+}
+
+.listado-estudiantes__panel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.listado-estudiantes__form-matricula {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.listado-estudiantes__form-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.listado-estudiantes__form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.listado-estudiantes__form-select {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.listado-estudiantes__form-select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+.listado-estudiantes__form-acciones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.listado-estudiantes__btn-guardar-matricula {
+  padding: 9px 20px;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.listado-estudiantes__btn-guardar-matricula:hover  { background-color: var(--color-primary-dark); }
+.listado-estudiantes__btn-guardar-matricula:active { transform: scale(0.98); }
+
+.listado-estudiantes__btn-cancelar-matricula {
+  padding: 9px 16px;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.listado-estudiantes__btn-cancelar-matricula:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.listado-estudiantes__sin-disponibles {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  padding: 0.5rem 0;
+}
+
+.listado-estudiantes__info-icono {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.listado-estudiantes__info-etiqueta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin-bottom: 3px;
+}
+
+.listado-estudiantes__info-valor {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ── Tabla ── */
+.listado-estudiantes__tabla-wrapper {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  overflow-x: auto;
+}
+
+.listado-estudiantes__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.listado-estudiantes__tabla thead tr {
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+.listado-estudiantes__tabla th {
+  padding: 13px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.listado-estudiantes__tabla tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.15s;
+}
+
+.listado-estudiantes__tabla tbody tr:last-child { border-bottom: none; }
+.listado-estudiantes__tabla tbody tr:hover { background-color: var(--color-bg-row-hover); }
+
+.listado-estudiantes__tabla td {
+  padding: 12px 16px;
+  color: var(--color-primary);
+}
+
+.listado-estudiantes__celda-rut {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.listado-estudiantes__celda-email {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Nota y asistencia ── */
+.listado-estudiantes__nota {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.listado-estudiantes__nota--alto  { color: var(--color-accent); }
+.listado-estudiantes__nota--medio { color: var(--color-primary); }
+.listado-estudiantes__nota--bajo  { color: var(--color-warning); }
+
+.listado-estudiantes__asistencia {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.listado-estudiantes__asistencia--ok      { color: var(--color-accent); }
+.listado-estudiantes__asistencia--critica { color: var(--color-warning); }
+
+/* ── No encontrado ── */
+.listado-estudiantes__no-encontrado {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.listado-estudiantes__btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.listado-estudiantes__btn-volver:hover {
+  border-color: var(--color-primary);
+}

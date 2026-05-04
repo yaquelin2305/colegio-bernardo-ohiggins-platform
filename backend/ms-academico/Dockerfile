@@ -1,41 +1,35 @@
 # ===== STAGE 1: BUILD =====
-# Imagen completa de Maven para compilar — no va a producción
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /app
 
-# Green IT: copiamos pom.xml primero para aprovechar cache de capas de Docker
-# Si el pom no cambia, las dependencias no se re-descargan
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
+RUN mvn dependency:go-offline -B -q
 
-# Ahora copiamos el código fuente
 COPY src ./src
-
-# Compilar y empaquetar, saltando tests (los tests se ejecutan en CI/CD por separado)
-RUN mvn package -DskipTests -q
+RUN mvn clean package -DskipTests -B -q
 
 # ===== STAGE 2: RUNTIME =====
-# Imagen mínima JRE — sin Maven, sin código fuente, sin herramientas innecesarias
-# Green IT: imagen ~180MB vs ~500MB con JDK completo
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Usuario no-root por seguridad
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=builder /app/target/ms-academico-1.0.0.jar app.jar
+RUN chown appuser:appgroup app.jar
+
 USER appuser
 
-# Copiar solo el JAR del stage de build
-COPY --from=builder /app/target/ms-academico-1.0.0.jar app.jar
-
-# Puerto que expone el microservicio
 EXPOSE 8082
 
-# JVM optimizada para contenedores (Green IT: límites de memoria explícitos)
+HEALTHCHECK --interval=10s --timeout=5s --retries=12 --start-period=90s \
+    CMD wget -qO- http://localhost:8082/actuator/health | grep -q '"status":"UP"' || exit 1
+
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \
   "-XX:+UseG1GC", \
+  "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod}", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-jar", "app.jar"]

@@ -1,92 +1,51 @@
 # =============================================================
 # DOCKER COMPOSE — Plataforma Colegio Bernardo O'Higgins
-# Levanta: PostgreSQL → MS-Académico → MS-Usuario → API Gateway
+#
+# Arquitectura: 1 PostgreSQL, 2 schemas lógicos separados
+#   users_schema     → MS-Usuario
+#   academico_schema → MS-Academico
+#
+# Orden de arranque (healthchecks garantizan la secuencia):
+#   postgres → ms-usuario + ms-academico → api-gateway → frontend
+#
+# Comandos:
+#   docker compose up --build    (primera vez o tras cambios de código)
+#   docker compose up -d         (modo daemon)
+#   docker compose down          (detener)
+#   docker compose down -v       (detener + borrar volumen BD)
+#   docker compose logs -f api-gateway
 # =============================================================
-# Uso:
-#   docker compose up --build       (primer arranque)
-#   docker compose up               (arranques siguientes)
-#   docker compose down             (detener)
-#   docker compose down -v          (detener + borrar BD)
 
 services:
 
   # ─────────────────────────────────────────────────────────
-  # 1. BASE DE DATOS — arranca primero
+  # ÚNICA BASE DE DATOS
+  # Una instancia, dos schemas: users_schema + academico_schema
+  # Puerto 5432 expuesto al host para DBeaver/TablePlus
   # ─────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: academico-db
+    container_name: colegio-db
     environment:
-      POSTGRES_DB: academico_db
-      POSTGRES_USER: academico
-      POSTGRES_PASSWORD: academico123
+      POSTGRES_DB: colegio_db
+      POSTGRES_USER: colegio
+      POSTGRES_PASSWORD: colegio123
     volumes:
-      # Crea las tablas al primer arranque
-      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-      # Persiste los datos entre reinicios (comentar si querés BD fresca siempre)
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U academico -d academico_db"]
+      test: ["CMD-SHELL", "pg_isready -U colegio -d colegio_db"]
       interval: 5s
       timeout: 5s
       retries: 10
     ports:
-      - "5432:5432"   # Expone la BD para conectarte con DBeaver/TablePlus
+      - "5432:5432"
+    networks:
+      - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # 2. BD EXCLUSIVA PARA MS-USUARIO (buenas prácticas: BD por MS)
-  # ─────────────────────────────────────────────────────────
-  postgres-usuario:
-    image: postgres:16-alpine
-    container_name: usuario-db
-    environment:
-      POSTGRES_DB: usuario_db
-      POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: usuario123
-    volumes:
-      - ./backend/ms-usuario/src/main/resources/db/init-usuario.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_usuario_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usuario -d usuario_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    ports:
-      - "5433:5432"   # Puerto diferente para no chocar con postgres principal
-
-  # ─────────────────────────────────────────────────────────
-  # 3. MS-ACADÉMICO
-  # ─────────────────────────────────────────────────────────
-  ms-academico:
-    build:
-      context: ./backend/ms-academico
-      dockerfile: Dockerfile
-    container_name: ms-academico
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/academico_db
-      DB_USERNAME: academico
-      DB_PASSWORD: academico123
-      SPRING_PROFILES_ACTIVE: dev
-      EUREKA_URL: http://localhost:8761/eureka
-      SPRING_CLOUD_DISCOVERY_ENABLED: "false"
-      EUREKA_CLIENT_ENABLED: "false"
-      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
-      EUREKA_CLIENT_FETCH-REGISTRY: "false"
-      SPRING_JPA_HIBERNATE_DDL-AUTO: validate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 90s
-    ports:
-      - "8082:8082"
-
-  # ─────────────────────────────────────────────────────────
-  # 4. MS-USUARIO — Auth y Autorización
+  # MS-USUARIO  (puerto 8083)
+  # Se conecta a users_schema dentro de colegio_db
   # ─────────────────────────────────────────────────────────
   ms-usuario:
     build:
@@ -94,31 +53,56 @@ services:
       dockerfile: Dockerfile
     container_name: ms-usuario
     environment:
-      DB_URL: jdbc:postgresql://postgres-usuario:5432/usuario_db
-      DB_USERNAME: usuario
-      DB_PASSWORD: usuario123
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      EUREKA_URL: http://localhost:8761/eureka
-      SPRING_CLOUD_DISCOVERY_ENABLED: "false"
-      EUREKA_CLIENT_ENABLED: "false"
-      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
-      EUREKA_CLIENT_FETCH-REGISTRY: "false"
-      SPRING_JPA_HIBERNATE_DDL-AUTO: update
     depends_on:
-      postgres-usuario:
+      postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 90s
     ports:
       - "8083:8083"
+    networks:
+      - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # 5. API GATEWAY — espera a que ms-academico y ms-usuario estén healthy
+  # MS-ACADÉMICO  (puerto 8082)
+  # Se conecta a academico_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-academico:
+    build:
+      context: ./backend/ms-academico
+      dockerfile: Dockerfile
+    container_name: ms-academico
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8082:8082"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # API GATEWAY  (puerto 8080)
+  # Espera a que ambos MSs estén healthy
   # ─────────────────────────────────────────────────────────
   api-gateway:
     build:
@@ -126,22 +110,47 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
-      SPRING_PROFILES_ACTIVE: dev,local
+      SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      ACADEMICO_URI: http://ms-academico:8082
-      USUARIO_URI: http://ms-usuario:8083
+      FRONTEND_URL: http://localhost:3000
     depends_on:
-      ms-academico:
-        condition: service_healthy
       ms-usuario:
         condition: service_healthy
+      ms-academico:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
     ports:
       - "8080:8080"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # FRONTEND React/Vite → Nginx  (puerto 3000)
+  # ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    container_name: frontend
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - colegio-network
 
 volumes:
   postgres_data:
-  postgres_usuario_data:
 
 networks:
-  default:
+  colegio-network:
     name: colegio-network
+    driver: bridge

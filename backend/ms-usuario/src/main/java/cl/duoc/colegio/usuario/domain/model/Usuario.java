@@ -81,6 +81,16 @@ public class Usuario {
         this.actualizadoEn = LocalDateTime.now();
     }
 
+    /**
+     * Actualiza datos editables del usuario (no cambia RUT ni password aquí).
+     */
+    public void actualizar(String nombre, String apellido, String email) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.email = email;
+        this.actualizadoEn = LocalDateTime.now();
+    }
+
     // ── Getters ────────────────────────────────────────────────────────────────
 
     public UUID getId() { return id; }
