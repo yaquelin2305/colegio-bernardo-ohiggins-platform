@@ -1,0 +1,181 @@
+.registro-notas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+/* ── Filtros ──────────────────────────────────────── */
+.registro-notas__filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.registro-notas__filtro-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.registro-notas__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.registro-notas__select {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.registro-notas__select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+/* ── Tabla ────────────────────────────────────────── */
+.registro-notas__tabla-wrapper {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  overflow-x: auto;
+}
+
+.registro-notas__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.registro-notas__tabla thead tr {
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+.registro-notas__tabla th {
+  padding: 13px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.registro-notas__tabla tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.15s;
+}
+
+.registro-notas__tabla tbody tr:last-child {
+  border-bottom: none;
+}
+
+.registro-notas__tabla tbody tr:hover {
+  background-color: var(--color-bg-row-hover);
+}
+
+.registro-notas__tabla td {
+  padding: 11px 16px;
+  color: var(--color-primary);
+}
+
+.registro-notas__rut {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.registro-notas__nombre {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Inputs de nota ───────────────────────────────── */
+.registro-notas__celda-nota {
+  text-align: center;
+}
+
+.registro-notas__input-nota {
+  width: 72px;
+  padding: 7px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+}
+
+.registro-notas__input-nota::-webkit-inner-spin-button,
+.registro-notas__input-nota::-webkit-outer-spin-button {
+  opacity: 0.4;
+}
+
+.registro-notas__input-nota:focus {
+  border-color: var(--color-accent);
+  background-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+/* ── Promedio ─────────────────────────────────────── */
+.registro-notas__promedio {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.nota--alta  { color: var(--color-accent); }
+.nota--media { color: var(--color-primary); }
+.nota--baja  { color: var(--color-warning); }
+
+/* ── Acciones ─────────────────────────────────────── */
+.registro-notas__acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.registro-notas__btn-guardar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.registro-notas__btn-guardar:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.registro-notas__btn-guardar:active {
+  transform: scale(0.98);
+}

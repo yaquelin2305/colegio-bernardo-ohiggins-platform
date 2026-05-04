@@ -1,0 +1,64 @@
+.asistencia-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.asistencia-page__header {
+  margin-bottom: 2rem;
+}
+
+.asistencia-page__title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.asistencia-page__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-primary);
+  border-radius: 12px;
+  color: var(--color-secondary);
+}
+
+.asistencia-page__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.asistencia-page__subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.asistencia-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.asistencia-page__filters {
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .asistencia-page {
+    padding: 1rem;
+  }
+
+  .asistencia-page__title {
+    font-size: 1.5rem;
+  }
+
+  .asistencia-page__title-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}

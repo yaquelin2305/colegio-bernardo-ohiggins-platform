@@ -1,0 +1,98 @@
+.resumen-asistencia {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resumen-asistencia__card {
+  background-color: var(--color-secondary);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resumen-asistencia__card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resumen-asistencia__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.resumen-asistencia__icon--total {
+  background-color: rgba(26, 43, 72, 0.1);
+  color: var(--color-primary);
+}
+
+.resumen-asistencia__icon--presente {
+  background-color: rgba(38, 166, 154, 0.15);
+  color: var(--color-accent);
+}
+
+.resumen-asistencia__icon--ausente {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.resumen-asistencia__icon--porcentaje {
+  background-color: rgba(38, 166, 154, 0.15);
+  color: var(--color-accent);
+}
+
+.resumen-asistencia__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-asistencia__label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.resumen-asistencia__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.resumen-asistencia__value--presente {
+  color: var(--color-accent);
+}
+
+.resumen-asistencia__value--ausente {
+  color: var(--color-warning);
+}
+
+@media (max-width: 1024px) {
+  .resumen-asistencia {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .resumen-asistencia {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-asistencia__card {
+    padding: 1rem;
+  }
+
+  .resumen-asistencia__value {
+    font-size: 1.25rem;
+  }
+}

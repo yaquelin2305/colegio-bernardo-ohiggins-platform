@@ -1,0 +1,332 @@
+.gestion-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+.gestion-usuarios__contenido {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .gestion-usuarios__contenido { grid-template-columns: 1fr; }
+}
+
+.gestion-usuarios__seccion--formulario {
+  position: sticky;
+  top: 24px;
+}
+
+/* ── Tabs ── */
+.gestion-usuarios__tabs {
+  display: flex;
+  gap: 4px;
+  background-color: var(--color-background);
+  border-radius: 8px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.gestion-usuarios__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.gestion-usuarios__tab:hover {
+  color: var(--color-primary);
+  background-color: rgba(26, 43, 72, 0.06);
+}
+
+.gestion-usuarios__tab--activa {
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(26, 43, 72, 0.12);
+}
+
+/* ── Sección ── */
+.gestion-usuarios__seccion {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  padding: 1.75rem;
+}
+
+.gestion-usuarios__titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1.25rem;
+}
+
+.gestion-usuarios__conteo {
+  margin-left: auto;
+  background-color: var(--color-background);
+  color: var(--color-text-secondary);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.gestion-usuarios__celda-apoderado {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Formulario ── */
+.gestion-usuarios__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.gestion-usuarios__campos {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gestion-usuarios__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.gestion-usuarios__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gestion-usuarios__input {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-background);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.gestion-usuarios__input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+  background-color: var(--color-secondary);
+}
+
+.gestion-usuarios__acciones-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.gestion-usuarios__btn-guardar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  background-color: var(--color-accent);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.gestion-usuarios__btn-guardar:hover  { opacity: 0.88; }
+.gestion-usuarios__btn-guardar:active { transform: scale(0.98); }
+
+.gestion-usuarios__btn-cancelar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 16px;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.gestion-usuarios__btn-cancelar:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Tabla ── */
+.gestion-usuarios__tabla-wrapper {
+  overflow-x: auto;
+}
+
+.gestion-usuarios__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.gestion-usuarios__tabla thead tr {
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+.gestion-usuarios__tabla th {
+  padding: 13px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.gestion-usuarios__tabla tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.15s;
+}
+
+.gestion-usuarios__tabla tbody tr:last-child { border-bottom: none; }
+
+.gestion-usuarios__tabla td {
+  padding: 12px 16px;
+  color: var(--color-primary);
+  vertical-align: middle;
+}
+
+.gestion-usuarios__tabla-vacia {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 2rem !important;
+  font-size: 0.875rem;
+}
+
+.gestion-usuarios__fila--editando td {
+  background-color: rgba(38, 166, 154, 0.04);
+}
+
+.gestion-usuarios__celda-rut {
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.gestion-usuarios__celda-email {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Acciones por fila ── */
+.gestion-usuarios__acciones-fila {
+  display: flex;
+  gap: 6px;
+}
+
+.gestion-usuarios__btn-editar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.gestion-usuarios__btn-editar:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.gestion-usuarios__btn-eliminar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: none;
+  border: 1.5px solid var(--color-warning);
+  border-radius: 6px;
+  color: var(--color-warning);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.gestion-usuarios__btn-eliminar:hover {
+  background-color: rgba(255, 152, 0, 0.08);
+}
+
+/* ── Confirmación eliminación ── */
+.gestion-usuarios__fila-confirmacion td {
+  padding: 0;
+  border-bottom: 2px solid var(--color-warning);
+}
+
+.gestion-usuarios__confirmacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1rem;
+  background-color: rgba(255, 152, 0, 0.05);
+}
+
+.gestion-usuarios__confirmacion-texto {
+  font-size: 0.875rem;
+  color: var(--color-primary);
+}
+
+.gestion-usuarios__confirmacion-acciones {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.gestion-usuarios__btn-confirmar-eliminar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  background-color: var(--color-warning);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.gestion-usuarios__btn-confirmar-eliminar:hover { opacity: 0.88; }
