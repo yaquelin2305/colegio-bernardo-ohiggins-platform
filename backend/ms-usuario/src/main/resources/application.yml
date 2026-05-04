@@ -24,6 +24,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: users_schema
         format_sql: false
     show-sql: false
     open-in-view: false
@@ -98,13 +99,22 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update      # init-usuario.sql ya crea el schema, Hibernate solo sincroniza
     show-sql: false
+    properties:
+      hibernate:
+        default_schema: users_schema
 
   datasource:
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
 
 logging:
   level:
