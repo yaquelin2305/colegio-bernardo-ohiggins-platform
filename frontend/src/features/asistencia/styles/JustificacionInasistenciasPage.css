@@ -1,0 +1,271 @@
+.justificacion {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+}
+
+/* ── Tarjetas resumen ── */
+.justificacion__resumen {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 480px;
+}
+
+.justificacion__stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  padding: 1.1rem 1.25rem;
+}
+
+.justificacion__stat-icono-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.justificacion__stat-icono-wrapper--alerta {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: var(--color-warning);
+}
+
+.justificacion__stat-icono-wrapper--ok {
+  background-color: rgba(38, 166, 154, 0.1);
+  color: var(--color-accent);
+}
+
+.justificacion__stat-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.justificacion__stat-numero {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.justificacion__stat-etiqueta {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ── Sección ── */
+.justificacion__seccion {
+  background-color: var(--color-secondary);
+  border-radius: 8px;
+  border: 1px solid rgba(26, 43, 72, 0.08);
+  box-shadow: 0 1px 4px rgba(26, 43, 72, 0.08);
+  overflow: hidden;
+}
+
+.justificacion__titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+  margin: 0;
+}
+
+/* ── Tabla ── */
+.justificacion__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.justificacion__tabla thead tr {
+  background-color: var(--color-background);
+}
+
+.justificacion__tabla th {
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-border-light);
+}
+
+.justificacion__tabla tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.15s;
+}
+
+.justificacion__tabla tbody tr:last-child { border-bottom: none; }
+
+.justificacion__tabla td {
+  padding: 11px 16px;
+  color: var(--color-primary);
+  vertical-align: middle;
+}
+
+.justificacion__fila-justificada td {
+  color: var(--color-text-secondary);
+}
+
+/* ── Botones de fila ── */
+.justificacion__btn-justificar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: var(--color-accent);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.justificacion__btn-justificar:hover  { opacity: 0.88; }
+.justificacion__btn-justificar:active { transform: scale(0.97); }
+
+.justificacion__btn-cancelar-fila {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.justificacion__btn-cancelar-fila:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Formulario inline expandible ── */
+.justificacion__fila-formulario td {
+  padding: 0;
+  border-bottom: 2px solid var(--color-accent);
+}
+
+.justificacion__formulario {
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(38, 166, 154, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.justificacion__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 580px;
+}
+
+.justificacion__campo-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.justificacion__textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  background-color: var(--color-secondary);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.justificacion__textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.15);
+}
+
+.justificacion__input-archivo {
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.justificacion__acciones {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.justificacion__btn-enviar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.justificacion__btn-enviar:hover  { background-color: var(--color-primary-dark); }
+.justificacion__btn-enviar:active { transform: scale(0.98); }
+
+/* ── Badge justificada ── */
+.justificacion__badge-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: rgba(38, 166, 154, 0.12);
+  color: var(--color-accent);
+}
+
+.justificacion__vacio {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .justificacion__resumen { grid-template-columns: 1fr; max-width: 100%; }
+  .justificacion__tabla { display: block; overflow-x: auto; }
+}
