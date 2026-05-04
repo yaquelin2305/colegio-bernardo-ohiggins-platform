@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { BookOpen, GraduationCap, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save } from 'lucide-react';
 import MainLayout from '../../../shared/components/layout/MainLayout';
+import FiltrosRegistroNotas from '../components/FiltrosRegistroNotas';
+import TablaCalificaciones from '../components/TablaCalificaciones';
+import { obtenerCalificaciones, guardarCalificaciones } from '../services/gestionAcademicaService';
 import '../styles/RegistroNotasPage.css';
-
-const alumnosIniciales = [];
 
 function calcularPromedio(nota1, nota2, nota3) {
   const notas = [nota1, nota2, nota3].map(Number).filter(n => !isNaN(n));
@@ -11,16 +12,21 @@ function calcularPromedio(nota1, nota2, nota3) {
   return Math.round((notas.reduce((a, b) => a + b, 0) / notas.length) * 10) / 10;
 }
 
-function clasificarPromedio(promedio) {
-  if (promedio >= 6.0) return 'nota--alta';
-  if (promedio >= 4.0) return 'nota--media';
-  return 'nota--baja';
-}
-
 function RegistroNotasPage() {
   const [curso, setCurso] = useState('1M-A');
   const [asignatura, setAsignatura] = useState('matematicas');
-  const [alumnos, setAlumnos] = useState(alumnosIniciales);
+  const [alumnos, setAlumnos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    obtenerCalificaciones(curso, asignatura)
+      .then(setAlumnos)
+      .catch(() => setError('No se pudo cargar el listado de calificaciones.'))
+      .finally(() => setIsLoading(false));
+  }, [curso, asignatura]);
 
   function handleNotaChange(id, campo, valor) {
     setAlumnos(prev =>
@@ -37,102 +43,41 @@ function RegistroNotasPage() {
     );
   }
 
-  function handleGuardar() {
-    console.log('Calificaciones guardadas:', { curso, asignatura, alumnos });
+  async function handleGuardar() {
+    try {
+      await guardarCalificaciones(curso, asignatura, alumnos);
+    } catch {
+      setError('No se pudieron guardar las calificaciones. Intenta nuevamente.');
+    }
   }
 
   return (
     <MainLayout titulo="Registro de Calificaciones">
       <div className="registro-notas">
+        <FiltrosRegistroNotas
+          curso={curso}
+          asignatura={asignatura}
+          onCursoChange={e => setCurso(e.target.value)}
+          onAsignaturaChange={e => setAsignatura(e.target.value)}
+        />
 
-        <section className="registro-notas__filtros" aria-label="Filtros de curso y asignatura">
-          <div className="registro-notas__filtro-grupo">
-            <label htmlFor="select-curso" className="registro-notas__label">
-              <GraduationCap size={16} aria-hidden="true" />
-              Curso
-            </label>
-            <select
-              id="select-curso"
-              className="registro-notas__select"
-              value={curso}
-              onChange={e => setCurso(e.target.value)}
-            >
-              <option value="1M-A">1° Medio A</option>
-              <option value="1M-B">1° Medio B</option>
-              <option value="2M-A">2° Medio A</option>
-              <option value="2M-B">2° Medio B</option>
-              <option value="3M-A">3° Medio A</option>
-              <option value="4M-A">4° Medio A</option>
-            </select>
-          </div>
+        {isLoading && <p className="registro-notas__cargando">Cargando...</p>}
+        {error && <p className="registro-notas__error">{error}</p>}
 
-          <div className="registro-notas__filtro-grupo">
-            <label htmlFor="select-asignatura" className="registro-notas__label">
-              <BookOpen size={16} aria-hidden="true" />
-              Asignatura
-            </label>
-            <select
-              id="select-asignatura"
-              className="registro-notas__select"
-              value={asignatura}
-              onChange={e => setAsignatura(e.target.value)}
-            >
-              <option value="matematicas">Matemáticas</option>
-              <option value="lenguaje">Lenguaje y Comunicación</option>
-              <option value="historia">Historia</option>
-              <option value="ciencias">Ciencias Naturales</option>
-              <option value="ingles">Inglés</option>
-            </select>
-          </div>
-        </section>
-
-        <section className="registro-notas__tabla-wrapper" aria-label="Tabla de calificaciones">
-          <table className="registro-notas__tabla">
-            <thead>
-              <tr>
-                <th scope="col">RUT</th>
-                <th scope="col">Nombre Alumno</th>
-                <th scope="col">Nota 1</th>
-                <th scope="col">Nota 2</th>
-                <th scope="col">Nota 3</th>
-                <th scope="col">Promedio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alumnos.map(alumno => (
-                <tr key={alumno.id}>
-                  <td className="registro-notas__rut">{alumno.rut}</td>
-                  <td className="registro-notas__nombre">{alumno.nombre}</td>
-                  {['nota1', 'nota2', 'nota3'].map(campo => (
-                    <td key={campo} className="registro-notas__celda-nota">
-                      <input
-                        type="number"
-                        className="registro-notas__input-nota"
-                        min="1"
-                        max="7"
-                        step="0.1"
-                        value={alumno[campo]}
-                        aria-label={`${campo.replace('nota', 'Nota ')} de ${alumno.nombre}`}
-                        onChange={e => handleNotaChange(alumno.id, campo, e.target.value)}
-                      />
-                    </td>
-                  ))}
-                  <td className={`registro-notas__promedio ${clasificarPromedio(alumno.promedio)}`}>
-                    {alumno.promedio.toFixed(1)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        {!isLoading && !error && (
+          <TablaCalificaciones alumnos={alumnos} onNotaChange={handleNotaChange} />
+        )}
 
         <footer className="registro-notas__acciones">
-          <button className="registro-notas__btn-guardar" onClick={handleGuardar}>
+          <button
+            className="registro-notas__btn-guardar"
+            onClick={handleGuardar}
+            disabled={isLoading}
+          >
             <Save size={18} aria-hidden="true" />
             Guardar Calificaciones
           </button>
         </footer>
-
       </div>
     </MainLayout>
   );

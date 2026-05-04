@@ -1,100 +1,86 @@
-import { TrendingUp, CalendarCheck, UserCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users } from 'lucide-react';
 import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useAuth } from '../../../core/context/AuthContext';
+import EncabezadoBoletin from '../components/EncabezadoBoletin';
+import TablaBoletinNotas from '../components/TablaBoletinNotas';
+import {
+  obtenerBoletinPropio,
+  obtenerPupilos,
+  obtenerBoletinPupilo,
+} from '../services/gestionAcademicaService';
 import '../styles/VisualizadorNotasPage.css';
 
-const alumno = null;
-
-const asignaturas = [];
-
-
-function clasificarNota(nota) {
-  if (nota >= 6.0) return 'celda-nota--alta';
-  if (nota >= 4.0) return 'celda-nota--media';
-  return 'celda-nota--baja';
-}
-
 function VisualizadorNotasPage() {
+  const { usuario } = useAuth();
+  const esApoderado = usuario?.rol === 'APODERADO';
+
+  const [boletin, setBoletin] = useState(null);
+  const [pupilos, setPupilos] = useState([]);
+  const [pupilId, setPupilId] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (esApoderado) {
+      obtenerPupilos()
+        .then(data => {
+          setPupilos(data);
+          if (data.length > 0) setPupilId(data[0].id);
+        })
+        .catch(() => setError('No se pudo cargar el listado de pupilos.'))
+        .finally(() => setIsLoading(false));
+    } else {
+      obtenerBoletinPropio()
+        .then(setBoletin)
+        .catch(() => setError('No se pudo cargar el boletín de notas.'))
+        .finally(() => setIsLoading(false));
+    }
+  }, [esApoderado]);
+
+  useEffect(() => {
+    if (!esApoderado || !pupilId) return;
+    setIsLoading(true);
+    obtenerBoletinPupilo(pupilId)
+      .then(setBoletin)
+      .catch(() => setError('No se pudo cargar el boletín del pupilo.'))
+      .finally(() => setIsLoading(false));
+  }, [esApoderado, pupilId]);
+
+  const alumno      = boletin?.alumno      ?? null;
+  const asignaturas = boletin?.asignaturas ?? [];
+
   return (
     <MainLayout titulo="Mi Boletín de Notas">
       <div className="visualizador-notas">
 
-        {/* ── Encabezado alumno ── */}
-        {alumno && (
-          <section className="boletin__encabezado" aria-label="Datos del alumno">
-            <div className="boletin__alumno-info">
-              <div className="boletin__avatar">
-                <UserCircle size={48} aria-hidden="true" />
-              </div>
-              <div>
-                <h2 className="boletin__nombre">{alumno.nombre}</h2>
-                <p className="boletin__meta">
-                  <span>{alumno.rut}</span>
-                  <span className="boletin__separador" aria-hidden="true">·</span>
-                  <span>{alumno.curso}</span>
-                  <span className="boletin__separador" aria-hidden="true">·</span>
-                  <span>{alumno.periodo}</span>
-                </p>
-              </div>
-            </div>
-
-            <div className="boletin__stats">
-              <article className="boletin__stat-card boletin__stat-card--accent" aria-label="Promedio general">
-                <div className="boletin__stat-icono boletin__stat-icono--accent">
-                  <TrendingUp size={20} aria-hidden="true" />
-                </div>
-                <span className="boletin__stat-label">Promedio General</span>
-                <span className="boletin__stat-valor">{alumno.promedioGeneral.toFixed(1)}</span>
-                <span className="boletin__stat-detalle">Sobre 7.0 máximo</span>
-              </article>
-
-              <article className="boletin__stat-card boletin__stat-card--primary" aria-label="Porcentaje de asistencia">
-                <div className="boletin__stat-icono boletin__stat-icono--primary">
-                  <CalendarCheck size={20} aria-hidden="true" />
-                </div>
-                <span className="boletin__stat-label">% Asistencia Total</span>
-                <span className="boletin__stat-valor">{alumno.asistencia}%</span>
-                <span className="boletin__stat-detalle">Mínimo requerido: 85%</span>
-              </article>
-            </div>
-          </section>
+        {esApoderado && pupilos.length > 0 && (
+          <div className="boletin__selector-pupilo">
+            <label htmlFor="select-pupilo" className="boletin__selector-label">
+              <Users size={15} aria-hidden="true" />
+              Seleccionar Pupilo
+            </label>
+            <select
+              id="select-pupilo"
+              className="boletin__selector-select"
+              value={pupilId}
+              onChange={e => setPupilId(e.target.value)}
+            >
+              {pupilos.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre} — {p.curso}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
 
-        {/* ── Tabla de asignaturas ── */}
-        <section className="boletin__tabla-wrapper" aria-label="Calificaciones por asignatura">
-          <h3 className="boletin__seccion-titulo">Calificaciones por Asignatura</h3>
-          <table className="boletin__tabla">
-            <thead>
-              <tr>
-                <th scope="col">Asignatura</th>
-                <th scope="col">Nota 1</th>
-                <th scope="col">Nota 2</th>
-                <th scope="col">Nota 3</th>
-                <th scope="col">Promedio</th>
-                <th scope="col">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {asignaturas.map(asig => (
-                <tr key={asig.id}>
-                  <td className="boletin__asignatura">{asig.nombre}</td>
-                  {[asig.nota1, asig.nota2, asig.nota3].map((nota, i) => (
-                    <td key={i} className={`boletin__celda-nota ${clasificarNota(nota)}`}>
-                      {nota.toFixed(1)}
-                    </td>
-                  ))}
-                  <td className={`boletin__celda-nota boletin__promedio ${clasificarNota(asig.promedio)}`}>
-                    {asig.promedio.toFixed(1)}
-                  </td>
-                  <td>
-                    <span className={`boletin__estado ${asig.promedio >= 4.0 ? 'boletin__estado--aprobado' : 'boletin__estado--reprobado'}`}>
-                      {asig.promedio >= 4.0 ? 'Aprobado' : 'Reprobado'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        {isLoading && <p className="boletin__cargando">Cargando...</p>}
+        {error && <p className="boletin__error">{error}</p>}
+
+        {!isLoading && !error && alumno && <EncabezadoBoletin alumno={alumno} />}
+
+        {!isLoading && !error && <TablaBoletinNotas asignaturas={asignaturas} />}
 
       </div>
     </MainLayout>

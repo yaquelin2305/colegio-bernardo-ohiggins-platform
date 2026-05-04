@@ -246,3 +246,44 @@
     padding: 16px;
   }
 }
+
+/* ── Selector de pupilo (apoderado) ── */
+.boletin__selector-pupilo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.875rem 1rem;
+  background: var(--color-secondary);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.boletin__selector-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.boletin__selector-select {
+  flex: 1;
+  max-width: 320px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  background: #fff;
+  cursor: pointer;
+}
+
+.boletin__selector-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
+}
