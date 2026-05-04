@@ -1,40 +1,22 @@
 # =============================================================
 # DOCKER COMPOSE — Plataforma Colegio Bernardo O'Higgins
-# Levanta: PostgreSQL → MS-Académico → MS-Usuario → API Gateway
+#
+# Orden de arranque:
+#   postgres-usuario → ms-usuario ─┐
+#   postgres-academico → ms-academico ─┤→ api-gateway → frontend
+#
+# Comandos:
+#   docker compose up --build        (primera vez o tras cambios)
+#   docker compose up -d             (modo daemon)
+#   docker compose down              (detener y eliminar contenedores)
+#   docker compose down -v           (detener + borrar volúmenes BD)
+#   docker compose logs -f api-gateway
 # =============================================================
-# Uso:
-#   docker compose up --build       (primer arranque)
-#   docker compose up               (arranques siguientes)
-#   docker compose down             (detener)
-#   docker compose down -v          (detener + borrar BD)
 
 services:
 
   # ─────────────────────────────────────────────────────────
-  # 1. BASE DE DATOS — arranca primero
-  # ─────────────────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: academico-db
-    environment:
-      POSTGRES_DB: academico_db
-      POSTGRES_USER: academico
-      POSTGRES_PASSWORD: academico123
-    volumes:
-      # Crea las tablas al primer arranque
-      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-      # Persiste los datos entre reinicios (comentar si querés BD fresca siempre)
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U academico -d academico_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    ports:
-      - "5432:5432"   # Expone la BD para conectarte con DBeaver/TablePlus
-
-  # ─────────────────────────────────────────────────────────
-  # 2. BD EXCLUSIVA PARA MS-USUARIO (buenas prácticas: BD por MS)
+  # BD — MS-USUARIO  (puerto 5433 en host)
   # ─────────────────────────────────────────────────────────
   postgres-usuario:
     image: postgres:16-alpine
@@ -52,41 +34,35 @@ services:
       timeout: 5s
       retries: 10
     ports:
-      - "5433:5432"   # Puerto diferente para no chocar con postgres principal
+      - "5433:5432"
+    networks:
+      - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # 3. MS-ACADÉMICO
+  # BD — MS-ACADÉMICO  (puerto 5432 en host)
   # ─────────────────────────────────────────────────────────
-  ms-academico:
-    build:
-      context: ./backend/ms-academico
-      dockerfile: Dockerfile
-    container_name: ms-academico
+  postgres-academico:
+    image: postgres:16-alpine
+    container_name: academico-db
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/academico_db
-      DB_USERNAME: academico
-      DB_PASSWORD: academico123
-      SPRING_PROFILES_ACTIVE: dev
-      EUREKA_URL: http://localhost:8761/eureka
-      SPRING_CLOUD_DISCOVERY_ENABLED: "false"
-      EUREKA_CLIENT_ENABLED: "false"
-      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
-      EUREKA_CLIENT_FETCH-REGISTRY: "false"
-      SPRING_JPA_HIBERNATE_DDL-AUTO: validate
-    depends_on:
-      postgres:
-        condition: service_healthy
+      POSTGRES_DB: academico_db
+      POSTGRES_USER: academico
+      POSTGRES_PASSWORD: academico123
+    volumes:
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_academico_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP || exit 1"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U academico -d academico_db"]
+      interval: 5s
       timeout: 5s
-      retries: 12
-      start_period: 90s
+      retries: 10
     ports:
-      - "8082:8082"
+      - "5432:5432"
+    networks:
+      - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # 4. MS-USUARIO — Auth y Autorización
+  # MS-USUARIO  (puerto 8083)
   # ─────────────────────────────────────────────────────────
   ms-usuario:
     build:
@@ -94,31 +70,57 @@ services:
       dockerfile: Dockerfile
     container_name: ms-usuario
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres-usuario:5432/usuario_db
       DB_USERNAME: usuario
       DB_PASSWORD: usuario123
-      SPRING_PROFILES_ACTIVE: dev
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      EUREKA_URL: http://localhost:8761/eureka
-      SPRING_CLOUD_DISCOVERY_ENABLED: "false"
-      EUREKA_CLIENT_ENABLED: "false"
-      EUREKA_CLIENT_REGISTER-WITH-EUREKA: "false"
-      EUREKA_CLIENT_FETCH-REGISTRY: "false"
-      SPRING_JPA_HIBERNATE_DDL-AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
       postgres-usuario:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 90s
     ports:
       - "8083:8083"
+    networks:
+      - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # 5. API GATEWAY — espera a que ms-academico y ms-usuario estén healthy
+  # MS-ACADÉMICO  (puerto 8082)
+  # ─────────────────────────────────────────────────────────
+  ms-academico:
+    build:
+      context: ./backend/ms-academico
+      dockerfile: Dockerfile
+    container_name: ms-academico
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres-academico:5432/academico_db
+      DB_USERNAME: academico
+      DB_PASSWORD: academico123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      postgres-academico:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8082:8082"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # API GATEWAY  (puerto 8080)
+  # Espera a que ambos MSs estén healthy
   # ─────────────────────────────────────────────────────────
   api-gateway:
     build:
@@ -126,22 +128,51 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
-      SPRING_PROFILES_ACTIVE: dev,local
+      # Perfil docker: rutas estáticas sin Eureka
+      SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      ACADEMICO_URI: http://ms-academico:8082
-      USUARIO_URI: http://ms-usuario:8083
+      FRONTEND_URL: http://localhost:5173
     depends_on:
-      ms-academico:
-        condition: service_healthy
       ms-usuario:
         condition: service_healthy
+      ms-academico:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
     ports:
       - "8080:8080"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # FRONTEND React/Vite  (puerto 3000 → Nginx)
+  # Espera al Gateway
+  # ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # El front llama al Gateway — en Docker ambos están en el mismo host
+        VITE_API_URL: http://localhost:8080
+    container_name: frontend
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - colegio-network
 
 volumes:
-  postgres_data:
   postgres_usuario_data:
+  postgres_academico_data:
 
 networks:
-  default:
+  colegio-network:
     name: colegio-network
+    driver: bridge

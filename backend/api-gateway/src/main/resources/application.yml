@@ -18,47 +18,104 @@ spring:
 
       routes:
         # -----------------------------------------------
-        # RUTA: MS-ACADÉMICO (Gestión Académica)
-        # ID:   academico-route
+        # RUTA: MS-ACADÉMICO — Cursos (ADMIN + DOCENTE)
         # -----------------------------------------------
-        - id: academico-route
+        - id: academico-cursos-route
           uri: lb://MS-ACADEMICO
           predicates:
-            - Path=/api/v1/gestion/**
+            - Path=/api/v1/cursos/**
           filters:
-            # Remueve el prefijo /api/v1/gestion antes de reenviar al MS
-            - RewritePath=/api/v1/gestion/(?<segment>.*), /api/v1/${segment}
-            # Circuit Breaker con fallback
             - name: CircuitBreaker
               args:
                 name: academicoCB
                 fallbackUri: forward:/fallback/academico
-            # Retry ante fallos transitorios (no en errores 4xx)
             - name: Retry
               args:
-                retries: 3
+                retries: 2
                 statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET
+                methods: GET, POST
                 backoff:
                   firstBackoff: 100ms
                   maxBackoff: 500ms
                   factor: 2
                   basedOnPreviousValue: false
-            # Rate Limiting básico (Green IT: evitar saturar el MS)
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 50
-                redis-rate-limiter.burstCapacity: 100
-                redis-rate-limiter.requestedTokens: 1
 
         # -----------------------------------------------
-        # RUTA DIRECTA: MS-ACADÉMICO (acceso interno BFF)
-        # Para que el BFF acceda sin prefijo de gateway
+        # RUTA: MS-ACADÉMICO — Asignaturas (ADMIN + DOCENTE)
         # -----------------------------------------------
-        - id: academico-direct-route
+        - id: academico-asignaturas-route
           uri: lb://MS-ACADEMICO
           predicates:
-            - Path=/api/v1/estudiantes/**, /api/v1/notas/**, /api/v1/asistencias/**, /api/v1/reportes/**
+            - Path=/api/v1/asignaturas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Matrículas (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-matriculas-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/matriculas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Calificaciones (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-calificaciones-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/calificaciones/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, PUT
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Asignacion Docente (solo ADMIN)
+        # -----------------------------------------------
+        - id: academico-asignacion-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/asignacion-docente/**
           filters:
             - name: CircuitBreaker
               args:
@@ -125,12 +182,32 @@ spring:
                 statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
                 methods: GET
 
+      # =============================================
+      # CORS GLOBAL — permite al front (Vite :5173) consumir el Gateway
+      # En prod se reemplaza FRONTEND_URL con la URL real del frontend
+      # =============================================
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "${FRONTEND_URL:http://localhost:5173}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
       # Timeout global para todas las rutas
       httpclient:
         connect-timeout: 3000     # 3s para establecer conexión
         response-timeout: 10s     # 10s para recibir respuesta completa
 
-      # Headers de respuesta CORS globales
+      # Headers de respuesta CORS — deduplica si el MS downstream también los envía
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
@@ -243,6 +320,66 @@ logging:
     cl.duoc.colegio.gateway: INFO
     org.springframework.cloud.gateway: INFO
     io.github.resilience4j: INFO
+
+---
+# =============================================
+# PERFIL: docker (docker-compose local)
+# Rutas estáticas — sin Eureka, URLs de contenedores
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: docker-academico-cursos
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/cursos/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-asignaturas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignaturas/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-matriculas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/matriculas/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-calificaciones
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/calificaciones/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-asignacion
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignacion-docente/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-usuario-auth
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/auth/**]
+          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+
+        - id: docker-usuario-admin
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/admin/**]
+          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: DEBUG
 
 ---
 # =============================================
