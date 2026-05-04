@@ -1,6 +1,7 @@
 -- ============================================================
--- MS-Usuario — Inicialización de Base de Datos
--- Schema: users_schema
+-- MS-Usuario — Script de referencia (desarrollo local)
+-- En docker-compose se usa docker/init.sql que consolida todo.
+-- Ejecutar manualmente solo si levantás ms-usuario sin compose.
 -- ============================================================
 
 CREATE SCHEMA IF NOT EXISTS users_schema;

@@ -1,58 +1,40 @@
 # =============================================================
 # DOCKER COMPOSE — Plataforma Colegio Bernardo O'Higgins
 #
-# Orden de arranque:
-#   postgres-usuario → ms-usuario ─┐
-#   postgres-academico → ms-academico ─┤→ api-gateway → frontend
+# Arquitectura: 1 PostgreSQL, 2 schemas lógicos separados
+#   users_schema     → MS-Usuario
+#   academico_schema → MS-Academico
+#
+# Orden de arranque (healthchecks garantizan la secuencia):
+#   postgres → ms-usuario + ms-academico → api-gateway → frontend
 #
 # Comandos:
-#   docker compose up --build        (primera vez o tras cambios)
-#   docker compose up -d             (modo daemon)
-#   docker compose down              (detener y eliminar contenedores)
-#   docker compose down -v           (detener + borrar volúmenes BD)
+#   docker compose up --build    (primera vez o tras cambios de código)
+#   docker compose up -d         (modo daemon)
+#   docker compose down          (detener)
+#   docker compose down -v       (detener + borrar volumen BD)
 #   docker compose logs -f api-gateway
 # =============================================================
 
 services:
 
   # ─────────────────────────────────────────────────────────
-  # BD — MS-USUARIO  (puerto 5433 en host)
+  # ÚNICA BASE DE DATOS
+  # Una instancia, dos schemas: users_schema + academico_schema
+  # Puerto 5432 expuesto al host para DBeaver/TablePlus
   # ─────────────────────────────────────────────────────────
-  postgres-usuario:
+  postgres:
     image: postgres:16-alpine
-    container_name: usuario-db
+    container_name: colegio-db
     environment:
-      POSTGRES_DB: usuario_db
-      POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: usuario123
+      POSTGRES_DB: colegio_db
+      POSTGRES_USER: colegio
+      POSTGRES_PASSWORD: colegio123
     volumes:
-      - ./backend/ms-usuario/src/main/resources/db/init-usuario.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_usuario_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usuario -d usuario_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    ports:
-      - "5433:5432"
-    networks:
-      - colegio-network
-
-  # ─────────────────────────────────────────────────────────
-  # BD — MS-ACADÉMICO  (puerto 5432 en host)
-  # ─────────────────────────────────────────────────────────
-  postgres-academico:
-    image: postgres:16-alpine
-    container_name: academico-db
-    environment:
-      POSTGRES_DB: academico_db
-      POSTGRES_USER: academico
-      POSTGRES_PASSWORD: academico123
-    volumes:
-      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_academico_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U academico -d academico_db"]
+      test: ["CMD-SHELL", "pg_isready -U colegio -d colegio_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -63,6 +45,7 @@ services:
 
   # ─────────────────────────────────────────────────────────
   # MS-USUARIO  (puerto 8083)
+  # Se conecta a users_schema dentro de colegio_db
   # ─────────────────────────────────────────────────────────
   ms-usuario:
     build:
@@ -71,13 +54,12 @@ services:
     container_name: ms-usuario
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://postgres-usuario:5432/usuario_db
-      DB_USERNAME: usuario
-      DB_PASSWORD: usuario123
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
-      postgres-usuario:
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
@@ -92,6 +74,7 @@ services:
 
   # ─────────────────────────────────────────────────────────
   # MS-ACADÉMICO  (puerto 8082)
+  # Se conecta a academico_schema dentro de colegio_db
   # ─────────────────────────────────────────────────────────
   ms-academico:
     build:
@@ -100,12 +83,11 @@ services:
     container_name: ms-academico
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://postgres-academico:5432/academico_db
-      DB_USERNAME: academico
-      DB_PASSWORD: academico123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
     depends_on:
-      postgres-academico:
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
@@ -128,10 +110,9 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
-      # Perfil docker: rutas estáticas sin Eureka
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: http://localhost:3000
     depends_on:
       ms-usuario:
         condition: service_healthy
@@ -149,15 +130,13 @@ services:
       - colegio-network
 
   # ─────────────────────────────────────────────────────────
-  # FRONTEND React/Vite  (puerto 3000 → Nginx)
-  # Espera al Gateway
+  # FRONTEND React/Vite → Nginx  (puerto 3000)
   # ─────────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # El front llama al Gateway — en Docker ambos están en el mismo host
         VITE_API_URL: http://localhost:8080
     container_name: frontend
     depends_on:
@@ -169,8 +148,7 @@ services:
       - colegio-network
 
 volumes:
-  postgres_usuario_data:
-  postgres_academico_data:
+  postgres_data:
 
 networks:
   colegio-network:

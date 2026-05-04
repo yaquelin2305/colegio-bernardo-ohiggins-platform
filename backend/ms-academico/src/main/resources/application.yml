@@ -6,9 +6,9 @@ spring:
     name: ms-academico
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/academico_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${DB_USERNAME:colegio}
+    password: ${DB_PASSWORD:colegio123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5          # Green IT: pool pequeño, suficiente para el MS
