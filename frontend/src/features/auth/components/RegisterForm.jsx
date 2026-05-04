@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CreditCard, User, Mail, Lock, ChevronDown } from 'lucide-react';
+import { registrarUsuario } from '../services/authService';
 import '../styles/RegisterForm.css';
 
 const estadoInicial = {
@@ -44,7 +45,7 @@ function RegisterForm() {
     return nuevosErrores;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const erroresValidacion = validar();
     if (Object.keys(erroresValidacion).length > 0) {
@@ -55,12 +56,15 @@ function RegisterForm() {
     setIsLoading(true);
     setErrores({});
 
-    setTimeout(() => {
-      console.log('Nuevo usuario registrado:', { ...formulario });
+    try {
+      await registrarUsuario(formulario);
       setFormulario(estadoInicial);
       setMensajeExito('¡Cuenta creada exitosamente!');
+    } catch {
+      setErrores({ general: 'No se pudo completar el registro. Intenta nuevamente.' });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const campoInput = ({ name, label, icono, tipo = 'text', placeholder }) => (
@@ -128,6 +132,10 @@ function RegisterForm() {
           <div className="register-form__exito" role="status">
             {mensajeExito}
           </div>
+        )}
+
+        {errores.general && (
+          <span className="register-form__error" role="alert">{errores.general}</span>
         )}
 
         <button type="submit" className="register-form__btn" disabled={isLoading}>

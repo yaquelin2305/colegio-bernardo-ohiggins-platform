@@ -1,5 +1,4 @@
 
-
 const MOCK_USERS = [
   {
     id: 1,
@@ -75,5 +74,15 @@ export const logout = async () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
 };
+
+export async function registrarUsuario(datos) {
+  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
+  return Promise.resolve(null);
+}
+
+export async function iniciarSesion(credenciales) {
+  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
+  return Promise.resolve(null);
+}
 
 export default { login, getCurrentUser, refreshToken, logout };

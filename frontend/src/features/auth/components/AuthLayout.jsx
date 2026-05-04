@@ -1,7 +1,5 @@
 import '../styles/AuthLayout.css';
 
-const estadisticas = [];
-
 function AuthLayout({ children }) {
   return (
     <main className="auth-layout">
@@ -15,14 +13,6 @@ function AuthLayout({ children }) {
           Centraliza el control de asistencia, calificaciones y comunicación con apoderados
           en una sola plataforma segura, diseñada para el Colegio Bernardo O'Higgins.
         </p>
-        <div className="auth-layout__stats">
-          {estadisticas.map((stat) => (
-            <div key={stat.label} className="auth-layout__stat-card">
-              <span className="auth-layout__stat-numero">{stat.numero}</span>
-              <span className="auth-layout__stat-label">{stat.label}</span>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section className="auth-layout__form-col" aria-label="Contenido del formulario">
