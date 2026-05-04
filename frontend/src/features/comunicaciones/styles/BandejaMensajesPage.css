@@ -57,7 +57,7 @@
   padding: 16px 20px;
   box-shadow: 0 2px 8px rgba(26, 43, 72, 0.06);
   transition: box-shadow 0.15s, transform 0.15s;
-  cursor: default;
+  cursor: pointer;
 }
 
 .bandeja__tarjeta:hover {

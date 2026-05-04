@@ -1,60 +1,41 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, AlertCircle, PenLine } from 'lucide-react';
 import MainLayout from '../../../shared/components/layout/MainLayout';
+import CabeceraBandeja from '../components/CabeceraBandeja';
+import ListaMensajes from '../components/ListaMensajes';
+import { obtenerMensajes } from '../services/comunicacionesService';
 import '../styles/BandejaMensajesPage.css';
-
-const mensajes = [];
 
 function BandejaMensajesPage() {
   const navigate = useNavigate();
+  const [mensajes, setMensajes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    obtenerMensajes()
+      .then(setMensajes)
+      .catch(() => setError('No se pudo cargar la bandeja de mensajes.'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <MainLayout titulo="Comunicaciones">
       <div className="bandeja">
+        <CabeceraBandeja
+          totalNoLeidos={mensajes.filter(m => !m.leido).length}
+          onRedactar={() => navigate('/comunicaciones/redactar')}
+        />
 
-        <div className="bandeja__cabecera">
-          <p className="bandeja__subtitulo">
-            {mensajes.filter(m => !m.leido).length} mensajes sin leer
-          </p>
-          <button
-            className="bandeja__btn-redactar"
-            onClick={() => navigate('/comunicaciones/redactar')}
-            aria-label="Redactar nuevo mensaje"
-          >
-            <PenLine size={16} aria-hidden="true" />
-            Redactar Nuevo
-          </button>
-        </div>
+        {isLoading && <p className="bandeja__cargando">Cargando...</p>}
+        {error && <p className="bandeja__error">{error}</p>}
 
-        <ul className="bandeja__lista" role="list">
-          {mensajes.map(mensaje => (
-            <li
-              key={mensaje.id}
-              className={`bandeja__tarjeta ${!mensaje.leido ? 'bandeja__tarjeta--no-leido' : 'bandeja__tarjeta--leido'}`}
-              role="listitem"
-            >
-              <div className="bandeja__icono-wrapper">
-                {!mensaje.leido
-                  ? <AlertCircle size={20} className="bandeja__icono bandeja__icono--alerta" aria-hidden="true" />
-                  : <Mail size={20} className="bandeja__icono bandeja__icono--leido" aria-hidden="true" />
-                }
-              </div>
-
-              <div className="bandeja__contenido">
-                <div className="bandeja__fila-superior">
-                  <span className="bandeja__remitente">{mensaje.remitente}</span>
-                  <span className={`bandeja__etiqueta bandeja__etiqueta--${mensaje.tipo.toLowerCase().replace(' ', '-')}`}>
-                    {mensaje.tipo}
-                  </span>
-                </div>
-                <p className="bandeja__asunto">{mensaje.asunto}</p>
-              </div>
-
-              <span className="bandeja__fecha">{mensaje.fecha}</span>
-            </li>
-          ))}
-        </ul>
-
+        {!isLoading && !error && (
+          <ListaMensajes
+            mensajes={mensajes}
+            onSeleccionarMensaje={id => navigate(`/comunicaciones/${id}`)}
+          />
+        )}
       </div>
     </MainLayout>
   );
