@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FiltroCursoAnotaciones from '../components/FiltroCursoAnotaciones';
 import TablaAnotaciones from '../components/TablaAnotaciones';
 import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion } from '../services/asistenciaService';
@@ -8,7 +8,10 @@ import '../styles/RegistroAnotacionesPage.css';
 const formularioInicial = { tipo: 'positiva', descripcion: '' };
 
 function RegistroAnotacionesPage() {
+  const { setTitulo } = useOutletContext();
   const [cursos, setCursos] = useState([]);
+
+  useEffect(() => { setTitulo('Registro de Anotaciones'); }, [setTitulo]);
   const [cursoId, setCursoId] = useState('');
   const [alumnos, setAlumnos] = useState([]);
   const [anotacionesPorAlumno, setAnotacionesPorAlumno] = useState({});
@@ -65,36 +68,34 @@ function RegistroAnotacionesPage() {
   }
 
   return (
-    <MainLayout titulo="Registro de Anotaciones">
-      <div className="anotaciones">
+    <div className="anotaciones">
 
-        {isLoading && <p className="anotaciones__cargando">Cargando...</p>}
-        {error && <p className="anotaciones__error">{error}</p>}
+      {isLoading && <p className="anotaciones__cargando">Cargando...</p>}
+      {error && <p className="anotaciones__error">{error}</p>}
 
-        {!isLoading && !error && (
-          <>
-            <FiltroCursoAnotaciones
-              cursos={cursos}
-              cursoId={cursoId}
-              onChange={handleCursoChange}
-            />
+      {!isLoading && !error && (
+        <>
+          <FiltroCursoAnotaciones
+            cursos={cursos}
+            cursoId={cursoId}
+            onChange={handleCursoChange}
+          />
 
-            <TablaAnotaciones
-              alumnos={alumnos}
-              anotacionesPorAlumno={anotacionesPorAlumno}
-              panelActivo={panelActivo}
-              formulario={formulario}
-              onTogglePanel={handleTogglePanel}
-              onTipoChange={tipo => setFormulario(prev => ({ ...prev, tipo }))}
-              onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
-              onGuardar={handleGuardar}
-              onCancelar={() => setPanelActivo(null)}
-            />
-          </>
-        )}
+          <TablaAnotaciones
+            alumnos={alumnos}
+            anotacionesPorAlumno={anotacionesPorAlumno}
+            panelActivo={panelActivo}
+            formulario={formulario}
+            onTogglePanel={handleTogglePanel}
+            onTipoChange={tipo => setFormulario(prev => ({ ...prev, tipo }))}
+            onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
+            onGuardar={handleGuardar}
+            onCancelar={() => setPanelActivo(null)}
+          />
+        </>
+      )}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 

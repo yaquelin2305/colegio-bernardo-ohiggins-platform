@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ClipboardCheck } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
 import ResumenAsistencia from '../components/ResumenAsistencia';
 import FiltroAsistencia from '../components/FiltroAsistencia';
 import AsistenciaTable from '../components/AsistenciaTable';
@@ -11,7 +12,10 @@ import {
 import '../styles/AsistenciaPage.css';
 
 function AsistenciaPage() {
+  const { setTitulo } = useOutletContext();
   const [cursos, setCursos] = useState([]);
+
+  useEffect(() => { setTitulo('Toma de Asistencia'); }, [setTitulo]);
   const [resumen, setResumen] = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
