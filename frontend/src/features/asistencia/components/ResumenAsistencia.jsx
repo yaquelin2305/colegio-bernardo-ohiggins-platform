@@ -1,41 +1,38 @@
-import { Users, Calendar, CheckCircle, XCircle, Clock3 } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock3 } from 'lucide-react';
 import '../styles/ResumenAsistencia.css';
 
-const MOCK_DATA = {
-  total: 32,
-  presentes: 28,
-  ausentes: 4,
-  porcentaje: 87.5,
-};
+const RESUMEN_VACIO = { total: 0, presentes: 0, ausentes: 0, porcentaje: 0 };
 
-function ResumenAsistencia() {
+function ResumenAsistencia({ resumen = RESUMEN_VACIO }) {
+  const datos = resumen ?? RESUMEN_VACIO;
+
   const cards = [
     {
       icon: <Users size={24} />,
       iconClass: 'resumen-asistencia__icon--total',
       label: 'Total Estudiantes',
-      value: MOCK_DATA.total,
+      value: datos.total,
       valueClass: '',
     },
     {
       icon: <CheckCircle size={24} />,
       iconClass: 'resumen-asistencia__icon--presente',
       label: 'Presentes Hoy',
-      value: MOCK_DATA.presentes,
+      value: datos.presentes,
       valueClass: 'resumen-asistencia__value--presente',
     },
     {
       icon: <XCircle size={24} />,
       iconClass: 'resumen-asistencia__icon--ausente',
       label: 'Ausentes Hoy',
-      value: MOCK_DATA.ausentes,
+      value: datos.ausentes,
       valueClass: 'resumen-asistencia__value--ausente',
     },
     {
       icon: <Clock3 size={24} />,
       iconClass: 'resumen-asistencia__icon--porcentaje',
       label: '% Asistencia',
-      value: `${MOCK_DATA.porcentaje}%`,
+      value: `${datos.porcentaje}%`,
       valueClass: 'resumen-asistencia__value--presente',
     },
   ];

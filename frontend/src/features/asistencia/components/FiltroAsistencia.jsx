@@ -2,24 +2,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import '../styles/FiltroAsistencia.css';
 
-const CURSOS = [
-  { id: 1, nombre: '1° Básico A' },
-  { id: 2, nombre: '1° Básico B' },
-  { id: 3, nombre: '2° Básico A' },
-  { id: 4, nombre: '2° Básico B' },
-  { id: 5, nombre: '3° Básico A' },
-  { id: 6, nombre: '4° Básico A' },
-  { id: 7, nombre: '5° Básico A' },
-  { id: 8, nombre: '6° Básico A' },
-  { id: 9, nombre: '7° Básico A' },
-  { id: 10, nombre: '8° Básico A' },
-  { id: 11, nombre: '1° Medio A' },
-  { id: 12, nombre: '2° Medio A' },
-  { id: 13, nombre: '3° Medio A' },
-  { id: 14, nombre: '4° Medio A' },
-];
-
-function FiltroAsistencia({ onFiltrar }) {
+function FiltroAsistencia({ cursos = [], onFiltrar }) {
   const [curso, setCurso] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
 
@@ -43,7 +26,7 @@ function FiltroAsistencia({ onFiltrar }) {
             onChange={(e) => setCurso(e.target.value)}
           >
             <option value="">Seleccionar curso</option>
-            {CURSOS.map((c) => (
+            {cursos.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre}
               </option>
