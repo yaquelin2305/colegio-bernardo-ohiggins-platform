@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FiltrosRegistroNotas from '../components/FiltrosRegistroNotas';
 import TablaCalificaciones from '../components/TablaCalificaciones';
-import { obtenerCalificaciones, guardarCalificaciones } from '../services/gestionAcademicaService';
+import { obtenerCalificaciones, guardarCalificaciones, obtenerCursos, obtenerAsignaturas } from '../services/gestionAcademicaService';
 import '../styles/RegistroNotasPage.css';
 
 function calcularPromedio(nota1, nota2, nota3) {
@@ -13,13 +13,30 @@ function calcularPromedio(nota1, nota2, nota3) {
 }
 
 function RegistroNotasPage() {
-  const [curso, setCurso] = useState('1M-A');
-  const [asignatura, setAsignatura] = useState('matematicas');
+  const { setTitulo } = useOutletContext();
+  const [curso, setCurso] = useState('');
+  const [asignatura, setAsignatura] = useState('');
+  const [cursos, setCursos] = useState([]);
+  const [asignaturas, setAsignaturas] = useState([]);
+
+  useEffect(() => { setTitulo('Registro de Calificaciones'); }, [setTitulo]);
   const [alumnos, setAlumnos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    Promise.all([obtenerCursos(), obtenerAsignaturas()])
+      .then(([datosCursos, datosAsignaturas]) => {
+        setCursos(datosCursos);
+        setAsignaturas(datosAsignaturas);
+        if (datosCursos.length > 0) setCurso(datosCursos[0].id);
+        if (datosAsignaturas.length > 0) setAsignatura(datosAsignaturas[0].id);
+      })
+      .catch(() => setError('No se pudo cargar cursos o asignaturas.'));
+  }, []);
+
+  useEffect(() => {
+    if (!curso || !asignatura) return;
     setIsLoading(true);
     setError(null);
     obtenerCalificaciones(curso, asignatura)
@@ -52,34 +69,34 @@ function RegistroNotasPage() {
   }
 
   return (
-    <MainLayout titulo="Registro de Calificaciones">
-      <div className="registro-notas">
-        <FiltrosRegistroNotas
-          curso={curso}
-          asignatura={asignatura}
-          onCursoChange={e => setCurso(e.target.value)}
-          onAsignaturaChange={e => setAsignatura(e.target.value)}
-        />
+    <div className="registro-notas">
+      <FiltrosRegistroNotas
+        curso={curso}
+        asignatura={asignatura}
+        cursos={cursos}
+        asignaturas={asignaturas}
+        onCursoChange={e => setCurso(e.target.value)}
+        onAsignaturaChange={e => setAsignatura(e.target.value)}
+      />
 
-        {isLoading && <p className="registro-notas__cargando">Cargando...</p>}
-        {error && <p className="registro-notas__error">{error}</p>}
+      {isLoading && <p className="registro-notas__cargando">Cargando...</p>}
+      {error && <p className="registro-notas__error">{error}</p>}
 
-        {!isLoading && !error && (
-          <TablaCalificaciones alumnos={alumnos} onNotaChange={handleNotaChange} />
-        )}
+      {!isLoading && !error && (
+        <TablaCalificaciones alumnos={alumnos} onNotaChange={handleNotaChange} />
+      )}
 
-        <footer className="registro-notas__acciones">
-          <button
-            className="registro-notas__btn-guardar"
-            onClick={handleGuardar}
-            disabled={isLoading}
-          >
-            <Save size={18} aria-hidden="true" />
-            Guardar Calificaciones
-          </button>
-        </footer>
-      </div>
-    </MainLayout>
+      <footer className="registro-notas__acciones">
+        <button
+          className="registro-notas__btn-guardar"
+          onClick={handleGuardar}
+          disabled={isLoading}
+        >
+          <Save size={18} aria-hidden="true" />
+          Guardar Calificaciones
+        </button>
+      </footer>
+    </div>
   );
 }
 

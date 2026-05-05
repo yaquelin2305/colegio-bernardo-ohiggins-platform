@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './core/context/AuthContext';
 import ProtectedRoute from './shared/components/layout/ProtectedRoute';
+import MainLayout from './shared/components/layout/MainLayout';
 import DashboardPage from './features/gestion-academica/pages/DashboardPage';
 import RegistroNotasPage from './features/gestion-academica/pages/RegistroNotasPage';
 import VisualizadorNotasPage from './features/gestion-academica/pages/VisualizadorNotasPage';
@@ -25,84 +26,25 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          } />
+          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="calificaciones" element={<RegistroNotasPage />} />
+            <Route path="mis-calificaciones" element={<VisualizadorNotasPage />} />
 
-          <Route path="/calificaciones" element={
-            <ProtectedRoute>
-              <RegistroNotasPage />
-            </ProtectedRoute>
-          } />
+            <Route path="asistencia" element={<AsistenciaPage />} />
+            <Route path="asistencia/anotaciones" element={<RegistroAnotacionesPage />} />
+            <Route path="asistencia/historial" element={<HistorialAsistenciaPage />} />
+            <Route path="asistencia/justificar" element={<JustificacionInasistenciasPage />} />
 
-          <Route path="/mis-calificaciones" element={
-            <ProtectedRoute>
-              <VisualizadorNotasPage />
-            </ProtectedRoute>
-          } />
+            <Route path="comunicaciones" element={<BandejaMensajesPage />} />
+            <Route path="comunicaciones/redactar" element={<RedactarMensajePage />} />
+            <Route path="comunicaciones/:id" element={<DetalleMensajePage />} />
 
-          {/* ── Asistencia ── */}
-          <Route path="/asistencia" element={
-            <ProtectedRoute>
-              <AsistenciaPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/asistencia/anotaciones" element={
-            <ProtectedRoute>
-              <RegistroAnotacionesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/asistencia/historial" element={
-            <ProtectedRoute>
-              <HistorialAsistenciaPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/asistencia/justificar" element={
-            <ProtectedRoute>
-              <JustificacionInasistenciasPage />
-            </ProtectedRoute>
-          } />
-
-          {/* ── Comunicaciones ── */}
-          <Route path="/comunicaciones" element={
-            <ProtectedRoute>
-              <BandejaMensajesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/comunicaciones/redactar" element={
-            <ProtectedRoute>
-              <RedactarMensajePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/comunicaciones/:id" element={
-            <ProtectedRoute>
-              <DetalleMensajePage />
-            </ProtectedRoute>
-          } />
-
-          {/* ── Administración ── */}
-          <Route path="/admin/gestion-academica" element={
-            <ProtectedRoute>
-              <GestionAcademicaAdminPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/asignacion-docentes" element={
-            <ProtectedRoute>
-              <AsignacionDocentesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/usuarios" element={
-            <ProtectedRoute>
-              <GestionUsuariosPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/cursos/:cursoId/estudiantes" element={
-            <ProtectedRoute>
-              <ListadoEstudiantesCursoPage />
-            </ProtectedRoute>
-          } />
+            <Route path="admin/gestion-academica" element={<GestionAcademicaAdminPage />} />
+            <Route path="admin/asignacion-docentes" element={<AsignacionDocentesPage />} />
+            <Route path="admin/usuarios" element={<GestionUsuariosPage />} />
+            <Route path="cursos/:cursoId/estudiantes" element={<ListadoEstudiantesCursoPage />} />
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>

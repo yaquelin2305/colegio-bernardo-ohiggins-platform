@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserCheck } from 'lucide-react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FormularioAsignacion from '../components/FormularioAsignacion';
 import TablaAsignaciones from '../components/TablaAsignaciones';
 import {
@@ -16,7 +16,10 @@ import '../styles/AsignacionDocentesPage.css';
 const formularioInicial = { docenteId: '', cursoId: '', asignaturaId: '' };
 
 function AsignacionDocentesPage() {
+  const { setTitulo } = useOutletContext();
   const [docentes, setDocentes] = useState([]);
+
+  useEffect(() => { setTitulo('Asignación de Docentes'); }, [setTitulo]);
   const [cursos, setCursos] = useState([]);
   const [asignaturas, setAsignaturas] = useState([]);
   const [asignaciones, setAsignaciones] = useState([]);
@@ -76,32 +79,30 @@ function AsignacionDocentesPage() {
   }
 
   return (
-    <MainLayout titulo="Asignación de Docentes">
-      <div className="asignacion">
+    <div className="asignacion">
 
-        {isLoading && <p className="asignacion__cargando">Cargando...</p>}
-        {error && <p className="asignacion__error">{error}</p>}
+      {isLoading && <p className="asignacion__cargando">Cargando...</p>}
+      {error && <p className="asignacion__error">{error}</p>}
 
-        {!isLoading && (
-          <section className="asignacion__seccion" aria-label="Formulario de asignación">
-            <h2 className="asignacion__titulo-seccion">
-              <UserCheck size={20} aria-hidden="true" />
-              Asignar Docente a Curso y Asignatura
-            </h2>
-            <FormularioAsignacion
-              formulario={formulario}
-              docentes={docentes}
-              cursos={cursos}
-              asignaturas={asignaturas}
-              onChange={handleChange}
-              onSubmit={handleAsignar}
-            />
-            <TablaAsignaciones asignaciones={asignaciones} onEliminar={handleEliminar} />
-          </section>
-        )}
+      {!isLoading && (
+        <section className="asignacion__seccion" aria-label="Formulario de asignación">
+          <h2 className="asignacion__titulo-seccion">
+            <UserCheck size={20} aria-hidden="true" />
+            Asignar Docente a Curso y Asignatura
+          </h2>
+          <FormularioAsignacion
+            formulario={formulario}
+            docentes={docentes}
+            cursos={cursos}
+            asignaturas={asignaturas}
+            onChange={handleChange}
+            onSubmit={handleAsignar}
+          />
+          <TablaAsignaciones asignaciones={asignaciones} onEliminar={handleEliminar} />
+        </section>
+      )}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 
