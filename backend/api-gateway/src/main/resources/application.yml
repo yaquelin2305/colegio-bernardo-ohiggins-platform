@@ -1,0 +1,411 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # =============================================
+  # SPRING CLOUD GATEWAY — Definición de Rutas
+  # =============================================
+  cloud:
+    gateway:
+      # Habilita integración con Eureka para lb:// URIs
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Cursos (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-cursos-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/cursos/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Asignaturas (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-asignaturas-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/asignaturas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Matrículas (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-matriculas-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/matriculas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Calificaciones (ADMIN + DOCENTE)
+        # -----------------------------------------------
+        - id: academico-calificaciones-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/calificaciones/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, PUT
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-ACADÉMICO — Asignacion Docente (solo ADMIN)
+        # -----------------------------------------------
+        - id: academico-asignacion-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/asignacion-docente/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: academicoCB
+                fallbackUri: forward:/fallback/academico
+
+        # -----------------------------------------------
+        # RUTA: MS-USUARIO — Auth pública (login, refresh, logout, health)
+        # ID:   usuario-auth-route
+        # WHITELIST: no pasan por JwtValidationFilter (están en PUBLIC_PATHS)
+        # -----------------------------------------------
+        - id: usuario-auth-route
+          uri: lb://MS-USUARIO
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: usuarioCB
+                fallbackUri: forward:/fallback/usuario
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
+        # -----------------------------------------------
+        # RUTA: MS-USUARIO — Admin protegida (solo ADMIN via RBAC en JwtValidationFilter)
+        # ID:   usuario-admin-route
+        # -----------------------------------------------
+        - id: usuario-admin-route
+          uri: lb://MS-USUARIO
+          predicates:
+            - Path=/api/v1/admin/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: usuarioCB
+                fallbackUri: forward:/fallback/usuario
+
+        # -----------------------------------------------
+        # RUTA: MS-COMUNICACIONES
+        # ID:   comunicaciones-route
+        # -----------------------------------------------
+        - id: comunicaciones-route
+          uri: lb://MS-COMUNICACIONES
+          predicates:
+            - Path=/api/v1/comunicaciones/**
+          filters:
+            # Reescribe /api/v1/comunicaciones/notificaciones → /api/notificaciones
+            - RewritePath=/api/v1/comunicaciones/(?<segment>.*), /api/${segment}
+            - name: CircuitBreaker
+              args:
+                name: comunicacionesCB
+                fallbackUri: forward:/fallback/default
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET
+
+      # =============================================
+      # CORS GLOBAL — permite al front (Vite :5173) consumir el Gateway
+      # En prod se reemplaza FRONTEND_URL con la URL real del frontend
+      # =============================================
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "${FRONTEND_URL:http://localhost:5173}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      # Timeout global para todas las rutas
+      httpclient:
+        connect-timeout: 3000     # 3s para establecer conexión
+        response-timeout: 10s     # 10s para recibir respuesta completa
+
+      # Headers de respuesta CORS — deduplica si el MS downstream también los envía
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+    # Desactivar Eureka si no está disponible en dev
+    discovery:
+      enabled: true
+
+  # Gateway es reactivo (WebFlux) — NO usar spring-web aquí
+  main:
+    web-application-type: reactive
+
+# =============================================
+# EUREKA CLIENT
+# =============================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# =============================================
+# RESILIENCE4J — Circuit Breaker
+# =============================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Circuit Breaker para MS-Académico
+      academicoCB:
+        # Ventana deslizante de 10 llamadas para calcular tasa de fallo
+        sliding-window-size: 10
+        # Si el 50% de las llamadas fallan → abre el circuito
+        failure-rate-threshold: 50
+        # Tiempo que el circuito permanece abierto antes de intentar HALF-OPEN
+        wait-duration-in-open-state: 10s
+        # Llamadas permitidas en estado HALF-OPEN para probar recuperación
+        permitted-number-of-calls-in-half-open-state: 3
+        # Tiempo mínimo de duración de llamada para considerarla lenta
+        slow-call-duration-threshold: 5s
+        # Si el 80% de llamadas son lentas → también abre el circuito
+        slow-call-rate-threshold: 80
+        # Registrar excepciones que cuentan como fallo
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.cloud.gateway.support.NotFoundException
+      # Circuit Breaker para MS-Comunicaciones
+      comunicacionesCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 80
+      # Circuit Breaker para MS-Usuario (Auth)
+      usuarioCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 5s
+        slow-call-rate-threshold: 80
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.cloud.gateway.support.NotFoundException
+      # Circuit Breaker genérico (fallback para otros MSs futuros)
+      defaultCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 2
+
+  timelimiter:
+    instances:
+      academicoCB:
+        timeout-duration: 8s
+      defaultCB:
+        timeout-duration: 8s
+
+# =============================================
+# CONFIGURACIÓN JWT
+# =============================================
+gateway:
+  jwt:
+    secret: ${JWT_SECRET:colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret}
+
+# =============================================
+# ACTUATOR
+# =============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway, circuitbreakers, metrics
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# =============================================
+# LOGGING
+# =============================================
+logging:
+  level:
+    cl.duoc.colegio.gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    io.github.resilience4j: INFO
+
+---
+# =============================================
+# PERFIL: docker (docker-compose local)
+# Rutas estáticas — sin Eureka, URLs de contenedores
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: docker-academico-cursos
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/cursos/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-asignaturas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignaturas/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-matriculas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/matriculas/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-calificaciones
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/calificaciones/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-academico-asignacion
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignacion-docente/**]
+          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
+
+        - id: docker-usuario-auth
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/auth/**]
+          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+
+        - id: docker-usuario-admin
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/admin/**]
+          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: DEBUG
+
+---
+# =============================================
+# PERFIL: dev (desarrollo local)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
+
+---
+# =============================================
+# PERFIL: prod (producción — Railway)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: WARN
+    org.springframework.cloud.gateway: WARN

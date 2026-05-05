@@ -1,0 +1,123 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ms-usuario
+
+  # =============================================
+  # JPA / DATASOURCE
+  # =============================================
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${DB_USERNAME:colegio}
+    password: ${DB_PASSWORD:colegio123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL-AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: users_schema
+        format_sql: false
+    show-sql: false
+    open-in-view: false
+
+# =============================================
+# EUREKA CLIENT
+# =============================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# =============================================
+# JWT
+# =============================================
+jwt:
+  secret: ${JWT_SECRET:colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret}
+
+# =============================================
+# ACTUATOR
+# =============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+
+# =============================================
+# LOGGING BASE
+# =============================================
+logging:
+  level:
+    cl.duoc.colegio.usuario: INFO
+    org.springframework.security: INFO
+
+---
+# =============================================
+# PERFIL: dev (desarrollo local — sin seguridad JWT)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    cl.duoc.colegio.usuario: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+# =============================================
+# PERFIL: prod (producción)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    hibernate:
+      ddl-auto: update      # init-usuario.sql ya crea el schema, Hibernate solo sincroniza
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: users_schema
+
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.usuario: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
