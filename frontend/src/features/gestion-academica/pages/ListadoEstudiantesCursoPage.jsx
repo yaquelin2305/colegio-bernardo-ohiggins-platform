@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
 import InfoCurso from '../components/InfoCurso';
 import PanelMatricula from '../components/PanelMatricula';
 import TablaEstudiantes from '../components/TablaEstudiantes';
@@ -14,8 +13,11 @@ import {
 import '../styles/ListadoEstudiantesCursoPage.css';
 
 function ListadoEstudiantesCursoPage() {
+  const { setTitulo } = useOutletContext();
   const { cursoId } = useParams();
   const navigate = useNavigate();
+
+  useEffect(() => { setTitulo('Listado de Estudiantes'); }, [setTitulo]);
 
   const [curso, setCurso] = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -62,55 +64,47 @@ function ListadoEstudiantesCursoPage() {
   }
 
   if (isLoading) {
-    return (
-      <MainLayout titulo="Cargando...">
-        <p className="listado-estudiantes__cargando">Cargando...</p>
-      </MainLayout>
-    );
+    return <p className="listado-estudiantes__cargando">Cargando...</p>;
   }
 
   if (error || !curso) {
     return (
-      <MainLayout titulo="Curso no encontrado">
-        <div className="listado-estudiantes__no-encontrado">
-          <p>{error ?? 'El curso solicitado no existe.'}</p>
-          <button className="listado-estudiantes__btn-volver" onClick={() => navigate(-1)}>
-            <ArrowLeft size={16} aria-hidden="true" />
-            Volver
-          </button>
-        </div>
-      </MainLayout>
+      <div className="listado-estudiantes__no-encontrado">
+        <p>{error ?? 'El curso solicitado no existe.'}</p>
+        <button className="listado-estudiantes__btn-volver" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          Volver
+        </button>
+      </div>
     );
   }
 
   return (
-    <MainLayout titulo={`Estudiantes — ${curso.nombre}`}>
-      <div className="listado-estudiantes">
+    <div className="listado-estudiantes">
 
-        <InfoCurso
+      <InfoCurso
+        curso={curso}
+        totalEstudiantes={estudiantes.length}
+        mostrarPanel={mostrarPanel}
+        onTogglePanel={() => setMostrarPanel(prev => !prev)}
+      />
+
+      {mostrarPanel && (
+        <PanelMatricula
           curso={curso}
-          totalEstudiantes={estudiantes.length}
-          mostrarPanel={mostrarPanel}
-          onTogglePanel={() => setMostrarPanel(prev => !prev)}
+          disponibles={disponiblesFiltrados}
+          alumnoSeleccionadoId={alumnoSeleccionadoId}
+          onAlumnoChange={e => setAlumnoSeleccionadoId(e.target.value)}
+          onMatricular={handleMatricular}
+          onCancelar={() => setMostrarPanel(false)}
         />
+      )}
 
-        {mostrarPanel && (
-          <PanelMatricula
-            curso={curso}
-            disponibles={disponiblesFiltrados}
-            alumnoSeleccionadoId={alumnoSeleccionadoId}
-            onAlumnoChange={e => setAlumnoSeleccionadoId(e.target.value)}
-            onMatricular={handleMatricular}
-            onCancelar={() => setMostrarPanel(false)}
-          />
-        )}
+      <section className="listado-estudiantes__tabla-wrapper" aria-label="Nómina de estudiantes">
+        <TablaEstudiantes estudiantes={estudiantes} />
+      </section>
 
-        <section className="listado-estudiantes__tabla-wrapper" aria-label="Nómina de estudiantes">
-          <TablaEstudiantes estudiantes={estudiantes} />
-        </section>
-
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 

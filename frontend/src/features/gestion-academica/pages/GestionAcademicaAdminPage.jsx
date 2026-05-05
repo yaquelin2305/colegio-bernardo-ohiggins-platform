@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import SeccionCursos from '../components/SeccionCursos';
 import SeccionAsignaturas from '../components/SeccionAsignaturas';
 import {
@@ -21,7 +21,10 @@ const formularioAsignaturaInicial = {
 };
 
 function GestionAcademicaAdminPage() {
+  const { setTitulo } = useOutletContext();
   const [cursos, setCursos] = useState([]);
+
+  useEffect(() => { setTitulo('Gestión Académica — Administración'); }, [setTitulo]);
   const [asignaturas, setAsignaturas] = useState([]);
   const [formularioCurso, setFormularioCurso] = useState(formularioCursoInicial);
   const [formularioAsignatura, setFormularioAsignatura] = useState(formularioAsignaturaInicial);
@@ -71,31 +74,29 @@ function GestionAcademicaAdminPage() {
   }
 
   return (
-    <MainLayout titulo="Gestión Académica — Administración">
-      <div className="gestion-admin">
+    <div className="gestion-admin">
 
-        {isLoading && <p className="gestion-admin__cargando">Cargando...</p>}
-        {error && <p className="gestion-admin__error">{error}</p>}
+      {isLoading && <p className="gestion-admin__cargando">Cargando...</p>}
+      {error && <p className="gestion-admin__error">{error}</p>}
 
-        {!isLoading && (
-          <>
-            <SeccionCursos
-              cursos={cursos}
-              formulario={formularioCurso}
-              onChange={handleChangeCurso}
-              onSubmit={handleCrearCurso}
-            />
-            <SeccionAsignaturas
-              asignaturas={asignaturas}
-              formulario={formularioAsignatura}
-              onChange={handleChangeAsignatura}
-              onSubmit={handleAgregarAsignatura}
-            />
-          </>
-        )}
+      {!isLoading && (
+        <>
+          <SeccionCursos
+            cursos={cursos}
+            formulario={formularioCurso}
+            onChange={handleChangeCurso}
+            onSubmit={handleCrearCurso}
+          />
+          <SeccionAsignaturas
+            asignaturas={asignaturas}
+            formulario={formularioAsignatura}
+            onChange={handleChangeAsignatura}
+            onSubmit={handleAgregarAsignatura}
+          />
+        </>
+      )}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 
