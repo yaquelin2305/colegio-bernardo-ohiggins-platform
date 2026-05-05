@@ -10,10 +10,12 @@ import ListadoEstudiantesCursoPage from './features/gestion-academica/pages/List
 import BandejaMensajesPage from './features/comunicaciones/pages/BandejaMensajesPage';
 import RedactarMensajePage from './features/comunicaciones/pages/RedactarMensajePage';
 import DetalleMensajePage from './features/comunicaciones/pages/DetalleMensajePage';
+import AsistenciaPage from './features/asistencia/pages/AsistenciaPage';
 import RegistroAnotacionesPage from './features/asistencia/pages/RegistroAnotacionesPage';
 import HistorialAsistenciaPage from './features/asistencia/pages/HistorialAsistenciaPage';
 import JustificacionInasistenciasPage from './features/asistencia/pages/JustificacionInasistenciasPage';
 import GestionUsuariosPage from './features/usuarios/pages/GestionUsuariosPage';
+import LoginPage from './features/auth/pages/LoginPage';
 
 function App() {
   return (
@@ -21,6 +23,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<LoginPage />} />
 
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -41,7 +44,11 @@ function App() {
           } />
 
           {/* ── Asistencia ── */}
-          <Route path="/asistencia" element={<Navigate to="/asistencia/anotaciones" replace />} />
+          <Route path="/asistencia" element={
+            <ProtectedRoute>
+              <AsistenciaPage />
+            </ProtectedRoute>
+          } />
           <Route path="/asistencia/anotaciones" element={
             <ProtectedRoute>
               <RegistroAnotacionesPage />

@@ -1,3 +1,13 @@
+export async function obtenerResumenDiario(cursoId, fecha) {
+  // TODO: Integrar llamada Axios con MS-Académico
+  return Promise.resolve(null);
+}
+
+export async function obtenerAsistenciaPorCurso(cursoId, fecha) {
+  // TODO: Integrar llamada Axios con MS-Académico
+  return Promise.resolve([]);
+}
+
 export async function obtenerAlumnos() {
   // TODO: Integrar llamada Axios con MS correspondiente según contrato API
   return Promise.resolve([]);
