@@ -1,0 +1,135 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: ms-academico
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${DB_USERNAME:colegio}
+    password: ${DB_PASSWORD:colegio123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5          # Green IT: pool pequeño, suficiente para el MS
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate            # Producción: nunca auto-crear, usar migraciones
+    show-sql: false                 # Green IT: desactivado en prod para no desperdiciar I/O
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_batch_fetch_size: 20  # Green IT: batch fetch para reducir N+1
+
+  # Deshabilitar Eureka si no está disponible en desarrollo local
+  cloud:
+    discovery:
+      enabled: true
+
+# Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Resilience4j — Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      ms-academico:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging
+logging:
+  level:
+    cl.duoc.colegio.academico: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+---
+# =============================================
+# PERFIL: prod (docker-compose y Railway)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    hibernate:
+      ddl-auto: update      # crea/altera tablas si faltan — init-db.sql ya crea el schema
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: academico_schema
+
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.academico: WARN
+    org.hibernate.SQL: WARN
+
+---
+# =============================================
+# PERFIL: dev (local sin Eureka)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: academico_schema
+        format_sql: true
+
+  cloud:
+    discovery:
+      enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    cl.duoc.colegio.academico: DEBUG
+    org.hibernate.SQL: DEBUG

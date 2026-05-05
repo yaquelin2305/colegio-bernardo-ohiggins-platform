@@ -1,0 +1,56 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-comunicaciones
+
+  # =============================================
+  # JPA / DATASOURCE
+  # =============================================
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${DB_USERNAME:colegio}
+    password: ${DB_PASSWORD:colegio123}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL-AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # ESTE ES EL TUYO:
+        default_schema: comunicaciones_schema
+    show-sql: false
+
+# =============================================
+# ACTUATOR (Importante para el Healthcheck de Docker)
+# =============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+---
+# =============================================
+# PERFIL: prod (El que usará el Docker Compose)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    properties:
+      hibernate:
+        default_schema: comunicaciones_schema
+
+  # Desactivamos Eureka en prod si el equipo no lo está usando en Docker
+  eureka:
+    client:
+      enabled: false

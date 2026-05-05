@@ -1,0 +1,185 @@
+# =============================================================
+# DOCKER COMPOSE — Plataforma Colegio Bernardo O'Higgins
+#
+# Arquitectura: 1 PostgreSQL, 2 schemas lógicos separados
+#   users_schema     → MS-Usuario
+#   academico_schema → MS-Academico
+#
+# Orden de arranque (healthchecks garantizan la secuencia):
+#   postgres → ms-usuario + ms-academico → api-gateway → frontend
+#
+# Comandos:
+#   docker compose up --build    (primera vez o tras cambios de código)
+#   docker compose up -d         (modo daemon)
+#   docker compose down          (detener)
+#   docker compose down -v       (detener + borrar volumen BD)
+#   docker compose logs -f api-gateway
+# =============================================================
+
+services:
+
+  # ─────────────────────────────────────────────────────────
+  # ÚNICA BASE DE DATOS
+  # Una instancia, dos schemas: users_schema + academico_schema
+  # Puerto 5432 expuesto al host para DBeaver/TablePlus
+  # ─────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: colegio-db
+    environment:
+      POSTGRES_DB: colegio_db
+      POSTGRES_USER: colegio
+      POSTGRES_PASSWORD: colegio123
+    volumes:
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U colegio -d colegio_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # MS-USUARIO  (puerto 8083)
+  # Se conecta a users_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-usuario:
+    build:
+      context: ./backend/ms-usuario
+      dockerfile: Dockerfile
+    container_name: ms-usuario
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+      JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8083:8083"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # MS-ACADÉMICO  (puerto 8082)
+  # Se conecta a academico_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-academico:
+    build:
+      context: ./backend/ms-academico
+      dockerfile: Dockerfile
+    container_name: ms-academico
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8082:8082"
+    networks:
+      - colegio-network
+
+# ─────────────────────────────────────────────────────────
+  # MS-COMUNICACIONES (puerto 8081)
+  # Se conecta a comunicaciones_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-comunicaciones:
+    build:
+      context: ./backend/ms-comunicaciones
+      dockerfile: Dockerfile
+    container_name: ms-comunicaciones
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8081:8081"
+    networks:
+      - colegio-network
+
+
+  # ─────────────────────────────────────────────────────────
+  # API GATEWAY  (puerto 8080)
+  # Espera a que ambos MSs estén healthy
+  # ─────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      ms-usuario:
+        condition: service_healthy
+      ms-academico:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    ports:
+      - "8080:8080"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
+  # FRONTEND React/Vite → Nginx  (puerto 3000)
+  # ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    container_name: frontend
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - colegio-network
+
+volumes:
+  postgres_data:
+
+networks:
+  colegio-network:
+    name: colegio-network
+    driver: bridge
