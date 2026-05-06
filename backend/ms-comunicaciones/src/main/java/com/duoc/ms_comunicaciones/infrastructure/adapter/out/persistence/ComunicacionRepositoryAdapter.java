@@ -46,7 +46,14 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         entity.setLeido(leido);
         return toDomain(jpaRepository.save(entity));
     }
-
+    @Override
+    public List<String> findAllDestinatarios() {
+            
+        return jpaRepository.findAll().stream()
+                .map(ComunicacionEntity::getDestinatario)
+                .distinct()
+                .collect(Collectors.toList());
+    }
    
     private ComunicacionEntity toEntity(Comunicacion dom) {
         ComunicacionEntity ent = new ComunicacionEntity();
