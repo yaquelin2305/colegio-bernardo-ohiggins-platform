@@ -22,16 +22,16 @@ public class ComunicacionService implements ComunicacionUseCase {
 
     @Override
     public Comunicacion enviar(Comunicacion comunicacion) {
-        // Buscamos la estrategia que soporte el canal (EMAIL o SMS)
+       
         ComunicacionStrategy strategy = strategies.stream()
                 .filter(s -> s.supports(comunicacion.getCanal()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Canal no soportado"));
 
-        // Despachamos el mensaje
+        
         strategy.dispatch(comunicacion);
 
-        // Guardamos en la base de datos a través del puerto de salida
+        
         return repositoryPort.save(comunicacion);
     }
 
@@ -39,7 +39,6 @@ public class ComunicacionService implements ComunicacionUseCase {
     public List<Comunicacion> getBandeja(String usuarioId) {
         return repositoryPort.findByUsuarioId(usuarioId);
     }
-
     @Override
     public Optional<Comunicacion> getMensaje(Long mensajeId) {
         return repositoryPort.findById(mensajeId);
@@ -48,5 +47,12 @@ public class ComunicacionService implements ComunicacionUseCase {
     @Override
     public Comunicacion marcarLeido(Long mensajeId) {
         return repositoryPort.updateLeido(mensajeId, true);
+        
+    }
+
+    @Override
+    public List<String> obtenerDestinatarios() {
+        return repositoryPort.findAllDestinatarios();
+    
     }
 }

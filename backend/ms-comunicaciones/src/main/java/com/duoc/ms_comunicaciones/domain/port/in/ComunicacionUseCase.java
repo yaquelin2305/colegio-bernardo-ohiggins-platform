@@ -17,4 +17,6 @@ public interface ComunicacionUseCase {
     
    
     Comunicacion marcarLeido(Long mensajeId);
+    
+    List<String> obtenerDestinatarios();
 }

@@ -17,4 +17,6 @@ public interface ComunicacionRepositoryPort {
     
    
     Comunicacion updateLeido(Long id, boolean leido);
+
+    List<String> findAllDestinatarios();
 }
