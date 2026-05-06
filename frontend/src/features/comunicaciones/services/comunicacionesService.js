@@ -1,4 +1,5 @@
-export async function obtenerMensajes() {
+// TODO: El BFF mapeará mensajeId -> id, mensaje -> cuerpo y fechaEnvio -> fecha
+export async function obtenerMensajes(usuarioId) {
   // TODO: Integrar llamada Axios con MS correspondiente según contrato API
   return Promise.resolve([]);
 }

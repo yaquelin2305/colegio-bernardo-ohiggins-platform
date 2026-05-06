@@ -42,6 +42,22 @@ function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false, 
       </div>
 
       <div className="redactar__campo">
+        <label htmlFor="tipo" className="redactar__label">Tipo de Mensaje</label>
+        <select
+          id="tipo"
+          name="tipo"
+          className="redactar__select"
+          value={formulario.tipo}
+          onChange={onChange}
+          required
+        >
+          <option value="ADMINISTRATIVO">Administrativo</option>
+          <option value="CONSULTA">Consulta</option>
+          <option value="SOLICITUD">Solicitud</option>
+        </select>
+      </div>
+
+      <div className="redactar__campo">
         <label htmlFor="mensaje" className="redactar__label">Mensaje</label>
         <textarea
           id="mensaje"

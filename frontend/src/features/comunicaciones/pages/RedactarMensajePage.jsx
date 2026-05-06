@@ -10,6 +10,7 @@ const estadoInicial = {
   asunto: '',
   mensaje: '',
   canal: 'EMAIL',
+  tipo: 'CONSULTA',
 };
 
 function RedactarMensajePage() {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useAuth } from '../../../core/context/AuthContext';
 import CabeceraBandeja from '../components/CabeceraBandeja';
 import ListaMensajes from '../components/ListaMensajes';
 import { obtenerMensajes } from '../services/comunicacionesService';
@@ -7,6 +8,7 @@ import '../styles/BandejaMensajesPage.css';
 
 function BandejaMensajesPage() {
   const { setTitulo } = useOutletContext();
+  const { usuario } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => { setTitulo('Comunicaciones'); }, [setTitulo]);
@@ -15,11 +17,13 @@ function BandejaMensajesPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    obtenerMensajes()
+    if (!usuario) return;
+    const identificador = usuario.rut || usuario.id;
+    obtenerMensajes(identificador)
       .then(setMensajes)
       .catch(() => setError('No se pudo cargar la bandeja de mensajes.'))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [usuario]);
 
   return (
     <div className="bandeja">
