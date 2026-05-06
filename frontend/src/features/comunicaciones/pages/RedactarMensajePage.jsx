@@ -9,7 +9,7 @@ const estadoInicial = {
   destinatario: '',
   asunto: '',
   mensaje: '',
-  canal: 'plataforma-correo',
+  canal: 'EMAIL',
 };
 
 function RedactarMensajePage() {

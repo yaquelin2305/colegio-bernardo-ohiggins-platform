@@ -1,9 +1,9 @@
 import { Send } from 'lucide-react';
 
 const canales = [
-  { value: 'plataforma-correo', label: 'Plataforma y Correo',  desc: 'Notifica en el sistema y envía copia por email' },
-  { value: 'solo-plataforma',   label: 'Solo Plataforma',      desc: 'Visible únicamente dentro del sistema' },
-  { value: 'sms-urgencia',      label: 'SMS de Urgencia',      desc: 'Envío inmediato vía mensaje de texto al apoderado' },
+  { value: 'EMAIL',    label: 'Correo Electrónico', desc: 'Envía el mensaje al correo electrónico del destinatario' },
+  { value: 'SMS',      label: 'SMS',                desc: 'Envío inmediato vía mensaje de texto al destinatario' },
+  { value: 'WHATSAPP', label: 'WhatsApp',           desc: 'Envía el mensaje por WhatsApp al destinatario' },
 ];
 
 function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false, destinatarios = [] }) {
