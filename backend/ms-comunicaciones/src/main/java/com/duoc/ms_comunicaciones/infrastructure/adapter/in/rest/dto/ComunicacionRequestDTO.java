@@ -11,5 +11,6 @@ public class ComunicacionRequestDTO {
     private String destinatario; 
     private String asunto;
     private String mensaje;
-    private String canal;    
+    private String canal;
+    private String tipo;    
 }

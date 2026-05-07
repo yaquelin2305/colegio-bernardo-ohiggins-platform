@@ -13,4 +13,5 @@ public class ComunicacionResponseDTO {
     private String canal;
     private LocalDateTime fechaEnvio;
     private boolean leido;
+    private String tipo;
 }

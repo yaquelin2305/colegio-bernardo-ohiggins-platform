@@ -46,9 +46,9 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         entity.setLeido(leido);
         return toDomain(jpaRepository.save(entity));
     }
+
     @Override
     public List<String> findAllDestinatarios() {
-            
         return jpaRepository.findAll().stream()
                 .map(ComunicacionEntity::getDestinatario)
                 .distinct()
@@ -62,13 +62,13 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         ent.setDestinatario(dom.getDestinatario());
         ent.setAsunto(dom.getAsunto());
         ent.setMensaje(dom.getMensaje());
+        ent.setTipo(dom.getTipo()); // <--- MAPEO REAL AGREGADO
         ent.setCanal(CanalEntity.valueOf(dom.getCanal().name()));
         ent.setFechaEnvio(dom.getFechaEnvio());
         ent.setLeido(dom.isLeido());
         return ent;
     }
 
-   
     private Comunicacion toDomain(ComunicacionEntity ent) {
         Comunicacion dom = new Comunicacion();
         dom.setId(ent.getId());
@@ -76,6 +76,7 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         dom.setDestinatario(ent.getDestinatario());
         dom.setAsunto(ent.getAsunto());
         dom.setMensaje(ent.getMensaje());
+        dom.setTipo(ent.getTipo()); // <--- MAPEO REAL AGREGADO
         dom.setCanal(Canal.valueOf(ent.getCanal().name()));
         dom.setFechaEnvio(ent.getFechaEnvio());
         dom.setLeido(ent.isLeido());

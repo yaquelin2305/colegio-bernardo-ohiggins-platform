@@ -1,4 +1,5 @@
 package com.duoc.ms_comunicaciones.infrastructure.adapter.in.rest;
+
 import com.duoc.ms_comunicaciones.domain.model.Comunicacion;
 import com.duoc.ms_comunicaciones.domain.model.Canal;
 import com.duoc.ms_comunicaciones.domain.port.in.ComunicacionUseCase;
@@ -23,12 +24,13 @@ public class ComunicacionController {
 
     @PostMapping("/enviar")
     public ResponseEntity<ComunicacionResponseDTO> enviar(@RequestBody ComunicacionRequestDTO request) {
-       
         Comunicacion comunicacion = Comunicacion.builder()
                 .usuarioId(request.getDestinatario()) 
                 .destinatario(request.getDestinatario())
                 .asunto(request.getAsunto())
                 .mensaje(request.getMensaje())
+                // Si agregaste el campo 'tipo' en el DTO, descomenta la línea de abajo:
+                // .tipo(request.getTipo()) 
                 .canal(Canal.valueOf(request.getCanal().toUpperCase()))
                 .fechaEnvio(LocalDateTime.now())
                 .leido(false)
@@ -36,6 +38,21 @@ public class ComunicacionController {
 
         Comunicacion guardada = useCase.enviar(comunicacion);
         return ResponseEntity.ok(toResponseDTO(guardada));
+    }
+
+    // 1. Endpoint para que el Frontend llene el <select> de destinatarios
+    @GetMapping("/destinatarios")
+    public ResponseEntity<List<String>> getDestinatarios() {
+        return ResponseEntity.ok(useCase.obtenerDestinatarios());
+    }
+
+    // 2. Endpoint para obtener el detalle de UN mensaje específico
+    @GetMapping("/{mensajeId}")
+    public ResponseEntity<ComunicacionResponseDTO> getMensaje(@PathVariable Long mensajeId) {
+        return useCase.getMensaje(mensajeId)
+                .map(this::toResponseDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/bandeja/{usuarioId}")
@@ -52,7 +69,6 @@ public class ComunicacionController {
         return ResponseEntity.ok(toResponseDTO(actualizada));
     }
 
-   
     private ComunicacionResponseDTO toResponseDTO(Comunicacion dom) {
         ComunicacionResponseDTO dto = new ComunicacionResponseDTO();
         dto.setMensajeId(dom.getId());
@@ -60,6 +76,8 @@ public class ComunicacionController {
         dto.setDestinatario(dom.getDestinatario());
         dto.setAsunto(dom.getAsunto());
         dto.setMensaje(dom.getMensaje());
+        // Si usas el campo 'tipo', descomenta la línea de abajo:
+        // dto.setTipo(dom.getTipo());
         dto.setCanal(dom.getCanal().name());
         dto.setFechaEnvio(dom.getFechaEnvio());
         dto.setLeido(dom.isLeido());
