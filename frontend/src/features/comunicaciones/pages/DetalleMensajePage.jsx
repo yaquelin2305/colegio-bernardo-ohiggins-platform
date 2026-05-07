@@ -47,7 +47,7 @@ function DetalleMensajePage() {
         onResponder={() => navigate('/comunicaciones/redactar')}
       />
       <EncabezadoMensaje mensaje={mensaje} />
-      <CuerpoMensaje cuerpo={mensaje.cuerpo} />
+      <CuerpoMensaje cuerpo={mensaje.mensaje || mensaje.cuerpo} />
     </div>
   );
 }
