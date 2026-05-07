@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FormularioUsuarioAdmin from '../components/FormularioUsuarioAdmin';
 import TabsUsuarios from '../components/TabsUsuarios';
 import TablaUsuarios from '../components/TablaUsuarios';
@@ -14,7 +14,10 @@ import {
 import '../styles/GestionUsuariosPage.css';
 
 function GestionUsuariosPage() {
+  const { setTitulo } = useOutletContext();
   const [tabActiva, setTabActiva] = useState('docentes');
+
+  useEffect(() => { setTitulo('Gestión de Usuarios'); }, [setTitulo]);
   const [docentes, setDocentes]       = useState([]);
   const [apoderados, setApoderados]   = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -116,44 +119,42 @@ function GestionUsuariosPage() {
     : ['RUT', 'Nombre', 'Correo'];
 
   return (
-    <MainLayout titulo="Gestión de Usuarios">
-      <div className="gestion-usuarios">
+    <div className="gestion-usuarios">
 
-        <TabsUsuarios tabActiva={tabActiva} onCambiarTab={handleCambiarTab} />
+      <TabsUsuarios tabActiva={tabActiva} onCambiarTab={handleCambiarTab} />
 
-        {isLoading && <p className="gestion-usuarios__cargando">Cargando...</p>}
-        {error && <p className="gestion-usuarios__error">{error}</p>}
+      {isLoading && <p className="gestion-usuarios__cargando">Cargando...</p>}
+      {error && <p className="gestion-usuarios__error">{error}</p>}
 
-        {!isLoading && (
-          <div className="gestion-usuarios__contenido">
+      {!isLoading && (
+        <div className="gestion-usuarios__contenido">
 
-            <section className="gestion-usuarios__seccion gestion-usuarios__seccion--formulario" aria-label="Crear o editar usuario">
-              <FormularioUsuarioAdmin
-                onGuardar={handleGuardarDesdeFormulario}
-                apoderados={apoderados}
-                usuarioEditando={usuarioEditando}
-                onCancelar={() => setUsuarioEditando(null)}
-              />
-            </section>
-
-            <TablaUsuarios
-              lista={lista}
-              tabActiva={tabActiva}
-              columnas={columnas}
+          <section className="gestion-usuarios__seccion gestion-usuarios__seccion--formulario" aria-label="Crear o editar usuario">
+            <FormularioUsuarioAdmin
+              onGuardar={handleGuardarDesdeFormulario}
+              apoderados={apoderados}
               usuarioEditando={usuarioEditando}
-              confirmarEliminarId={confirmarEliminarId}
-              onEditar={handleEditar}
-              onEliminar={handleEliminar}
-              onToggleConfirmar={id => setConfirmarEliminarId(
-                confirmarEliminarId === id ? null : id
-              )}
+              onCancelar={() => setUsuarioEditando(null)}
             />
+          </section>
 
-          </div>
-        )}
+          <TablaUsuarios
+            lista={lista}
+            tabActiva={tabActiva}
+            columnas={columnas}
+            usuarioEditando={usuarioEditando}
+            confirmarEliminarId={confirmarEliminarId}
+            onEditar={handleEditar}
+            onEliminar={handleEliminar}
+            onToggleConfirmar={id => setConfirmarEliminarId(
+              confirmarEliminarId === id ? null : id
+            )}
+          />
 
-      </div>
-    </MainLayout>
+        </div>
+      )}
+
+    </div>
   );
 }
 

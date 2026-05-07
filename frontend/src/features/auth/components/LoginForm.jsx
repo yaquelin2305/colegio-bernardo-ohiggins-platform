@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { login } from '../services/authService';
 import '../styles/RegisterForm.css';
 
 const initialState = {
@@ -30,9 +31,13 @@ function LoginForm() {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
+    try {
+      await login(form.email, form.password);
+    } catch (err) {
+      setError(err.message || 'Error al iniciar sesión.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const inputField = ({ name, label, icon, type = 'text', placeholder }) => (
@@ -75,26 +80,7 @@ function LoginForm() {
           {loading ? 'Iniciando sesión...' : 'Entrar'}
         </button>
 
-        <p
-          style={{
-            textAlign: 'center',
-            marginTop: '1rem',
-            fontSize: '0.875rem',
-            color: '#666',
-          }}
-        >
-          ¿No tienes cuenta?{' '}
-          <Link
-            to="/registro"
-            style={{
-              color: '#26A69A',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            Regístrate aquí
-          </Link>
-        </p>
+   
       </div>
     </form>
   );

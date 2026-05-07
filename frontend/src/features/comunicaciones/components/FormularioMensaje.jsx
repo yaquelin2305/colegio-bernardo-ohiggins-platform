@@ -1,12 +1,12 @@
 import { Send } from 'lucide-react';
 
 const canales = [
-  { value: 'plataforma-correo', label: 'Plataforma y Correo',  desc: 'Notifica en el sistema y envía copia por email' },
-  { value: 'solo-plataforma',   label: 'Solo Plataforma',      desc: 'Visible únicamente dentro del sistema' },
-  { value: 'sms-urgencia',      label: 'SMS de Urgencia',      desc: 'Envío inmediato vía mensaje de texto al apoderado' },
+  { value: 'EMAIL',    label: 'Correo Electrónico', desc: 'Envía el mensaje al correo electrónico del destinatario' },
+  { value: 'SMS',      label: 'SMS',                desc: 'Envío inmediato vía mensaje de texto al destinatario' },
+  { value: 'WHATSAPP', label: 'WhatsApp',           desc: 'Envía el mensaje por WhatsApp al destinatario' },
 ];
 
-function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false }) {
+function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false, destinatarios = [] }) {
   return (
     <form className="redactar__tarjeta" onSubmit={onEnviar} noValidate>
 
@@ -21,13 +21,9 @@ function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false }
           required
         >
           <option value="" disabled>Seleccionar destinatario...</option>
-          <option value="apoderados-1a">Apoderados 1° Medio A</option>
-          <option value="apoderados-2a">Apoderados 2° Medio A</option>
-          <option value="alumnos-1a">Alumnos 1° Medio A</option>
-          <option value="centro-alumnos">Centro de Alumnos</option>
-          <option value="docentes">Cuerpo Docente</option>
-          <option value="direccion">Dirección</option>
-          <option value="utp">UTP</option>
+          {destinatarios.map(d => (
+            <option key={d.id} value={d.id}>{d.nombre}</option>
+          ))}
         </select>
       </div>
 
@@ -43,6 +39,22 @@ function FormularioMensaje({ formulario, onChange, onEnviar, isLoading = false }
           onChange={onChange}
           required
         />
+      </div>
+
+      <div className="redactar__campo">
+        <label htmlFor="tipo" className="redactar__label">Tipo de Mensaje</label>
+        <select
+          id="tipo"
+          name="tipo"
+          className="redactar__select"
+          value={formulario.tipo}
+          onChange={onChange}
+          required
+        >
+          <option value="ADMINISTRATIVO">Administrativo</option>
+          <option value="CONSULTA">Consulta</option>
+          <option value="SOLICITUD">Solicitud</option>
+        </select>
       </div>
 
       <div className="redactar__campo">

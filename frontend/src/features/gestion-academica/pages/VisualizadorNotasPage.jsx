@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import { useAuth } from '../../../core/context/AuthContext';
 import EncabezadoBoletin from '../components/EncabezadoBoletin';
 import TablaBoletinNotas from '../components/TablaBoletinNotas';
@@ -12,7 +12,10 @@ import {
 import '../styles/VisualizadorNotasPage.css';
 
 function VisualizadorNotasPage() {
+  const { setTitulo } = useOutletContext();
   const { usuario } = useAuth();
+
+  useEffect(() => { setTitulo('Mi Boletín de Notas'); }, [setTitulo]);
   const esApoderado = usuario?.rol === 'APODERADO';
 
   const [boletin, setBoletin] = useState(null);
@@ -51,39 +54,37 @@ function VisualizadorNotasPage() {
   const asignaturas = boletin?.asignaturas ?? [];
 
   return (
-    <MainLayout titulo="Mi Boletín de Notas">
-      <div className="visualizador-notas">
+    <div className="visualizador-notas">
 
-        {esApoderado && pupilos.length > 0 && (
-          <div className="boletin__selector-pupilo">
-            <label htmlFor="select-pupilo" className="boletin__selector-label">
-              <Users size={15} aria-hidden="true" />
-              Seleccionar Pupilo
-            </label>
-            <select
-              id="select-pupilo"
-              className="boletin__selector-select"
-              value={pupilId}
-              onChange={e => setPupilId(e.target.value)}
-            >
-              {pupilos.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre} — {p.curso}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+      {esApoderado && pupilos.length > 0 && (
+        <div className="boletin__selector-pupilo">
+          <label htmlFor="select-pupilo" className="boletin__selector-label">
+            <Users size={15} aria-hidden="true" />
+            Seleccionar Pupilo
+          </label>
+          <select
+            id="select-pupilo"
+            className="boletin__selector-select"
+            value={pupilId}
+            onChange={e => setPupilId(e.target.value)}
+          >
+            {pupilos.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.nombre} — {p.curso}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
-        {isLoading && <p className="boletin__cargando">Cargando...</p>}
-        {error && <p className="boletin__error">{error}</p>}
+      {isLoading && <p className="boletin__cargando">Cargando...</p>}
+      {error && <p className="boletin__error">{error}</p>}
 
-        {!isLoading && !error && alumno && <EncabezadoBoletin alumno={alumno} />}
+      {!isLoading && !error && alumno && <EncabezadoBoletin alumno={alumno} />}
 
-        {!isLoading && !error && <TablaBoletinNotas asignaturas={asignaturas} />}
+      {!isLoading && !error && <TablaBoletinNotas asignaturas={asignaturas} />}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 

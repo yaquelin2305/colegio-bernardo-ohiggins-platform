@@ -100,6 +100,35 @@ services:
     networks:
       - colegio-network
 
+# ─────────────────────────────────────────────────────────
+  # MS-COMUNICACIONES (puerto 8081)
+  # Se conecta a comunicaciones_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-comunicaciones:
+    build:
+      context: ./backend/ms-comunicaciones
+      dockerfile: Dockerfile
+    container_name: ms-comunicaciones
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8081:8081"
+    networks:
+      - colegio-network
+
+
   # ─────────────────────────────────────────────────────────
   # API GATEWAY  (puerto 8080)
   # Espera a que ambos MSs estén healthy

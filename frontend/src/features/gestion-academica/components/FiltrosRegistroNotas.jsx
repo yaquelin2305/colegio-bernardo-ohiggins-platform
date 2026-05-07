@@ -1,6 +1,6 @@
 import { BookOpen, GraduationCap } from 'lucide-react';
 
-function FiltrosRegistroNotas({ curso, asignatura, onCursoChange, onAsignaturaChange }) {
+function FiltrosRegistroNotas({ curso, asignatura, cursos, asignaturas, onCursoChange, onAsignaturaChange }) {
   return (
     <section className="registro-notas__filtros" aria-label="Filtros de curso y asignatura">
       <div className="registro-notas__filtro-grupo">
@@ -14,12 +14,9 @@ function FiltrosRegistroNotas({ curso, asignatura, onCursoChange, onAsignaturaCh
           value={curso}
           onChange={onCursoChange}
         >
-          <option value="1M-A">1° Medio A</option>
-          <option value="1M-B">1° Medio B</option>
-          <option value="2M-A">2° Medio A</option>
-          <option value="2M-B">2° Medio B</option>
-          <option value="3M-A">3° Medio A</option>
-          <option value="4M-A">4° Medio A</option>
+          {cursos.map(c => (
+            <option key={c.id} value={c.id}>{c.nombre}</option>
+          ))}
         </select>
       </div>
 
@@ -34,11 +31,9 @@ function FiltrosRegistroNotas({ curso, asignatura, onCursoChange, onAsignaturaCh
           value={asignatura}
           onChange={onAsignaturaChange}
         >
-          <option value="matematicas">Matemáticas</option>
-          <option value="lenguaje">Lenguaje y Comunicación</option>
-          <option value="historia">Historia</option>
-          <option value="ciencias">Ciencias Naturales</option>
-          <option value="ingles">Inglés</option>
+          {asignaturas.map(a => (
+            <option key={a.id} value={a.id}>{a.nombre}</option>
+          ))}
         </select>
       </div>
     </section>
