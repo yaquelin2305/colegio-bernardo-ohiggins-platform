@@ -16,6 +16,7 @@ public class Comunicacion {
     private String destinatario; 
     private String asunto;
     private String mensaje;
+    private String tipo; 
     private Canal canal;         
     private LocalDateTime fechaEnvio;
     private boolean leido;
