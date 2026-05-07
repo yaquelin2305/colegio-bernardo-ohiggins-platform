@@ -80,26 +80,7 @@ function LoginForm() {
           {loading ? 'Iniciando sesión...' : 'Entrar'}
         </button>
 
-        <p
-          style={{
-            textAlign: 'center',
-            marginTop: '1rem',
-            fontSize: '0.875rem',
-            color: '#666',
-          }}
-        >
-          ¿No tienes cuenta?{' '}
-          <Link
-            to="/registro"
-            style={{
-              color: '#26A69A',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            Regístrate aquí
-          </Link>
-        </p>
+   
       </div>
     </form>
   );
