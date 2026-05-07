@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Controlador REST para Notas académicas.
@@ -30,8 +31,8 @@ public class GradeController {
     @PostMapping
     @Operation(summary = "Registrar nota")
     public ResponseEntity<Grade> registrar(@Valid @RequestBody GradeRequest request) {
-        Grade grade = new Grade(null, request.getStudentId(), request.getAsignatura(),
-                request.getNota(), request.getTipo(), request.getFecha(), request.getDescripcion());
+        Grade grade = new Grade(null, request.getUsuarioUuid(), request.getAsignaturaId(),
+                request.getNota(), request.getTipo(), request.getDescripcion());
         return ResponseEntity.status(HttpStatus.CREATED).body(gradeUseCase.registrarNota(grade));
     }
 
@@ -41,43 +42,43 @@ public class GradeController {
         return ResponseEntity.ok(gradeUseCase.obtenerNotaPorId(id));
     }
 
-    @GetMapping("/estudiante/{studentId}")
+    @GetMapping("/estudiante/{usuarioUuid}")
     @Operation(summary = "Listar notas de un estudiante")
-    public ResponseEntity<List<Grade>> listarPorEstudiante(@PathVariable Long studentId) {
-        return ResponseEntity.ok(gradeUseCase.listarNotasPorEstudiante(studentId));
+    public ResponseEntity<List<Grade>> listarPorEstudiante(@PathVariable UUID usuarioUuid) {
+        return ResponseEntity.ok(gradeUseCase.listarNotasPorEstudiante(usuarioUuid));
     }
 
-    @GetMapping("/estudiante/{studentId}/asignatura/{asignatura}")
+    @GetMapping("/estudiante/{usuarioUuid}/asignatura/{asignaturaId}")
     @Operation(summary = "Listar notas de un estudiante por asignatura")
     public ResponseEntity<List<Grade>> listarPorEstudianteYAsignatura(
-            @PathVariable Long studentId,
-            @PathVariable String asignatura) {
-        return ResponseEntity.ok(gradeUseCase.listarNotasPorEstudianteYAsignatura(studentId, asignatura));
+            @PathVariable UUID usuarioUuid,
+            @PathVariable Long asignaturaId) {
+        return ResponseEntity.ok(gradeUseCase.listarNotasPorEstudianteYAsignatura(usuarioUuid, asignaturaId));
     }
 
-    @GetMapping("/estudiante/{studentId}/promedio")
+    @GetMapping("/estudiante/{usuarioUuid}/promedio")
     @Operation(summary = "Calcular promedio general de un estudiante")
-    public ResponseEntity<Map<String, Double>> calcularPromedio(@PathVariable Long studentId) {
-        double promedio = gradeUseCase.calcularPromedioEstudiante(studentId);
+    public ResponseEntity<Map<String, Double>> calcularPromedio(@PathVariable UUID usuarioUuid) {
+        double promedio = gradeUseCase.calcularPromedioEstudiante(usuarioUuid);
         return ResponseEntity.ok(Map.of("promedio", promedio));
     }
 
-    @GetMapping("/estudiante/{studentId}/promedio/asignatura/{asignatura}")
+    @GetMapping("/estudiante/{usuarioUuid}/promedio/asignatura/{asignaturaId}")
     @Operation(summary = "Calcular promedio de un estudiante por asignatura")
-    public ResponseEntity<Map<String, Double>> calcularPromedioAsignatura(
-            @PathVariable Long studentId,
-            @PathVariable String asignatura) {
-        double promedio = gradeUseCase.calcularPromedioEstudiantePorAsignatura(studentId, asignatura);
-        return ResponseEntity.ok(Map.of("promedio", promedio, "studentId",
-                Double.valueOf(studentId)));
+    public ResponseEntity<Map<String, Object>> calcularPromedioAsignatura(
+            @PathVariable UUID usuarioUuid,
+            @PathVariable Long asignaturaId) {
+        double promedio = gradeUseCase.calcularPromedioEstudiantePorAsignatura(usuarioUuid, asignaturaId);
+        return ResponseEntity.ok(Map.of("promedio", promedio, "usuarioUuid",
+                usuarioUuid.toString()));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar nota")
     public ResponseEntity<Grade> actualizar(@PathVariable Long id,
                                              @Valid @RequestBody GradeRequest request) {
-        Grade grade = new Grade(id, request.getStudentId(), request.getAsignatura(),
-                request.getNota(), request.getTipo(), request.getFecha(), request.getDescripcion());
+        Grade grade = new Grade(id, request.getUsuarioUuid(), request.getAsignaturaId(),
+                request.getNota(), request.getTipo(), request.getDescripcion());
         return ResponseEntity.ok(gradeUseCase.actualizarNota(id, grade));
     }
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -36,15 +37,15 @@ public class GradePersistenceAdapter implements GradeRepositoryPort {
     }
 
     @Override
-    public List<Grade> buscarPorStudentId(Long studentId) {
-        return jpaRepository.findByStudentId(studentId).stream()
+    public List<Grade> buscarPorUsuarioUuid(UUID usuarioUuid) {
+        return jpaRepository.findByUsuarioUuid(usuarioUuid).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Grade> buscarPorStudentIdYAsignatura(Long studentId, String asignatura) {
-        return jpaRepository.findByStudentIdAndAsignatura(studentId, asignatura).stream()
+    public List<Grade> buscarPorUsuarioUuidYAsignaturaId(UUID usuarioUuid, Long asignaturaId) {
+        return jpaRepository.findByUsuarioUuidAndAsignaturaId(usuarioUuid, asignaturaId).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

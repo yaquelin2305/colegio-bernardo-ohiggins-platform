@@ -25,12 +25,12 @@ public class AcademicReport {
     private final TipoAlerta alerta;
     private final String mensajeAlerta;
     private final LocalDate fechaGeneracion;
-    private final List<String> asignaturasReprobadas;
+    private final List<Long> asignaturasReprobadas;
 
     public AcademicReport(Long studentId, String nombreEstudiante, String curso,
                           double promedio, double porcentajeAsistencia,
                           TipoAlerta alerta, String mensajeAlerta,
-                          List<String> asignaturasReprobadas) {
+                          List<Long> asignaturasReprobadas) {
         this.studentId = Objects.requireNonNull(studentId);
         this.nombreEstudiante = Objects.requireNonNull(nombreEstudiante);
         this.curso = Objects.requireNonNull(curso);
@@ -56,5 +56,5 @@ public class AcademicReport {
     public TipoAlerta getAlerta() { return alerta; }
     public String getMensajeAlerta() { return mensajeAlerta; }
     public LocalDate getFechaGeneracion() { return fechaGeneracion; }
-    public List<String> getAsignaturasReprobadas() { return asignaturasReprobadas; }
+    public List<Long> getAsignaturasReprobadas() { return asignaturasReprobadas; }
 }

@@ -36,9 +36,9 @@ public class AcademicReportFactory {
         TipoAlerta alerta = determinarAlerta(bajoRendimiento, bajaAsistencia);
         String mensaje = generarMensaje(alerta, promedio, porcentajeAsistencia);
 
-        List<String> asignaturasReprobadas = grades.stream()
+        List<Long> asignaturasReprobadas = grades.stream()
                 .filter(g -> !g.esAprobatoria())
-                .map(Grade::getAsignatura)
+                .map(Grade::getAsignaturaId)
                 .distinct()
                 .collect(Collectors.toList());
 

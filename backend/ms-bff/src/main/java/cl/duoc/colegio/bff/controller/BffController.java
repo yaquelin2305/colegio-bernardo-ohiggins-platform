@@ -38,9 +38,9 @@ public class BffController {
     /**
      * Boletín del estudiante: unifica calificaciones (MS-Académico).
      *
-     * El MS-Comunicaciones (MS-2) provee asistencia — cuando esté disponible
+     * El MS-Comunicaciones provee asistencia — cuando esté disponible
      * se agrega su Feign Client aquí. Por ahora el campo porcentajeAsistencia
-     * retorna null con una nota en el response.
+     * retorna null.
      *
      * @param estudianteId UUID del estudiante (de MS-Usuario)
      */
@@ -57,7 +57,7 @@ public class BffController {
         List<CalificacionResumenDto> resumen = calificaciones.stream()
                 .map(c -> CalificacionResumenDto.builder()
                         .asignaturaId(c.getAsignaturaId())
-                        .asignaturaNombre("Asignatura #" + c.getAsignaturaId()) // enriquecible si hay endpoint
+                        .asignaturaNombre("Asignatura #" + c.getAsignaturaId())
                         .nota1(c.getNota1())
                         .nota2(c.getNota2())
                         .nota3(c.getNota3())
@@ -74,8 +74,17 @@ public class BffController {
 
         double promedioRedondeado = Math.round(promedioGeneral * 10.0) / 10.0;
 
+        // 4. Obtener nombre completo del estudiante desde MS-Usuario
+        String nombreCompleto = usuarioClient
+                .listarPorRol("ESTUDIANTE").stream()
+                .filter(u -> estudianteId.toString().equals(u.get("id")))
+                .findFirst()
+                .map(u -> (String) u.get("nombreCompleto"))
+                .orElse(null);
+
         BoletinDto boletin = BoletinDto.builder()
                 .estudianteUuid(estudianteId)
+                .nombreCompleto(nombreCompleto)
                 .calificaciones(resumen)
                 .promedioGeneral(promedioRedondeado)
                 .porcentajeAsistencia(null) // MS-Comunicaciones pendiente de integración
@@ -86,7 +95,7 @@ public class BffController {
 
     /**
      * Dashboard: estadísticas agregadas del sistema.
-     * Cuenta estudiantes, docentes y apoderados desde MS-Usuario.
+     * Cuenta estudiantes, docentes, cursos y asignaturas desde MS-Usuario y MS-Académico.
      */
     @GetMapping("/dashboard/stats")
     @Operation(summary = "Obtener estadísticas del dashboard administrativo")
@@ -94,10 +103,15 @@ public class BffController {
 
         List<Map<String, Object>> estudiantes = usuarioClient.listarPorRol("ESTUDIANTE");
         List<Map<String, Object>> docentes    = usuarioClient.listarPorRol("DOCENTE");
+        List<Map<String, Object>> cursos      = academicoClient.listarCursos();
+        List<Map<String, Object>> asignaturas = academicoClient.listarAsignaturas();
 
         DashboardStatsDto stats = DashboardStatsDto.builder()
                 .totalEstudiantes((long) estudiantes.size())
                 .totalDocentes((long) docentes.size())
+                .totalCursos((long) cursos.size())
+                .totalAsignaturas((long) asignaturas.size())
+                .promedioGeneralInstitucion(null) // TODO: requiere endpoint de agregación en MS-Académico
                 .build();
 
         return ResponseEntity.ok(stats);

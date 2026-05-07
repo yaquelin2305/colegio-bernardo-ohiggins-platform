@@ -3,9 +3,13 @@ package cl.duoc.colegio.usuario.infrastructure.adapter.out.security;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 import cl.duoc.colegio.usuario.domain.model.Usuario;
+import cl.duoc.colegio.usuario.domain.port.out.RefreshTokenRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,15 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Verifica generación y validación de tokens JWT.
  */
 @DisplayName("JwtTokenAdapter — Pruebas Unitarias")
+@ExtendWith(MockitoExtension.class)
 class JwtTokenAdapterTest {
 
     private JwtTokenAdapter jwtTokenAdapter;
     private static final String SECRET =
             "colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret";
 
+    @Mock
+    private RefreshTokenRepositoryPort refreshTokenRepository;
+
     @BeforeEach
     void setUp() {
-        jwtTokenAdapter = new JwtTokenAdapter(SECRET, new UserStrategyFactory());
+        jwtTokenAdapter = new JwtTokenAdapter(SECRET, new UserStrategyFactory(), refreshTokenRepository);
     }
 
     @Test
@@ -42,11 +50,11 @@ class JwtTokenAdapterTest {
     }
 
     @Test
-    @DisplayName("Extrae el email del subject del token")
-    void extraerEmail_retornaEmailCorrecto() {
+    @DisplayName("Extrae el RUT del subject del token")
+    void extraerRut_retornaRutCorrecto() {
         Usuario usuario = crearUsuario(RolUsuario.APODERADO);
         String token = jwtTokenAdapter.generarToken(usuario);
-        assertThat(jwtTokenAdapter.extraerEmail(token)).isEqualTo("test@colegio.cl");
+        assertThat(jwtTokenAdapter.extraerRut(token)).isEqualTo("11222333-4");
     }
 
     @Test
@@ -65,13 +73,13 @@ class JwtTokenAdapterTest {
     @DisplayName("Genera tokens distintos para distintos usuarios")
     void generarToken_distintoUsuarios_retornaTokensDiferentes() {
         Usuario u1 = crearUsuario(RolUsuario.DOCENTE);
-        Usuario u2 = new Usuario("otro@colegio.cl", "hash", RolUsuario.APODERADO, "Otra", "Persona");
+        Usuario u2 = new Usuario("99888777-6", "otro@colegio.cl", "hash", RolUsuario.APODERADO, "Otra", "Persona");
         assertThat(jwtTokenAdapter.generarToken(u1))
                 .isNotEqualTo(jwtTokenAdapter.generarToken(u2));
     }
 
     private Usuario crearUsuario(RolUsuario rol) {
-        Usuario u = new Usuario("test@colegio.cl", "hash", rol, "Test", "Usuario");
+        Usuario u = new Usuario("11222333-4", "test@colegio.cl", "hash", rol, "Test", "Usuario");
         u.asociarPerfil(1L);
         return u;
     }

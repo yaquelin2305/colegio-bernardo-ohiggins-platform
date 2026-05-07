@@ -20,9 +20,22 @@ public interface AcademicoFeignClient {
     /**
      * Obtener todas las calificaciones de un estudiante (por usuarioUuid).
      * Ruta: GET /api/v1/calificaciones/estudiante/{usuarioUuid}
-     * (Endpoint que necesitamos agregar a MS-Académico — ver nota abajo)
      */
     @GetMapping("/api/v1/calificaciones/estudiante/{usuarioUuid}")
     List<CalificacionesAcademicoDto> obtenerCalificacionesPorEstudiante(
             @PathVariable("usuarioUuid") UUID usuarioUuid);
+
+    /**
+     * Listar todos los cursos.
+     * Ruta: GET /api/v1/cursos/
+     */
+    @GetMapping("/api/v1/cursos/")
+    List<Map<String, Object>> listarCursos();
+
+    /**
+     * Listar todas las asignaturas.
+     * Ruta: GET /api/v1/asignaturas/
+     */
+    @GetMapping("/api/v1/asignaturas/")
+    List<Map<String, Object>> listarAsignaturas();
 }
