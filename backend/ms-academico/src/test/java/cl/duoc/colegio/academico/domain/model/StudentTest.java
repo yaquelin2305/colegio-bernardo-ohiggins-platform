@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -15,6 +16,9 @@ import static org.assertj.core.api.Assertions.*;
  */
 @DisplayName("Student — Lógica de dominio")
 class StudentTest {
+
+    private static final UUID TEST_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final Long ASIGNATURA_ID = 100L;
 
     private Student student;
 
@@ -169,7 +173,7 @@ class StudentTest {
 
     // ===== HELPERS =====
     private Grade grade(double nota) {
-        return new Grade(null, 1L, "Matemáticas", nota, "PRUEBA", LocalDate.now(), null);
+        return new Grade(null, TEST_UUID, ASIGNATURA_ID, nota, "PRUEBA", null);
     }
 
     private Attendance asistencia(boolean presente) {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Servicio de reportes académicos.
@@ -36,12 +37,12 @@ public class ReportService implements ReportUseCase {
     }
 
     @Override
-    public AcademicReport generarReporteEstudiante(Long studentId) {
-        Student student = studentRepository.buscarPorId(studentId)
-                .orElseThrow(() -> new StudentNotFoundException(studentId));
+    public AcademicReport generarReporteEstudiante(UUID usuarioUuid) {
+        Student student = studentRepository.buscarPorUsuarioUuid(usuarioUuid)
+                .orElseThrow(() -> new StudentNotFoundException(usuarioUuid));
 
-        List<Grade> grades = gradeRepository.buscarPorStudentId(studentId);
-        List<Attendance> attendances = attendanceRepository.buscarPorStudentId(studentId);
+        List<Grade> grades = gradeRepository.buscarPorUsuarioUuid(usuarioUuid);
+        List<Attendance> attendances = attendanceRepository.buscarPorStudentId(student.getId());
 
         double porcentajeAsistencia = calcularPorcentaje(attendances);
 
