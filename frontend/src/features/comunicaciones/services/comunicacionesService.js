@@ -1,20 +1,28 @@
-// TODO: El BFF mapeará mensajeId -> id, mensaje -> cuerpo y fechaEnvio -> fecha
+import axiosClient from '../../../core/api/axiosClient';
+
 export async function obtenerMensajes(usuarioId) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  const { data } = await axiosClient.get(`/bff/comunicaciones/bandeja/${usuarioId}`);
+  return data;
 }
 
 export async function obtenerMensajePorId(id) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+  const { data } = await axiosClient.get(`/bff/comunicaciones/${id}`);
+  return data;
 }
 
 export async function enviarMensaje(payload) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+  const { destinatario, asunto, mensaje, canal, tipo } = payload;
+  const { data } = await axiosClient.post('/bff/comunicaciones/enviar', {
+    destinatario,
+    asunto,
+    mensaje,
+    canal,
+    tipo,
+  });
+  return data;
 }
 
 export async function obtenerDestinatarios() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  const { data } = await axiosClient.get('/bff/comunicaciones/destinatarios');
+  return data;
 }
