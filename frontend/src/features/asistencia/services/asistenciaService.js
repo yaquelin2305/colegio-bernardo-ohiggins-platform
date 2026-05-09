@@ -42,3 +42,8 @@ export async function guardarAnotacion(alumnoId, anotacion) {
   // TODO: Integrar llamada Axios con MS correspondiente según contrato API
   return Promise.resolve(null);
 }
+
+export async function guardarAsistencia(cursoId, fecha, listado) {
+  // TODO: Integrar llamada Axios con MS-Académico
+  return Promise.resolve(null);
+}
