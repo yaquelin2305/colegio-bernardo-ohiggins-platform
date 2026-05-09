@@ -8,6 +8,7 @@ import {
   obtenerCursos,
   obtenerResumenDiario,
   obtenerAsistenciaPorCurso,
+  guardarAsistencia,
 } from '../services/asistenciaService';
 import '../styles/AsistenciaPage.css';
 
@@ -18,6 +19,7 @@ function AsistenciaPage() {
   useEffect(() => { setTitulo('Toma de Asistencia'); }, [setTitulo]);
   const [resumen, setResumen] = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
+  const [filtroActual, setFiltroActual] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -52,10 +54,27 @@ function AsistenciaPage() {
       ]);
       setEstudiantes(listaEstudiantes);
       setResumen(resumenDiario);
+      setFiltroActual({ curso, fecha });
     } catch {
       setError('Error al aplicar los filtros. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCambiarEstado = (id, nuevoEstado) => {
+    setEstudiantes((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, estado: nuevoEstado } : e))
+    );
+  };
+
+  const handleGuardar = async () => {
+    if (!filtroActual) return;
+    setError('');
+    try {
+      await guardarAsistencia(filtroActual.curso, filtroActual.fecha, estudiantes);
+    } catch {
+      setError('Error al guardar la asistencia. Intenta nuevamente.');
     }
   };
 
@@ -81,7 +100,18 @@ function AsistenciaPage() {
 
         {isLoading
           ? <p className="asistencia-page__subtitle">Cargando...</p>
-          : <AsistenciaTable estudiantes={estudiantes} />
+          : (
+            <>
+              <AsistenciaTable estudiantes={estudiantes} onCambiarEstado={handleCambiarEstado} />
+              {estudiantes.length > 0 && (
+                <div className="asistencia-page__actions">
+                  <button className="asistencia-page__btn-guardar" onClick={handleGuardar}>
+                    Guardar Asistencia
+                  </button>
+                </div>
+              )}
+            </>
+          )
         }
       </section>
     </main>
