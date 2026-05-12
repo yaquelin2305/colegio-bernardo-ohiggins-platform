@@ -10,9 +10,6 @@ public interface TokenGeneratorPort {
     /** Genera el access token (24h). El sub es el RUT del usuario. */
     String generarToken(Usuario usuario);
 
-    /** Genera el refresh token opaco (7 días). Persiste en BD. */
-    String generarRefreshToken(Usuario usuario);
-
     boolean validarToken(String token);
 
     /** Extrae el RUT (sub) del token. */

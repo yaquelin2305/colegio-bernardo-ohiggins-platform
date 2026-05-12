@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
  * 3. Verifica las credenciales.
  * 4. Usa el Factory para obtener la Strategy del rol.
  * 5. Resuelve los permisos via Strategy.
- * 6. Genera access token (sub=RUT) + refresh token (UUID opaco).
+ * 6. Genera access token (sub=RUT).
  *
  * NO conoce JPA, JWT concreto ni BCrypt — solo trabaja con puertos.
  */
@@ -68,13 +68,11 @@ public class LoginUseCaseImpl implements LoginUseCase {
         AuthorizationStrategy strategy = strategyFactory.crear(usuario.getRol());
         Permisos permisos = strategy.resolverPermisos(usuario);
 
-        // 5. Generar access token (sub=RUT) + refresh token (opaco, 7 días)
-        String accessToken  = tokenGeneratorPort.generarToken(usuario);
-        String refreshToken = tokenGeneratorPort.generarRefreshToken(usuario);
+        // 5. Generar access token (sub=RUT)
+        String accessToken = tokenGeneratorPort.generarToken(usuario);
 
         return AuthResponseDto.of(
                 accessToken,
-                refreshToken,
                 usuario.getRut(),
                 usuario.getNombreCompleto(),
                 usuario.getRol().name(),

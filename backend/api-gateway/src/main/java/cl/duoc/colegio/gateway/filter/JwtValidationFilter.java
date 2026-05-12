@@ -43,7 +43,6 @@ import java.util.Set;
  *
  * Rutas públicas (sin token):
  *  POST /api/v1/auth/login
- *  POST /api/v1/auth/refresh
  *  GET  /api/v1/auth/health
  *  /actuator/health, /actuator/info, /fallback/**, /swagger-ui/**, /v3/api-docs/**
  *
@@ -73,8 +72,6 @@ public class JwtValidationFilter implements GlobalFilter {
      */
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/v1/auth/login",
-            "/api/v1/auth/refresh",
-            "/api/v1/auth/logout",
             "/api/v1/auth/health",
             "/actuator/health",
             "/actuator/info",

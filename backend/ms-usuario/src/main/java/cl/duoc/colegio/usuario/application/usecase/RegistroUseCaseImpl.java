@@ -84,7 +84,6 @@ public class RegistroUseCaseImpl implements RegistroUseCase {
 
         return AuthResponseDto.of(
                 token,
-                null, // refreshToken (no aplica en registro)
                 guardado.getRut(),
                 guardado.getNombreCompleto(),
                 guardado.getRol().name(),
