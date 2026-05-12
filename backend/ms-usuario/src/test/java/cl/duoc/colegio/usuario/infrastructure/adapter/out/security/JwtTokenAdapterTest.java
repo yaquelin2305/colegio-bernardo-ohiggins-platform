@@ -3,12 +3,10 @@ package cl.duoc.colegio.usuario.infrastructure.adapter.out.security;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 import cl.duoc.colegio.usuario.domain.model.Usuario;
-import cl.duoc.colegio.usuario.domain.port.out.RefreshTokenRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +23,9 @@ class JwtTokenAdapterTest {
     private static final String SECRET =
             "colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret";
 
-    @Mock
-    private RefreshTokenRepositoryPort refreshTokenRepository;
-
     @BeforeEach
     void setUp() {
-        jwtTokenAdapter = new JwtTokenAdapter(SECRET, new UserStrategyFactory(), refreshTokenRepository);
+        jwtTokenAdapter = new JwtTokenAdapter(SECRET, new UserStrategyFactory());
     }
 
     @Test

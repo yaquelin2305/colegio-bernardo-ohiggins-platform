@@ -120,31 +120,30 @@ infrastructure/
 - **Seguridad en 2 capas:** Spring Security (coarse) + JwtValidationFilter (RBAC fino, `Ordered.HIGHEST_PRECEDENCE`)
 - **Perfiles:**
   - `dev`: Sin seguridad JWT, rutas directas a localhost
-  - `docker`: Sin Eureka, URIs estáticas a contenedores
+  - `docker`: Sin Eureka, URIs estáticas a contenedores, JwtValidationFilter activo
   - `prod`: JWT + RBAC completo, Eureka
   - `local`: Sin Eureka, rutas directas configurables
-- **Circuit Breakers:** academicoCB, usuarioCB, comunicacionesCB (sliding-window=10, failure-rate=50%, wait=10s)
+- **Circuit Breakers:** academicoCB, usuarioCB, comunicacionesCB (sliding-window=10, failure-rate=50%, wait=10s, timelimiter=8s)
 - **Fallback:** RFC 7807 Problem Details en `/fallback/**`
 - **RBAC en Gateway:**
   - `/api/v1/admin/**` → ADMIN
   - `/api/v1/asignacion-docente/**` → ADMIN
   - `/api/v1/cursos/**`, `/api/v1/asignaturas/**`, `/api/v1/matriculas/**` → ADMIN o DOCENTE
   - `/api/bff/boletin/{uuid}` → ADMIN, DOCENTE, APODERADO, ESTUDIANTE (self)
-  - `/api/v1/auth/**` → público
+  - `/api/v1/auth/login`, `/api/v1/auth/health` → público
 
 ## MS-Usuario (:8083) — Auth
 
 - **Schema:** `users_schema`
 - **Login por RUT** (formato chileno: `12345678-9`)
 - **JWT:** HMAC-SHA256, TTL 24h. Claims: sub=RUT, userId, email, nombre, role, recursos, soloLectura
-- **Refresh Token:** UUID v4, TTL 7 días, rotación one-time-use, almacenado en BD
+- **Seguridad:** Modelo trust-the-gateway en prod (todo `/api/**` permitido). El RBAC lo aplica el Gateway via `JwtValidationFilter`.
 - **Roles:** ADMIN, DOCENTE, APODERADO, ESTUDIANTE
 - **Password:** BCrypt strength 12
 - **Soft delete:** `activo=false` (preserva integridad referencial)
 - **Endpoints principales:**
   - `POST /api/v1/auth/login`
-  - `POST /api/v1/auth/refresh`
-  - `POST /api/v1/auth/logout`
+  - `GET /api/v1/auth/health`
   - `POST /api/v1/admin/crear`
   - `GET /api/v1/admin/listar/{rol}`
   - `PUT /api/v1/admin/actualizar/{id}`
@@ -213,9 +212,16 @@ mvn verify      # Tests + JaCoCo coverage (mín 60%)
 3. ~~`JwtTokenAdapterTest` usa constructor de 2 args, pero `JwtTokenAdapter` requiere 3~~ — CORREGIDO
 4. ~~ms-bff no propaga headers `X-User-Id`/`X-User-Role` a Feign clients~~ — CORREGIDO (FeignConfig con RequestInterceptor)
 5. ~~ms-bff tiene campos en DTOs (`totalCursos`, `totalAsignaturas`) no poblados~~ — CORREGIDO
-6. ms-comunicaciones, ms-asistencia, ms-users son solo scaffolds vacíos
-7. ms-bff `promedioGeneralInstitucion` y `porcentajeAsistencia` requieren endpoints nuevos en MS-Académico y MS-Comunicaciones
-8. ms-bff `nombreCompleto` en boletín se obtiene filtrando lista ESTUDIANTE — un endpoint `GET /api/v1/admin/{id}` sería más eficiente
+6. ~~Refresh Token eliminado de ms-usuario~~ — REMOVIDO (no requerido). Se eliminaron endpoints `/auth/refresh` y `/auth/logout`, modelo RefreshToken, entidad JPA, tabla SQL y adaptadores.
+7. ~~ms-usuario `SecurityConfigProd` bloqueaba endpoints admin~~ — CORREGIDO (trust-the-gateway: todo `/api/**` permitAll, RBAC en Gateway)
+8. ~~`application-local.yml` del Gateway sin ruta `/api/v1/admin/**`~~ — CORREGIDO
+9. ms-comunicaciones, ms-asistencia, ms-users son solo scaffolds vacíos
+10. ms-bff `promedioGeneralInstitucion` y `porcentajeAsistencia` requieren endpoints nuevos en MS-Académico y MS-Comunicaciones
+11. ms-bff `nombreCompleto` en boletín se obtiene filtrando lista ESTUDIANTE — un endpoint `GET /api/v1/admin/{id}` sería más eficiente
+12. MapStruct declarado en ms-usuario pero no usado
+13. Sin OpenAPI/Swagger en ms-usuario
+14. Sin tests para `RegistroUseCaseImpl` en ms-usuario
+15. CorsConfig.java del Gateway conflictúa con YAML globalcors (`allowedOriginPatterns: ["*"]` con `allowCredentials: true`)
 
 ## Test Status
 

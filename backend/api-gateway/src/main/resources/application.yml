@@ -123,9 +123,9 @@ spring:
                 fallbackUri: forward:/fallback/academico
 
         # -----------------------------------------------
-        # RUTA: MS-USUARIO — Auth pública (login, refresh, logout, health)
+        # RUTA: MS-USUARIO — Auth pública (login, health)
         # ID:   usuario-auth-route
-        # WHITELIST: no pasan por JwtValidationFilter (están en PUBLIC_PATHS)
+        # WHITELIST: login y health no pasan por JwtValidationFilter (están en PUBLIC_PATHS)
         # -----------------------------------------------
         - id: usuario-auth-route
           uri: lb://MS-USUARIO
@@ -288,6 +288,8 @@ resilience4j:
     instances:
       academicoCB:
         timeout-duration: 8s
+      usuarioCB:
+        timeout-duration: 8s
       defaultCB:
         timeout-duration: 8s
 
@@ -364,12 +366,40 @@ spring:
         - id: docker-usuario-auth
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/auth/**]
-          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: usuarioCB
+                fallbackUri: forward:/fallback/usuario
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
 
         - id: docker-usuario-admin
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/admin/**]
-          filters: [{name: CircuitBreaker, args: {name: usuarioCB, fallbackUri: "forward:/fallback/usuario"}}]
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: usuarioCB
+                fallbackUri: forward:/fallback/usuario
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST, PUT, DELETE
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
 
 eureka:
   client:
