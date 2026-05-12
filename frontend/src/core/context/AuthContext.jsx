@@ -5,7 +5,12 @@ const AuthContext = createContext(null);
 
 function decodificarToken(token) {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      ...payload,
+      rol: payload.role || payload.rol,
+      nombre: payload.nombre || payload.nombreCompleto,
+    };
   } catch {
     return null;
   }

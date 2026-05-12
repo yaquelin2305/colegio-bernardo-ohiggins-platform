@@ -6,7 +6,7 @@ function getUuidFromToken() {
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.uuid ?? payload.sub ?? null;
+    return payload.userId ?? payload.uuid ?? payload.sub ?? null;
   } catch {
     return null;
   }
