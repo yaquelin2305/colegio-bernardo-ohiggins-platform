@@ -31,12 +31,6 @@ spring:
   config:
     activate:
       on-profile: docker
-
-eureka:
-  client:
-    enabled: false
-
-spring:
   cloud:
     openfeign:
       client:
@@ -49,3 +43,7 @@ spring:
             url: ${COMUNICACIONES_URL:http://ms-comunicaciones:8085}
           ms-asistencia:
             url: ${ASISTENCIA_URL:http://ms-asistencia:8085}
+
+eureka:
+  client:
+    enabled: false
