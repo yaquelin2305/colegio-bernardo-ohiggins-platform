@@ -54,6 +54,9 @@ import java.util.Set;
  *  /api/v1/matriculas/**         → ADMIN, DOCENTE
  *  /api/bff/boletin/**           → ADMIN, DOCENTE, APODERADO, ESTUDIANTE*
  *  /api/bff/dashboard/**         → ADMIN
+ *  /api/bff/asistencia/**        → ADMIN, DOCENTE (escritura) / todos (lectura)
+ *  /api/bff/comunicaciones/**    → todos (autenticados)
+ *  /api/v1/calificaciones/**     → ADMIN, DOCENTE (escritura) / todos (lectura)
  *
  *  (*) ESTUDIANTE solo puede acceder a /boletin/{su-propio-UUID}
  */
@@ -97,7 +100,17 @@ public class JwtValidationFilter implements GlobalFilter {
     private static final List<String> ADMIN_DOCENTE_PATHS = List.of(
             "/api/v1/cursos/",
             "/api/v1/asignaturas/",
-            "/api/v1/matriculas/"
+            "/api/v1/matriculas/",
+            "/api/v1/calificaciones/"
+    );
+
+    /**
+     * Rutas BFF de escritura — solo ADMIN y DOCENTE.
+     */
+    private static final List<String> BFF_WRITE_PATHS = List.of(
+            "/api/bff/asistencia/registrar",
+            "/api/bff/asistencia/",       // PATCH justificar
+            "/api/bff/comunicaciones/enviar"
     );
 
     @Value("${gateway.jwt.secret}")
@@ -152,9 +165,10 @@ public class JwtValidationFilter implements GlobalFilter {
         }
 
         // sub = RUT (tras el fix del emisor)
-        String rut    = claims.getSubject();
-        String role   = claims.get("role", String.class);
-        String userId = claims.get("userId", String.class); // UUID interno
+        String rut        = claims.getSubject();
+        String role       = claims.get("role", String.class);
+        String userId     = claims.get("userId", String.class); // UUID interno de cuenta
+        Long estudianteId = claims.get("estudianteId", Long.class); // perfilId del estudiante
 
         if (role == null || role.isBlank()) {
             log.warn("[AUTH] Token sin claim 'role' — path: {}", path);
@@ -162,7 +176,7 @@ public class JwtValidationFilter implements GlobalFilter {
         }
 
         // ── 4. RBAC por ruta ──────────────────────────────────────────────────
-        Mono<Void> rbacError = checkRbac(exchange, path, role, userId);
+        Mono<Void> rbacError = checkRbac(exchange, path, role, userId, estudianteId, method);
         if (rbacError != null) return rbacError;
 
         // ── 5. Propagación de headers a los microservicios downstream ─────────
@@ -183,7 +197,8 @@ public class JwtValidationFilter implements GlobalFilter {
      * Retorna un Mono de error si falla, null si pasa.
      */
     private Mono<Void> checkRbac(ServerWebExchange exchange, String path,
-                                   String role, String userId) {
+                                    String role, String userId, Long estudianteId,
+                                    HttpMethod method) {
 
         // /api/v1/admin/** → solo ADMIN
         if (matchesAny(path, ADMIN_ONLY_PATHS)) {
@@ -194,7 +209,7 @@ public class JwtValidationFilter implements GlobalFilter {
             }
         }
 
-        // /api/v1/cursos/**, /asignaturas/**, /matriculas/** → ADMIN o DOCENTE
+        // /api/v1/cursos/**, /asignaturas/**, /matriculas/**, /calificaciones/** → ADMIN o DOCENTE
         if (matchesAny(path, ADMIN_DOCENTE_PATHS)) {
             if (!"ADMIN".equals(role) && !"DOCENTE".equals(role)) {
                 log.warn("[RBAC] Acceso denegado a ruta académica — role: {}, path: {}", role, path);
@@ -205,13 +220,13 @@ public class JwtValidationFilter implements GlobalFilter {
 
         // /api/bff/boletin/{estudianteId} — ESTUDIANTE solo puede ver su propio boletín
         if (path.startsWith("/api/bff/boletin/")) {
-            String estudianteIdEnRuta = extraerSegmento(path, "/api/bff/boletin/");
+            String estudianteUuidEnRuta = extraerSegmento(path, "/api/bff/boletin/");
 
             if ("ESTUDIANTE".equals(role)) {
-                // El userId en el token es el UUID interno del estudiante
-                if (userId == null || !userId.equals(estudianteIdEnRuta)) {
+                // El estudiante solo puede ver su boletín: comparar con userId (UUID de cuenta)
+                if (userId == null || !userId.equals(estudianteUuidEnRuta)) {
                     log.warn("[RBAC] ESTUDIANTE intentó acceder al boletín de otro — token.userId: {}, ruta: {}",
-                            userId, estudianteIdEnRuta);
+                            userId, estudianteUuidEnRuta);
                     return writeError(exchange, HttpStatus.FORBIDDEN,
                             "Solo puedes consultar tu propio boletín");
                 }
@@ -222,6 +237,15 @@ public class JwtValidationFilter implements GlobalFilter {
                 // ya que el Gateway no tiene acceso a la BD para verificar la relación
             } else if (!"ADMIN".equals(role) && !"DOCENTE".equals(role)) {
                 return writeError(exchange, HttpStatus.FORBIDDEN, "Acceso no autorizado al boletín");
+            }
+        }
+
+        // /api/bff/asistencia/** escritura → solo ADMIN, DOCENTE
+        if (matchesAny(path, BFF_WRITE_PATHS) && !HttpMethod.GET.equals(method)) {
+            if (!"ADMIN".equals(role) && !"DOCENTE".equals(role)) {
+                log.warn("[RBAC] Acceso denegado a escritura BFF — role: {}, method: {}, path: {}", role, method, path);
+                return writeError(exchange, HttpStatus.FORBIDDEN,
+                        "Solo administradores y docentes pueden realizar esta acción");
             }
         }
 

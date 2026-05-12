@@ -5,6 +5,7 @@ import cl.duoc.colegio.academico.application.port.out.AsignaturaRepositoryPort;
 import cl.duoc.colegio.academico.application.port.out.CursoRepositoryPort;
 import cl.duoc.colegio.academico.domain.model.AsignacionDocente;
 import cl.duoc.colegio.academico.infrastructure.adapter.in.rest.dto.AsignacionDocenteRequest;
+import cl.duoc.colegio.academico.infrastructure.adapter.in.rest.dto.AsignacionDocenteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,14 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * POST /api/v1/asignacion-docente
- *
- * Valida integridad referencial ANTES de persistir:
- *  - cursoId debe existir en academico_schema.cursos
- *  - asignaturaId debe existir en academico_schema.asignaturas
- *  - La combinación (docente, curso, asignatura) no debe estar duplicada
- */
 @RestController
 @RequestMapping("/api/v1/asignacion-docente")
 @Tag(name = "Asignación Docente", description = "Asignación de docentes a cursos y asignaturas")
@@ -40,9 +33,8 @@ public class AsignacionDocenteController {
 
     @PostMapping
     @Operation(summary = "Asignar un docente a un curso y asignatura")
-    public ResponseEntity<AsignacionDocente> asignar(@Valid @RequestBody AsignacionDocenteRequest request) {
+    public ResponseEntity<AsignacionDocenteResponse> asignar(@Valid @RequestBody AsignacionDocenteRequest request) {
 
-        // ── Integridad referencial ────────────────────────────────────────────
         if (!cursoRepository.existePorId(request.getCursoId())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Curso no encontrado: id=" + request.getCursoId());
@@ -56,7 +48,6 @@ public class AsignacionDocenteController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "El docente ya está asignado a este curso y asignatura");
         }
-        // ─────────────────────────────────────────────────────────────────────
 
         AsignacionDocente nueva = new AsignacionDocente(
                 null,
@@ -64,6 +55,15 @@ public class AsignacionDocenteController {
                 request.getCursoId(),
                 request.getAsignaturaId()
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(asignacionRepository.guardar(nueva));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(asignacionRepository.guardar(nueva)));
+    }
+
+    private AsignacionDocenteResponse toResponse(AsignacionDocente a) {
+        return AsignacionDocenteResponse.builder()
+                .id(a.getId())
+                .docenteUuid(a.getDocenteUuid())
+                .cursoId(a.getCursoId())
+                .asignaturaId(a.getAsignaturaId())
+                .build();
     }
 }

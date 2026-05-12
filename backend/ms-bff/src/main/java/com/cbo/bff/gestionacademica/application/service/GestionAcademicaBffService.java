@@ -21,10 +21,18 @@ public class GestionAcademicaBffService {
         List<CalificacionesAcademicoDto> calificaciones =
                 academicoFeignClient.obtenerCalificacionesPorEstudiante(estudianteId);
 
+        List<Map<String, Object>> asignaturas = academicoFeignClient.listarAsignaturas();
+        Map<Long, String> nombreAsignaturas = asignaturas.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        a -> ((Number) a.get("id")).longValue(),
+                        a -> (String) a.get("nombre"),
+                        (a, b) -> a));
+
         List<CalificacionResumenDto> resumen = calificaciones.stream()
                 .map(c -> CalificacionResumenDto.builder()
                         .asignaturaId(c.getAsignaturaId())
-                        .asignaturaNombre("Asignatura #" + c.getAsignaturaId())
+                        .asignaturaNombre(nombreAsignaturas.getOrDefault(
+                                c.getAsignaturaId(), "Asignatura #" + c.getAsignaturaId()))
                         .nota1(c.getNota1())
                         .nota2(c.getNota2())
                         .nota3(c.getNota3())
@@ -40,11 +48,8 @@ public class GestionAcademicaBffService {
 
         double promedioRedondeado = Math.round(promedioGeneral * 10.0) / 10.0;
 
-        String nombreCompleto = usuarioFeignClient.listarPorRol("ESTUDIANTE").stream()
-                .filter(u -> estudianteId.toString().equals(u.get("id")))
-                .findFirst()
-                .map(u -> (String) u.get("nombreCompleto"))
-                .orElse(null);
+        Map<String, Object> usuario = usuarioFeignClient.obtenerPorId(estudianteId);
+        String nombreCompleto = usuario != null ? (String) usuario.get("nombreCompleto") : null;
 
         return BoletinDto.builder()
                 .estudianteUuid(estudianteId)

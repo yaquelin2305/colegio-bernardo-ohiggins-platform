@@ -46,6 +46,12 @@ spring:
           predicates:
             - Path=/api/v1/admin/**
 
+        # MS-BFF — Backend For Frontend
+        - id: bff-route
+          uri: ${BFF_URI:http://localhost:8084}
+          predicates:
+            - Path=/api/bff/**
+
     # Desactivar service discovery
     discovery:
       enabled: false
