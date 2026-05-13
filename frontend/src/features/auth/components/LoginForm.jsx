@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../services/authService';
+import { useAuth } from '../../../core/context/AuthContext';
 import '../styles/RegisterForm.css';
 
 const initialState = {
-  email: '',
+  rut: '',
   password: '',
 };
 
@@ -13,6 +14,8 @@ function LoginForm() {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const auth = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,8 +26,8 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.email.trim() || !form.password.trim()) {
-      setError('Por favor ingresa tu correo y contraseña.');
+    if (!form.rut.trim() || !form.password.trim()) {
+      setError('Por favor ingresa tu RUT y contraseña.');
       return;
     }
 
@@ -32,9 +35,15 @@ function LoginForm() {
     setError('');
 
     try {
-      await login(form.email, form.password);
+      const token = await login(form.rut, form.password);
+      auth.login(token);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión.');
+      const mensaje = err.response?.data?.mensaje
+        || err.response?.data?.detail
+        || err.message
+        || 'Error al iniciar sesión.';
+      setError(mensaje);
     } finally {
       setLoading(false);
     }
@@ -66,8 +75,8 @@ function LoginForm() {
       <p className="register-form__subtitulo">Accede al sistema con tus credenciales</p>
 
       <div className="register-form__campos">
-        {inputField({ name: 'email', label: 'Correo electrónico', icono: <Mail size={16} />, type: 'email', placeholder: 'correo@cbo.cl' })}
-        {inputField({ name: 'password', label: 'Contraseña', icono: <Lock size={16} />, type: 'password', placeholder: '••••••••' })}
+        {inputField({ name: 'rut', label: 'RUT', icon: <User size={16} />, placeholder: '12345678-9' })}
+        {inputField({ name: 'password', label: 'Contraseña', icon: <Lock size={16} />, type: 'password', placeholder: '••••••••' })}
 
         {error && (
           <div className="register-form__error" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px', backgroundColor: 'rgba(255, 152, 0, 0.1)', borderRadius: '8px' }}>
@@ -80,7 +89,6 @@ function LoginForm() {
           {loading ? 'Iniciando sesión...' : 'Entrar'}
         </button>
 
-   
       </div>
     </form>
   );
