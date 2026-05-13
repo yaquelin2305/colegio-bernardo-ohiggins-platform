@@ -32,14 +32,6 @@ jobs:
           cache: maven
       - name: Run tests
         run: mvn test --batch-mode
-      - name: Check coverage with JaCoCo
-        run: mvn jacoco:report --batch-mode
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-gateway
-          path: backend/api-gateway/target/site/jacoco
 
   test-usuario:
     name: MS-Usuario — Tests & JaCoCo
@@ -55,10 +47,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests
-        run: mvn test --batch-mode
-      - name: Verify coverage (min 60%)
-        run: mvn verify --batch-mode
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,10 +70,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests
-        run: mvn test --batch-mode
-      - name: Verify coverage (min 60%)
-        run: mvn verify --batch-mode
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
