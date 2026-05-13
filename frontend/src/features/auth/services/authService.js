@@ -1,7 +1,13 @@
-export const login = async (email, password) => {
-  // TODO: Integrar llamada Axios con MS-Usuario
-  return Promise.resolve(null);
-};
+import axiosClient from '../../../core/api/axiosClient';
+
+export async function login(rut, password) {
+  const sanitized = rut.replace(/[.\s]/g, '');
+  const { data } = await axiosClient.post('/v1/auth/login', {
+    rut: sanitized,
+    password,
+  });
+  return data.accessToken;
+}
 
 export async function registrarUsuario(datos) {
   // TODO: Integrar llamada Axios con MS-Usuario

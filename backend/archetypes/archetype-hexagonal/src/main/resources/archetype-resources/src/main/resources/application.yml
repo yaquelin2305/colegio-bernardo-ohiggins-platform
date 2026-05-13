@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: ${artifactId}
+  datasource:
+    url: ${symbol_dollar}{DB_URL:jdbc:postgresql://localhost:5432/colegio_db}
+    username: ${symbol_dollar}{DB_USERNAME:colegio}
+    password: ${symbol_dollar}{DB_PASSWORD:colegio123}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: ${artifactId}_schema
+        default_batch_fetch_size: 16
+    open-in-view: false
+
+# --- Perfiles ---
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+logging:
+  level:
+    ${package}: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: ${symbol_dollar}{SERVER_PORT:8080}
+logging:
+  level:
+    ${package}: WARN
