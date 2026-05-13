@@ -401,6 +401,25 @@ spring:
                   factor: 2
                   basedOnPreviousValue: false
 
+        - id: docker-bff
+          uri: http://ms-bff:8084
+          predicates: [Path=/api/bff/**]
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: bffCB
+                fallbackUri: forward:/fallback/bff
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, POST
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
+
 eureka:
   client:
     enabled: false
