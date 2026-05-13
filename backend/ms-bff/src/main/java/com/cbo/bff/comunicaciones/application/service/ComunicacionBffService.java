@@ -53,7 +53,7 @@ public class ComunicacionBffService {
     private MensajeBffDTO toMensajeBffDTO(ComunicacionMsResponseDTO ms) {
         return MensajeBffDTO.builder()
                 .id(ms.getMensajeId())
-                .remitente(ms.getUsuarioId())
+                .remitente(ms.getDestinatario())
                 .asunto(ms.getAsunto())
                 .cuerpo(ms.getMensaje())
                 .canal(ms.getCanal())

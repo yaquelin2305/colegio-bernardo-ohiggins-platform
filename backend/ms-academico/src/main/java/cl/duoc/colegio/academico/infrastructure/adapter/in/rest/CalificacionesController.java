@@ -16,18 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Endpoints de calificaciones:
- *
- * PUT GET /api/v1/calificaciones/guardar                              → upsert notas
- * GET     /api/v1/calificaciones/curso/{cursoId}/asignatura/{id}      → lista para RegistroNotasPage
- * GET     /api/v1/calificaciones/estudiante/{uuid}                    → boletín BFF
- * GET     /api/v1/calificaciones/estudiante/{uuid}/asignatura/{id}    → nota puntual
- */
 @RestController
 @RequestMapping("/api/v1/calificaciones")
 @Tag(name = "Calificaciones", description = "Gestión de notas según contrato ERD")
@@ -83,39 +74,32 @@ public class CalificacionesController {
                 CalificacionesContractDto.from(request.getUsuarioUuid(), request.getAsignaturaId(), notasPresentes));
     }
 
-    /**
-     * Listado de calificaciones para RegistroNotasPage del front.
-     * Cruza matrículas del curso con las notas de la asignatura.
-     * Retorna un registro por estudiante matriculado (notas pueden ser null si aún no se cargaron).
-     *
-     * GET /api/v1/calificaciones/curso/{cursoId}/asignatura/{asignaturaId}
-     */
     @GetMapping("/curso/{cursoId}/asignatura/{asignaturaId}")
     @Operation(summary = "Listar calificaciones de todos los estudiantes de un curso en una asignatura")
-    public ResponseEntity<List<Map<String, Object>>> listarPorCursoYAsignatura(
+    public ResponseEntity<List<CalificacionesContractDto>> listarPorCursoYAsignatura(
             @PathVariable Long cursoId,
             @PathVariable Long asignaturaId) {
 
-        // Todos los estudiantes matriculados en el curso
         List<UUID> estudiantesUuids = matriculaRepository.buscarPorCursoId(cursoId)
                 .stream()
                 .map(m -> m.getUsuarioUuid())
                 .toList();
 
-        List<Map<String, Object>> resultado = estudiantesUuids.stream()
+        List<CalificacionesContractDto> resultado = estudiantesUuids.stream()
                 .map(uuid -> {
-                        Optional<GradeEntity> grade = gradeRepository
-                                .findByUsuarioUuidAndAsignaturaId(uuid, asignaturaId)
-                                .stream().findFirst();
-                    return Map.<String, Object>of(
-                            "id",          uuid.toString(),
-                            "usuarioUuid", uuid.toString(),
-                            "asignaturaId", asignaturaId,
-                            "nota1",       grade.map(GradeEntity::getNota1).orElse(null),
-                            "nota2",       grade.map(GradeEntity::getNota2).orElse(null),
-                            "nota3",       grade.map(GradeEntity::getNota3).orElse(null),
-                            "promedio",    grade.map(GradeEntity::getPromedio).orElse(null)
-                    );
+                    Optional<GradeEntity> grade = gradeRepository
+                            .findByUsuarioUuidAndAsignaturaId(uuid, asignaturaId)
+                            .stream().findFirst();
+
+                    List<Double> notas = new ArrayList<>();
+                    if (grade.isPresent()) {
+                        GradeEntity g = grade.get();
+                        if (g.getNota1() != null) notas.add(g.getNota1());
+                        if (g.getNota2() != null) notas.add(g.getNota2());
+                        if (g.getNota3() != null) notas.add(g.getNota3());
+                    }
+
+                    return CalificacionesContractDto.from(uuid, asignaturaId, notas);
                 })
                 .toList();
 

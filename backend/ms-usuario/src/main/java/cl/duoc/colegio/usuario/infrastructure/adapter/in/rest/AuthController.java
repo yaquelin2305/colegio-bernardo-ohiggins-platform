@@ -28,6 +28,7 @@ import java.util.UUID;
  *  GET    /api/v1/auth/health           → Health check
  *
  *  POST   /api/v1/admin/crear           → Registro de usuario (solo ADMIN — validado en Gateway)
+ *  GET    /api/v1/admin/{id}            → Obtener usuario por UUID (BFF)
  *  GET    /api/v1/admin/listar/{rol}    → Listar usuarios por rol (solo ADMIN)
  *  DELETE /api/v1/admin/eliminar/{id}   → Soft Delete (solo ADMIN)
  */
@@ -66,6 +67,25 @@ public class AuthController {
     @PostMapping("/api/v1/admin/crear")
     public ResponseEntity<AuthResponseDto> crear(@Valid @RequestBody RegistroRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(registroUseCase.registrar(request));
+    }
+
+    /**
+     * Obtener usuario por UUID.
+     * GET /api/v1/admin/{id}
+     * Usado por el BFF para resolver nombreCompleto sin listar todos los usuarios.
+     */
+    @GetMapping("/api/v1/admin/{id}")
+    public ResponseEntity<Map<String, Object>> obtenerPorId(@PathVariable UUID id) {
+        Usuario u = repositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(id.toString()));
+        return ResponseEntity.ok(Map.of(
+                "id",            u.getId(),
+                "rut",           u.getRut(),
+                "nombreCompleto", u.getNombreCompleto(),
+                "email",         u.getEmail(),
+                "rol",           u.getRol().name(),
+                "activo",        u.isActivo()
+        ));
     }
 
     /**

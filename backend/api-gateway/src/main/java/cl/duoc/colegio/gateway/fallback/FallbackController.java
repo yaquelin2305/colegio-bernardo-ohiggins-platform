@@ -109,4 +109,29 @@ public class FallbackController {
                         .body(body)
         );
     }
+
+    /**
+     * Fallback para MS-BFF (Backend For Frontend).
+     */
+    @GetMapping("/bff")
+    public Mono<ResponseEntity<Map<String, Object>>> bffFallback(
+            ServerWebExchange exchange) {
+
+        log.warn("[CIRCUIT BREAKER] MS-BFF no disponible — activando fallback");
+
+        Map<String, Object> body = Map.of(
+                "type", "about:blank",
+                "title", "Servicio no disponible",
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "detail", "El servicio de agregación (BFF) no está disponible en este momento.",
+                "service", "ms-bff",
+                "timestamp", Instant.now().toString()
+        );
+
+        return Mono.just(
+                ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                        .body(body)
+        );
+    }
 }
