@@ -8,12 +8,14 @@ on:
       - 'backend/ms-academico/**'
       - 'backend/ms-usuario/**'
       - 'backend/archetypes/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [develop, main]
     paths:
       - 'backend/api-gateway/**'
       - 'backend/ms-academico/**'
       - 'backend/ms-usuario/**'
+      - '.github/workflows/**'
 
 jobs:
   test-gateway:
