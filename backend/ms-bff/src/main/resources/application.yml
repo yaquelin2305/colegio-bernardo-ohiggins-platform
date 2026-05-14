@@ -25,3 +25,25 @@ spring:
 eureka:
   client:
     enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    openfeign:
+      client:
+        config:
+          ms-usuario:
+            url: ${USUARIO_URL:http://ms-usuario:8083}
+          ms-academico:
+            url: ${ACADEMICO_URL:http://ms-academico:8082}
+          ms-comunicaciones:
+            url: ${COMUNICACIONES_URL:http://ms-comunicaciones:8080}
+          ms-asistencia:
+            url: ${ASISTENCIA_URL:http://ms-asistencia:8080}
+
+eureka:
+  client:
+    enabled: false
