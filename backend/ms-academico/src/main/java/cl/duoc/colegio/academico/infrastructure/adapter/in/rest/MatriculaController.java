@@ -29,6 +29,16 @@ public class MatriculaController {
         this.cursoRepository = cursoRepository;
     }
 
+    @GetMapping
+    @Operation(summary = "Listar todas las matrículas")
+    public ResponseEntity<List<MatriculaResponse>> listarTodas() {
+        List<MatriculaResponse> resultado = matriculaRepository.buscarTodas()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+        return ResponseEntity.ok(resultado);
+    }
+
     @PostMapping("/matricular")
     @Operation(summary = "Matricular un estudiante en un curso")
     public ResponseEntity<MatriculaResponse> matricular(@Valid @RequestBody MatriculaRequest request) {
