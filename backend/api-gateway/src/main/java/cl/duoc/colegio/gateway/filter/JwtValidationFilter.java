@@ -98,10 +98,10 @@ public class JwtValidationFilter implements GlobalFilter {
      * Rutas que requieren ADMIN o DOCENTE.
      */
     private static final List<String> ADMIN_DOCENTE_PATHS = List.of(
-            "/api/v1/cursos/",
-            "/api/v1/asignaturas/",
-            "/api/v1/matriculas/",
-            "/api/v1/calificaciones/"
+            "/api/v1/cursos",
+            "/api/v1/asignaturas",
+            "/api/v1/matriculas",
+            "/api/v1/calificaciones"
     );
 
     /**
@@ -272,7 +272,11 @@ public class JwtValidationFilter implements GlobalFilter {
     }
 
     private boolean matchesAny(String path, List<String> patterns) {
-        return patterns.stream().anyMatch(path::startsWith);
+        String normalized = path.endsWith("/") ? path : path + "/";
+        return patterns.stream().anyMatch(p -> {
+            String pNormalized = p.endsWith("/") ? p : p + "/";
+            return normalized.startsWith(pNormalized);
+        });
     }
 
     private String extraerSegmento(String path, String prefix) {
