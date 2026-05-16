@@ -130,6 +130,34 @@ services:
 
 
   # ─────────────────────────────────────────────────────────
+  # MS-ASISTENCIA  (puerto 8082)
+  # Se conecta a asistencia_schema dentro de colegio_db
+  # ─────────────────────────────────────────────────────────
+  ms-asistencia:
+    build:
+      context: ./backend/ms-asistencia
+      dockerfile: Dockerfile
+    container_name: ms-asistencia
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/colegio_db
+      DB_USERNAME: colegio
+      DB_PASSWORD: colegio123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    ports:
+      - "8085:8082"
+    networks:
+      - colegio-network
+
+  # ─────────────────────────────────────────────────────────
   # MS-BFF  (puerto 8084)
   # Capa de agregación backend-for-frontend
   # ─────────────────────────────────────────────────────────
@@ -139,11 +167,13 @@ services:
       dockerfile: Dockerfile
     container_name: ms-bff
     environment:
-      SPRING_PROFILES_ACTIVE: local
+      SPRING_PROFILES_ACTIVE: docker
     depends_on:
       ms-usuario:
         condition: service_healthy
       ms-academico:
+        condition: service_healthy
+      ms-asistencia:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]

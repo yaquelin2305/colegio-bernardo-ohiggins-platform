@@ -40,9 +40,9 @@ spring:
           ms-academico:
             url: ${ACADEMICO_URL:http://ms-academico:8082}
           ms-comunicaciones:
-            url: ${COMUNICACIONES_URL:http://ms-comunicaciones:8080}
+            url: ${COMUNICACIONES_URL:http://ms-comunicaciones:8081}
           ms-asistencia:
-            url: ${ASISTENCIA_URL:http://ms-asistencia:8080}
+            url: ${ASISTENCIA_URL:http://ms-asistencia:8082}
 
 eureka:
   client:
