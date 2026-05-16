@@ -10,5 +10,6 @@ public interface MatriculaRepositoryPort {
     Optional<Matricula> buscarPorId(Long id);
     List<Matricula> buscarPorCursoId(Long cursoId);
     List<Matricula> buscarPorUsuarioUuid(UUID usuarioUuid);
+    List<Matricula> buscarTodas();
     boolean existePorUsuarioUuidYCursoId(UUID usuarioUuid, Long cursoId);
 }

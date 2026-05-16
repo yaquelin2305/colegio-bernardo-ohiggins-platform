@@ -40,6 +40,11 @@ public class MatriculaPersistenceAdapter implements MatriculaRepositoryPort {
     }
 
     @Override
+    public List<Matricula> buscarTodas() {
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Override
     public boolean existePorUsuarioUuidYCursoId(UUID usuarioUuid, Long cursoId) {
         return jpaRepository.existsByUsuarioUuidAndCursoId(usuarioUuid, cursoId);
     }
