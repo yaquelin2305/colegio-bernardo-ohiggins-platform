@@ -31,14 +31,13 @@ function RegistroAnotacionesPage() {
   }, []);
 
   useEffect(() => {
-    if (!cursoId) {
-      setAlumnos([]);
-      return;
-    }
-    setAnotacionesPorAlumno({});
-    setPanelActivo(null);
+    if (!cursoId) return;
     obtenerAlumnosPorCurso(cursoId)
-      .then(setAlumnos)
+      .then(data => {
+        setAnotacionesPorAlumno({});
+        setPanelActivo(null);
+        setAlumnos(data);
+      })
       .catch(() => setError('No se pudo cargar los alumnos del curso.'));
   }, [cursoId]);
 
@@ -81,6 +80,9 @@ function RegistroAnotacionesPage() {
             onChange={handleCursoChange}
           />
 
+          <p className="anotaciones__aviso">
+            El registro de anotaciones no está disponible — pendiente de implementación en backend (ms-asistencia no soporta anotaciones).
+          </p>
           <TablaAnotaciones
             alumnos={alumnos}
             anotacionesPorAlumno={anotacionesPorAlumno}
@@ -91,6 +93,7 @@ function RegistroAnotacionesPage() {
             onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
             onGuardar={handleGuardar}
             onCancelar={() => setPanelActivo(null)}
+            guardadoDeshabilitado
           />
         </>
       )}

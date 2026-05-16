@@ -131,6 +131,7 @@ function GestionUsuariosPage() {
 
           <section className="gestion-usuarios__seccion gestion-usuarios__seccion--formulario" aria-label="Crear o editar usuario">
             <FormularioUsuarioAdmin
+              key={usuarioEditando?.id ?? 'nuevo'}
               onGuardar={handleGuardarDesdeFormulario}
               apoderados={apoderados}
               usuarioEditando={usuarioEditando}

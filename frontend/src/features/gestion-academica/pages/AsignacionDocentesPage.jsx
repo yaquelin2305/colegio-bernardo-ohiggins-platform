@@ -98,6 +98,9 @@ function AsignacionDocentesPage() {
             onChange={handleChange}
             onSubmit={handleAsignar}
           />
+          <p className="asignacion__aviso">
+            El listado y la eliminación de asignaciones aún no están disponibles — pendiente de implementación en backend (GET/DELETE /api/v1/asignacion-docente).
+          </p>
           <TablaAsignaciones asignaciones={asignaciones} onEliminar={handleEliminar} />
         </section>
       )}

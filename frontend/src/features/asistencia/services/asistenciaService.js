@@ -1,4 +1,6 @@
 import axiosClient from '../../../core/api/axiosClient';
+import { obtenerCursos as obtenerCursosAcademico, obtenerEstudiantesPorCurso } from '../../gestion-academica/services/gestionAcademicaService';
+import { obtenerEstudiantes } from '../../usuarios/services/usuariosService';
 
 export async function obtenerResumenDiario(cursoId, fecha) {
   if (!cursoId) return null;
@@ -15,10 +17,7 @@ export async function obtenerAsistenciaPorCurso(cursoId, fecha) {
   return response.data;
 }
 
-// Requiere ms-usuario — pendiente de integración
-export async function obtenerAlumnos() {
-  return [];
-}
+export const obtenerAlumnos = obtenerEstudiantes;
 
 export async function obtenerHistorialAsistencia(alumnoId) {
   const response = await axiosClient.get(`/bff/asistencia/estudiante/${alumnoId}`);
@@ -38,18 +37,12 @@ export async function justificarInasistencia(inasistenciaId, payload) {
   return response.data;
 }
 
-// Requiere ms-academico — pendiente de integración
-export async function obtenerCursos() {
-  return [];
-}
+export const obtenerCursos = obtenerCursosAcademico;
 
-// Requiere ms-academico — pendiente de integración
-export async function obtenerAlumnosPorCurso(cursoId) {
-  return [];
-}
+export const obtenerAlumnosPorCurso = obtenerEstudiantesPorCurso;
 
-// ms-asistencia no soporta anotaciones — pendiente de integración
-export async function guardarAnotacion(alumnoId, anotacion) {
+// STUB: ms-asistencia no soporta anotaciones. Mantener hasta que el equipo de backend lo exponga.
+export async function guardarAnotacion() {
   return null;
 }
 

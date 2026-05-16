@@ -1,5 +1,9 @@
-// TODO: reactivar validación cuando el Login esté disponible
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../../core/context/useAuth';
+
 function ProtectedRoute({ children }) {
+  const { token } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
   return children;
 }
 

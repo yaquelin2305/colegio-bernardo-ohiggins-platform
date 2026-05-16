@@ -24,10 +24,7 @@ function HistorialAsistenciaPage() {
   }, []);
 
   useEffect(() => {
-    if (!alumnoId) {
-      setRegistros([]);
-      return;
-    }
+    if (!alumnoId) return;
     obtenerHistorialAsistencia(alumnoId)
       .then(setRegistros)
       .catch(() => setError('No se pudo cargar el historial de asistencia.'));

@@ -1,29 +1,48 @@
-export async function obtenerDocentes() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+import axiosClient from '../../../core/api/axiosClient';
+
+function mapeoUsuario(u) {
+  const [nombres = '', ...resto] = (u.nombreCompleto ?? '').split(' ');
+  return {
+    id: u.id,
+    rut: u.rut ?? '',
+    nombres,
+    apellidos: resto.join(' '),
+    email: u.email ?? '',
+    rol: u.rol,
+    apoderadoId: u.apoderadoId ?? null,
+    apoderado: u.apoderadoNombre ?? null,
+  };
 }
 
-export async function obtenerApoderados() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+async function listarPorRol(rol) {
+  const { data } = await axiosClient.get(`/v1/admin/listar/${rol}`);
+  return data.map(mapeoUsuario);
 }
 
-export async function obtenerEstudiantes() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+export const obtenerDocentes    = () => listarPorRol('DOCENTE');
+export const obtenerApoderados  = () => listarPorRol('APODERADO');
+export const obtenerEstudiantes = () => listarPorRol('ESTUDIANTE');
+
+export async function crearUsuario(payload) {
+  const { data } = await axiosClient.post('/v1/admin/crear', {
+    rut: payload.rut,
+    nombreCompleto: `${payload.nombres} ${payload.apellidos}`.trim(),
+    email: payload.email,
+    password: payload.password,
+    rol: payload.rol,
+    apoderadoId: payload.apoderadoId || null,
+  });
+  return mapeoUsuario(data);
 }
 
-export async function crearUsuario(datos) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
-}
-
-export async function actualizarUsuario(id, datos) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+export async function actualizarUsuario(id, payload) {
+  const { data } = await axiosClient.put(`/v1/admin/actualizar/${id}`, {
+    nombreCompleto: `${payload.nombres} ${payload.apellidos}`.trim(),
+    email: payload.email,
+  });
+  return mapeoUsuario(data);
 }
 
 export async function eliminarUsuario(id) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+  await axiosClient.delete(`/v1/admin/eliminar/${id}`);
 }

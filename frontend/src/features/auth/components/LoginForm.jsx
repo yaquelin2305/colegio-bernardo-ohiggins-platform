@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../services/authService';
-import { useAuth } from '../../../core/context/AuthContext';
+import { useAuth } from '../../../core/context/useAuth';
 import '../styles/RegisterForm.css';
 
 const initialState = {

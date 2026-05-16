@@ -37,12 +37,19 @@ function RegistroNotasPage() {
 
   useEffect(() => {
     if (!curso || !asignatura) return;
-    setIsLoading(true);
-    setError(null);
-    obtenerCalificaciones(curso, asignatura)
-      .then(setAlumnos)
-      .catch(() => setError('No se pudo cargar el listado de calificaciones.'))
-      .finally(() => setIsLoading(false));
+    async function cargar() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await obtenerCalificaciones(curso, asignatura);
+        setAlumnos(data);
+      } catch {
+        setError('No se pudo cargar el listado de calificaciones.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    cargar();
   }, [curso, asignatura]);
 
   function handleNotaChange(id, campo, valor) {

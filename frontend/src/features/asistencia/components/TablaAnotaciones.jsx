@@ -1,6 +1,6 @@
 import { ThumbsUp, ThumbsDown, Plus, X } from 'lucide-react';
 
-function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formulario, onTogglePanel, onTipoChange, onDescripcionChange, onGuardar, onCancelar }) {
+function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formulario, onTogglePanel, onTipoChange, onDescripcionChange, onGuardar, onCancelar, guardadoDeshabilitado = false }) {
   return (
     <section className="anotaciones__tabla-wrapper" aria-label="Listado de alumnos">
       <table className="anotaciones__tabla">
@@ -111,7 +111,7 @@ function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formular
                         </div>
 
                         <div className="anotaciones__panel-acciones">
-                          <button type="submit" className="anotaciones__btn-guardar">
+                          <button type="submit" className="anotaciones__btn-guardar" disabled={guardadoDeshabilitado}>
                             Guardar anotación
                           </button>
                           <button
