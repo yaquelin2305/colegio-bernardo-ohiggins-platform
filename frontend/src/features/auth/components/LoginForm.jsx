@@ -10,6 +10,15 @@ const initialState = {
   password: '',
 };
 
+function obtenerRolDelToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch {
+    return null;
+  }
+}
+
 function LoginForm() {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState('');
@@ -37,7 +46,12 @@ function LoginForm() {
     try {
       const token = await login(form.rut, form.password);
       auth.login(token);
-      navigate('/dashboard', { replace: true });
+
+      const rol = obtenerRolDelToken(token);
+      const destino = (rol === 'ADMIN' || rol === 'DOCENTE')
+        ? '/dashboard'
+        : '/mis-calificaciones';
+      navigate(destino, { replace: true });
     } catch (err) {
       const mensaje = err.response?.data?.mensaje
         || err.response?.data?.detail
