@@ -26,6 +26,7 @@ class AuthorizationStrategyTest {
     @BeforeEach
     void setUp() {
         usuarioBase = new Usuario(
+                "11222333-4",
                 "test@colegio.cl",
                 "hash",
                 RolUsuario.DOCENTE,
@@ -102,7 +103,7 @@ class AuthorizationStrategyTest {
         @BeforeEach
         void setUp() {
             strategy = new ApoderadoAuthorizationStrategy();
-            apoderado = new Usuario("apoderado@test.cl", "hash", RolUsuario.APODERADO, "María", "González");
+            apoderado = new Usuario("99888777-6", "apoderado@test.cl", "hash", RolUsuario.APODERADO, "María", "González");
             apoderado.asociarPerfil(99L);
         }
 
@@ -142,7 +143,7 @@ class AuthorizationStrategyTest {
         @Test
         @DisplayName("El pupiloId es 0 cuando el apoderado no tiene perfil asociado")
         void apoderado_sinPerfil_pupiloIdEsCero() {
-            Usuario sinPerfil = new Usuario("sin@perfil.cl", "hash", RolUsuario.APODERADO, "Sin", "Perfil");
+            Usuario sinPerfil = new Usuario("55444333-2", "sin@perfil.cl", "hash", RolUsuario.APODERADO, "Sin", "Perfil");
             Map<String, Object> claims = strategy.generarClaimsAdicionales(sinPerfil);
             assertThat(claims.get("pupiloId")).isEqualTo(0L);
         }
@@ -161,7 +162,7 @@ class AuthorizationStrategyTest {
         @BeforeEach
         void setUp() {
             strategy = new EstudianteAuthorizationStrategy();
-            estudiante = new Usuario("alumno@test.cl", "hash", RolUsuario.ESTUDIANTE, "Pedro", "López");
+            estudiante = new Usuario("66555444-8", "alumno@test.cl", "hash", RolUsuario.ESTUDIANTE, "Pedro", "López");
             estudiante.asociarPerfil(55L);
         }
 
@@ -203,7 +204,7 @@ class AuthorizationStrategyTest {
         @BeforeEach
         void setUp() {
             strategy = new AdminAuthorizationStrategy();
-            admin = new Usuario("admin@colegio.cl", "hash", RolUsuario.ADMIN, "Super", "Admin");
+            admin = new Usuario("12345678-9", "admin@colegio.cl", "hash", RolUsuario.ADMIN, "Super", "Admin");
         }
 
         @Test

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import ResumenJustificaciones from '../components/ResumenJustificaciones';
 import TablaInasistenciasPendientes from '../components/TablaInasistenciasPendientes';
 import TablaInasistenciasJustificadas from '../components/TablaInasistenciasJustificadas';
@@ -9,7 +9,10 @@ import '../styles/JustificacionInasistenciasPage.css';
 const formularioInicial = { motivo: '', archivo: null };
 
 function JustificacionInasistenciasPage() {
+  const { setTitulo } = useOutletContext();
   const [inasistencias, setInasistencias] = useState([]);
+
+  useEffect(() => { setTitulo('Justificación de Inasistencias'); }, [setTitulo]);
   const [formularioActivo, setFormularioActivo] = useState(null);
   const [formulario, setFormulario] = useState(formularioInicial);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,35 +54,33 @@ function JustificacionInasistenciasPage() {
   const justificadas = inasistencias.filter(i => i.justificada);
 
   return (
-    <MainLayout titulo="Justificación de Inasistencias">
-      <div className="justificacion">
+    <div className="justificacion">
 
-        {isLoading && <p className="justificacion__cargando">Cargando...</p>}
-        {error && <p className="justificacion__error">{error}</p>}
+      {isLoading && <p className="justificacion__cargando">Cargando...</p>}
+      {error && <p className="justificacion__error">{error}</p>}
 
-        {!isLoading && !error && (
-          <>
-            <ResumenJustificaciones
-              totalPendientes={pendientes.length}
-              totalJustificadas={justificadas.length}
-            />
+      {!isLoading && !error && (
+        <>
+          <ResumenJustificaciones
+            totalPendientes={pendientes.length}
+            totalJustificadas={justificadas.length}
+          />
 
-            <TablaInasistenciasPendientes
-              pendientes={pendientes}
-              formularioActivo={formularioActivo}
-              formulario={formulario}
-              onAbrir={handleAbrir}
-              onCerrar={handleCerrar}
-              onChange={handleChange}
-              onJustificar={handleJustificar}
-            />
+          <TablaInasistenciasPendientes
+            pendientes={pendientes}
+            formularioActivo={formularioActivo}
+            formulario={formulario}
+            onAbrir={handleAbrir}
+            onCerrar={handleCerrar}
+            onChange={handleChange}
+            onJustificar={handleJustificar}
+          />
 
-            <TablaInasistenciasJustificadas justificadas={justificadas} />
-          </>
-        )}
+          <TablaInasistenciasJustificadas justificadas={justificadas} />
+        </>
+      )}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 

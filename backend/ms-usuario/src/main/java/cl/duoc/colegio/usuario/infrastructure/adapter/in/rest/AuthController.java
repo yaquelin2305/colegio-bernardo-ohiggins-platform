@@ -3,14 +3,11 @@ package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest;
 import cl.duoc.colegio.usuario.application.dto.ActualizarUsuarioRequestDto;
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
-import cl.duoc.colegio.usuario.application.dto.RefreshRequestDto;
 import cl.duoc.colegio.usuario.application.dto.RegistroRequestDto;
 import cl.duoc.colegio.usuario.domain.exception.UsuarioNoEncontradoException;
 import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 import cl.duoc.colegio.usuario.domain.model.Usuario;
 import cl.duoc.colegio.usuario.domain.port.in.LoginUseCase;
-import cl.duoc.colegio.usuario.domain.port.in.LogoutUseCase;
-import cl.duoc.colegio.usuario.domain.port.in.RefreshTokenUseCase;
 import cl.duoc.colegio.usuario.domain.port.in.RegistroUseCase;
 import cl.duoc.colegio.usuario.domain.port.out.UsuarioRepositoryPort;
 import jakarta.validation.Valid;
@@ -28,11 +25,10 @@ import java.util.UUID;
  * Rutas alineadas con el Contrato de API:
  *  PUT    /api/v1/admin/actualizar/{id}   → Actualizar datos de usuario (solo ADMIN)
  *  POST   /api/v1/auth/login            → Autenticación pública (rut + password)
- *  POST   /api/v1/auth/refresh          → Renovar access token (pública)
- *  POST   /api/v1/auth/logout           → Revocar refresh token (pública)
  *  GET    /api/v1/auth/health           → Health check
  *
  *  POST   /api/v1/admin/crear           → Registro de usuario (solo ADMIN — validado en Gateway)
+ *  GET    /api/v1/admin/{id}            → Obtener usuario por UUID (BFF)
  *  GET    /api/v1/admin/listar/{rol}    → Listar usuarios por rol (solo ADMIN)
  *  DELETE /api/v1/admin/eliminar/{id}   → Soft Delete (solo ADMIN)
  */
@@ -41,47 +37,22 @@ public class AuthController {
 
     private final LoginUseCase loginUseCase;
     private final RegistroUseCase registroUseCase;
-    private final RefreshTokenUseCase refreshTokenUseCase;
-    private final LogoutUseCase logoutUseCase;
     private final UsuarioRepositoryPort repositoryPort;
 
     public AuthController(LoginUseCase loginUseCase,
                           RegistroUseCase registroUseCase,
-                          RefreshTokenUseCase refreshTokenUseCase,
-                          LogoutUseCase logoutUseCase,
                           UsuarioRepositoryPort repositoryPort) {
         this.loginUseCase = loginUseCase;
         this.registroUseCase = registroUseCase;
-        this.refreshTokenUseCase = refreshTokenUseCase;
-        this.logoutUseCase = logoutUseCase;
         this.repositoryPort = repositoryPort;
     }
 
     // ── Rutas públicas (/auth) ─────────────────────────────────────────────────
 
-    /** Login: valida rut + password. Retorna accessToken + refreshToken. */
+    /** Login: valida rut + password. Retorna accessToken. */
     @PostMapping("/api/v1/auth/login")
     public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         return ResponseEntity.ok(loginUseCase.login(request));
-    }
-
-    /**
-     * Refresh: renueva el access token usando el refresh token opaco.
-     * Implementa rotación (el refresh token previo queda revocado).
-     */
-    @PostMapping("/api/v1/auth/refresh")
-    public ResponseEntity<AuthResponseDto> refresh(@Valid @RequestBody RefreshRequestDto request) {
-        return ResponseEntity.ok(refreshTokenUseCase.refresh(request));
-    }
-
-    /**
-     * Logout: revoca el refresh token.
-     * El access token expira naturalmente (24h).
-     */
-    @PostMapping("/api/v1/auth/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshRequestDto request) {
-        logoutUseCase.logout(request);
-        return ResponseEntity.noContent().build();
     }
 
     /** Health check del servicio. */
@@ -96,6 +67,25 @@ public class AuthController {
     @PostMapping("/api/v1/admin/crear")
     public ResponseEntity<AuthResponseDto> crear(@Valid @RequestBody RegistroRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(registroUseCase.registrar(request));
+    }
+
+    /**
+     * Obtener usuario por UUID.
+     * GET /api/v1/admin/{id}
+     * Usado por el BFF para resolver nombreCompleto sin listar todos los usuarios.
+     */
+    @GetMapping("/api/v1/admin/{id}")
+    public ResponseEntity<Map<String, Object>> obtenerPorId(@PathVariable UUID id) {
+        Usuario u = repositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(id.toString()));
+        return ResponseEntity.ok(Map.of(
+                "id",            u.getId(),
+                "rut",           u.getRut(),
+                "nombreCompleto", u.getNombreCompleto(),
+                "email",         u.getEmail(),
+                "rol",           u.getRol().name(),
+                "activo",        u.isActivo()
+        ));
     }
 
     /**

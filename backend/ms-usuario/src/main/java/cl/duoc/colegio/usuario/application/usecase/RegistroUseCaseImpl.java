@@ -84,7 +84,7 @@ public class RegistroUseCaseImpl implements RegistroUseCase {
 
         return AuthResponseDto.of(
                 token,
-                guardado.getEmail(),
+                guardado.getRut(),
                 guardado.getNombreCompleto(),
                 guardado.getRol().name(),
                 permisos.getRecursosPermitidos(),

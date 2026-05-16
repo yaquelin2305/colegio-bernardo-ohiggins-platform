@@ -1,5 +1,5 @@
 # ===== STAGE 1: BUILD =====
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
+FROM --platform=$BUILDPLATFORM maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
@@ -11,12 +11,12 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B -q
 
 # ===== STAGE 2: RUNTIME =====
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
 # Seguridad: usuario no-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
 
 COPY --from=builder /app/target/api-gateway-1.0.0.jar app.jar
 RUN chown appuser:appgroup app.jar

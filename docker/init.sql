@@ -27,27 +27,16 @@ CREATE TABLE IF NOT EXISTS users_schema.usuarios (
     actualizado_en  TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS users_schema.refresh_tokens (
-    id          BIGSERIAL    PRIMARY KEY,
-    token       VARCHAR(255) NOT NULL UNIQUE,
-    usuario_id  UUID         NOT NULL REFERENCES users_schema.usuarios(id) ON DELETE CASCADE,
-    expira_en   TIMESTAMP    NOT NULL,
-    revocado    BOOLEAN      NOT NULL DEFAULT FALSE,
-    creado_en   TIMESTAMP    NOT NULL DEFAULT NOW()
-);
-
 CREATE INDEX IF NOT EXISTS idx_usuarios_rut    ON users_schema.usuarios(rut);
 CREATE INDEX IF NOT EXISTS idx_usuarios_email  ON users_schema.usuarios(email);
 CREATE INDEX IF NOT EXISTS idx_usuarios_rol    ON users_schema.usuarios(rol);
-CREATE INDEX IF NOT EXISTS idx_refresh_token   ON users_schema.refresh_tokens(token);
-CREATE INDEX IF NOT EXISTS idx_refresh_usuario ON users_schema.refresh_tokens(usuario_id);
 
 -- ✅ Admin inicial — password: Admin1234!
 INSERT INTO users_schema.usuarios (rut, email, password_hash, rol, nombre, apellido)
 VALUES (
     '12345678-9',
     'admin@colegio-ohiggins.cl',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewFnpeMr8tSkqOGq',
+    '$2a$12$0IsFtHBXJGnszHB/rF/Q3e2sKpcpM2Y/mKM88SM3REX5riGPyv4ey',
     'ADMIN',
     'Administrador',
     'Sistema'

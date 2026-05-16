@@ -2,6 +2,7 @@ package cl.duoc.colegio.academico.application.port.in;
 
 import cl.duoc.colegio.academico.domain.model.Grade;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Puerto de entrada — Casos de uso de Notas.
@@ -12,13 +13,13 @@ public interface GradeUseCase {
 
     Grade obtenerNotaPorId(Long id);
 
-    List<Grade> listarNotasPorEstudiante(Long studentId);
+    List<Grade> listarNotasPorEstudiante(UUID usuarioUuid);
 
-    List<Grade> listarNotasPorEstudianteYAsignatura(Long studentId, String asignatura);
+    List<Grade> listarNotasPorEstudianteYAsignatura(UUID usuarioUuid, Long asignaturaId);
 
-    double calcularPromedioEstudiante(Long studentId);
+    double calcularPromedioEstudiante(UUID usuarioUuid);
 
-    double calcularPromedioEstudiantePorAsignatura(Long studentId, String asignatura);
+    double calcularPromedioEstudiantePorAsignatura(UUID usuarioUuid, Long asignaturaId);
 
     Grade actualizarNota(Long id, Grade grade);
 

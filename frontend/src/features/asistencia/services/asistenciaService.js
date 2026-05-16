@@ -1,34 +1,66 @@
+import axiosClient from '../../../core/api/axiosClient';
+
+export async function obtenerResumenDiario(cursoId, fecha) {
+  if (!cursoId) return null;
+  const response = await axiosClient.get('/bff/asistencia/resumen', {
+    params: { cursoId, fecha },
+  });
+  return response.data;
+}
+
+export async function obtenerAsistenciaPorCurso(cursoId, fecha) {
+  const response = await axiosClient.get(`/bff/asistencia/curso/${cursoId}`, {
+    params: { fecha },
+  });
+  return response.data;
+}
+
+// Requiere ms-usuario — pendiente de integración
 export async function obtenerAlumnos() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  return [];
 }
 
 export async function obtenerHistorialAsistencia(alumnoId) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  const response = await axiosClient.get(`/bff/asistencia/estudiante/${alumnoId}`);
+  return response.data;
 }
 
 export async function obtenerInasistencias() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  const response = await axiosClient.get('/bff/asistencia/inasistencias');
+  return response.data;
 }
 
 export async function justificarInasistencia(inasistenciaId, payload) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+  const response = await axiosClient.patch(
+    `/bff/asistencia/${inasistenciaId}/justificar`,
+    { motivo: payload.motivo }
+  );
+  return response.data;
 }
 
+// Requiere ms-academico — pendiente de integración
 export async function obtenerCursos() {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  return [];
 }
 
+// Requiere ms-academico — pendiente de integración
 export async function obtenerAlumnosPorCurso(cursoId) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve([]);
+  return [];
 }
 
+// ms-asistencia no soporta anotaciones — pendiente de integración
 export async function guardarAnotacion(alumnoId, anotacion) {
-  // TODO: Integrar llamada Axios con MS correspondiente según contrato API
-  return Promise.resolve(null);
+  return null;
+}
+
+export async function guardarAsistencia(cursoId, fecha, listado) {
+  const body = listado.map((item) => ({
+    estudianteId: item.nombre,
+    cursoId,
+    estado: item.estado.toUpperCase(),
+    observacion: null,
+    fecha,
+  }));
+  const response = await axiosClient.post('/bff/asistencia/registrar', body);
+  return response.data;
 }

@@ -22,6 +22,31 @@ spring:
             - RewritePath=/api/v1/gestion/(?<segment>.*), /api/v1/${segment}
 
         # MS-Académico — rutas directas
+        - id: academico-cursos-route
+          uri: ${ACADEMICO_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/cursos/**
+
+        - id: academico-asignaturas-route
+          uri: ${ACADEMICO_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/asignaturas/**
+
+        - id: academico-matriculas-route
+          uri: ${ACADEMICO_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/matriculas/**
+
+        - id: academico-calificaciones-route
+          uri: ${ACADEMICO_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/calificaciones/**
+
+        - id: academico-asignacion-route
+          uri: ${ACADEMICO_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/asignacion-docente/**
+
         - id: academico-direct-route
           uri: ${ACADEMICO_URI:http://localhost:8082}
           predicates:
@@ -35,11 +60,22 @@ spring:
           filters:
             - RewritePath=/api/v1/comunicaciones/(?<segment>.*), /api/${segment}
 
-        # MS-Usuario — Autenticación y Autorización
+        # MS-Usuario — Autenticación y Administración
         - id: usuario-route
           uri: ${USUARIO_URI:http://localhost:8083}
           predicates:
             - Path=/api/v1/auth/**
+
+        - id: usuario-admin-route
+          uri: ${USUARIO_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/admin/**
+
+        # MS-BFF — Backend For Frontend
+        - id: bff-route
+          uri: ${BFF_URI:http://localhost:8084}
+          predicates:
+            - Path=/api/bff/**
 
     # Desactivar service discovery
     discovery:

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FiltroAlumno from '../components/FiltroAlumno';
 import InfoAlumno from '../components/InfoAlumno';
 import TablaHistorialAsistencia from '../components/TablaHistorialAsistencia';
@@ -7,7 +7,10 @@ import { obtenerAlumnos, obtenerHistorialAsistencia } from '../services/asistenc
 import '../styles/HistorialAsistenciaPage.css';
 
 function HistorialAsistenciaPage() {
+  const { setTitulo } = useOutletContext();
   const [alumnos, setAlumnos] = useState([]);
+
+  useEffect(() => { setTitulo('Historial de Asistencia'); }, [setTitulo]);
   const [alumnoId, setAlumnoId] = useState('');
   const [registros, setRegistros] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,32 +40,30 @@ function HistorialAsistenciaPage() {
     : null;
 
   return (
-    <MainLayout titulo="Historial de Asistencia">
-      <div className="historial">
+    <div className="historial">
 
-        {isLoading && <p className="historial__cargando">Cargando...</p>}
-        {error && <p className="historial__error">{error}</p>}
+      {isLoading && <p className="historial__cargando">Cargando...</p>}
+      {error && <p className="historial__error">{error}</p>}
 
-        {!isLoading && !error && (
-          <FiltroAlumno
-            alumnos={alumnos}
-            alumnoId={alumnoId}
-            onChange={e => setAlumnoId(e.target.value)}
-          />
-        )}
+      {!isLoading && !error && (
+        <FiltroAlumno
+          alumnos={alumnos}
+          alumnoId={alumnoId}
+          onChange={e => setAlumnoId(e.target.value)}
+        />
+      )}
 
-        {alumnoSeleccionado && (
-          <InfoAlumno alumno={alumnoSeleccionado} porcentaje={porcentaje} />
-        )}
+      {alumnoSeleccionado && (
+        <InfoAlumno alumno={alumnoSeleccionado} porcentaje={porcentaje} />
+      )}
 
-        {alumnoId && <TablaHistorialAsistencia registros={registros} />}
+      {alumnoId && <TablaHistorialAsistencia registros={registros} />}
 
-        {!isLoading && !error && !alumnoId && (
-          <p className="historial__instruccion">Selecciona un alumno para ver su historial de asistencia.</p>
-        )}
+      {!isLoading && !error && !alumnoId && (
+        <p className="historial__instruccion">Selecciona un alumno para ver su historial de asistencia.</p>
+      )}
 
-      </div>
-    </MainLayout>
+    </div>
   );
 }
 

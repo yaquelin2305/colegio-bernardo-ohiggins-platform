@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +38,11 @@ public class StudentPersistenceAdapter implements StudentRepositoryPort {
     @Override
     public Optional<Student> buscarPorId(Long id) {
         return jpaRepository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<Student> buscarPorUsuarioUuid(UUID usuarioUuid) {
+        return jpaRepository.findByUsuarioUuid(usuarioUuid).map(mapper::toDomain);
     }
 
     @Override

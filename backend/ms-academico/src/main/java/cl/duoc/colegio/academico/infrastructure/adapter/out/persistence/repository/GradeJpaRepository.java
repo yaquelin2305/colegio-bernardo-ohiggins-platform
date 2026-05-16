@@ -14,5 +14,5 @@ public interface GradeJpaRepository extends JpaRepository<GradeEntity, Long> {
 
     List<GradeEntity> findByUsuarioUuid(UUID usuarioUuid);
 
-    Optional<GradeEntity> findByUsuarioUuidAndAsignaturaId(UUID usuarioUuid, Long asignaturaId);
+    List<GradeEntity> findByUsuarioUuidAndAsignaturaId(UUID usuarioUuid, Long asignaturaId);
 }

@@ -1,0 +1,82 @@
+name: Tests & Coverage (JaCoCo)
+
+on:
+  push:
+    branches: [develop, main, 'feature/**', 'fix/**']
+    paths:
+      - 'backend/api-gateway/**'
+      - 'backend/ms-academico/**'
+      - 'backend/ms-usuario/**'
+      - 'backend/archetypes/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'backend/api-gateway/**'
+      - 'backend/ms-academico/**'
+      - 'backend/ms-usuario/**'
+      - '.github/workflows/**'
+
+jobs:
+  test-gateway:
+    name: API Gateway — Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/api-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run tests
+        run: mvn test --batch-mode
+
+  test-usuario:
+    name: MS-Usuario — Tests & JaCoCo
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/ms-usuario
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-usuario
+          path: backend/ms-usuario/target/site/jacoco
+
+  test-academico:
+    name: MS-Academico — Tests & JaCoCo
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/ms-academico
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-academico
+          path: backend/ms-academico/target/site/jacoco
