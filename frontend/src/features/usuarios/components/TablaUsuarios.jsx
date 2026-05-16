@@ -33,8 +33,8 @@ function TablaUsuarios({ lista, tabActiva, columnas, usuarioEditando, confirmarE
                   <td className="gestion-usuarios__celda-rut">{usuario.rut}</td>
                   <td>{usuario.nombres} {usuario.apellidos}</td>
                   <td className="gestion-usuarios__celda-email">{usuario.email}</td>
-                  {tabActiva === 'estudiantes' && (
-                    <td className="gestion-usuarios__celda-apoderado">{usuario.apoderado}</td>
+                  {tabActiva === 'apoderados' && (
+                    <td className="gestion-usuarios__celda-apoderado">{usuario.pupiloNombre ?? '—'}</td>
                   )}
                   <td>
                     <div className="gestion-usuarios__acciones-fila">

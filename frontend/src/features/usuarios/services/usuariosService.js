@@ -9,8 +9,8 @@ function mapeoUsuario(u) {
     apellidos: resto.join(' '),
     email: u.email ?? '',
     rol: u.rol,
-    apoderadoId: u.apoderadoId ?? null,
-    apoderado: u.apoderadoNombre ?? null,
+    pupiloUuid: u.pupiloUuid ?? null,
+    pupiloNombre: u.pupiloNombre ?? null,
   };
 }
 
@@ -30,7 +30,7 @@ export async function crearUsuario(payload) {
     email: payload.email,
     password: payload.password,
     rol: payload.rol,
-    apoderadoId: payload.apoderadoId || null,
+    pupiloUuid: payload.pupiloUuid || null,
   });
   return mapeoUsuario(data);
 }
@@ -39,6 +39,7 @@ export async function actualizarUsuario(id, payload) {
   const { data } = await axiosClient.put(`/v1/admin/actualizar/${id}`, {
     nombreCompleto: `${payload.nombres} ${payload.apellidos}`.trim(),
     email: payload.email,
+    pupiloUuid: payload.pupiloUuid ?? null,
   });
   return mapeoUsuario(data);
 }

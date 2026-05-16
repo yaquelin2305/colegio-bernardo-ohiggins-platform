@@ -63,7 +63,7 @@ function VisualizadorNotasPage() {
   return (
     <div className="visualizador-notas">
 
-      {esApoderado && pupilos.length > 0 && (
+      {esApoderado && pupilos.length > 1 && (
         <div className="boletin__selector-pupilo">
           <label htmlFor="select-pupilo" className="boletin__selector-label">
             <Users size={15} aria-hidden="true" />
@@ -77,7 +77,7 @@ function VisualizadorNotasPage() {
           >
             {pupilos.map(p => (
               <option key={p.id} value={p.id}>
-                {p.nombre} — {p.curso}
+                {p.curso ? `${p.nombre} — ${p.curso}` : p.nombre}
               </option>
             ))}
           </select>

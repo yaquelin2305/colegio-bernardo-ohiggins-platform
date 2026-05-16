@@ -50,7 +50,7 @@ function GestionUsuariosPage() {
   }
 
   async function handleGuardarDesdeFormulario(payload) {
-    const { id, rol, rut, nombres, apellidos, email, apoderadoId } = payload;
+    const { id, rol, rut, nombres, apellidos, email, pupiloUuid } = payload;
 
     try {
       if (id) {
@@ -59,9 +59,13 @@ function GestionUsuariosPage() {
           prev.map(u => {
             if (u.id !== id) return u;
             const base = { ...u, rut, nombres, apellidos, email };
-            if (rol === 'ESTUDIANTE') {
-              const ap = apoderados.find(a => a.id === apoderadoId);
-              return { ...base, apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : u.apoderado };
+            if (rol === 'APODERADO') {
+              const est = estudiantes.find(e => e.id === pupiloUuid);
+              return {
+                ...base,
+                pupiloUuid,
+                pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : u.pupiloNombre,
+              };
             }
             return base;
           })
@@ -75,13 +79,13 @@ function GestionUsuariosPage() {
         if (rol === 'DOCENTE') {
           setDocentes(prev => [...prev, { id: `d${Date.now()}`, rut, nombres, apellidos, email, rol }]);
         } else if (rol === 'APODERADO') {
-          setApoderados(prev => [...prev, { id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol }]);
-        } else if (rol === 'ESTUDIANTE') {
-          const ap = apoderados.find(a => a.id === apoderadoId);
-          setEstudiantes(prev => [...prev, {
-            id: `e${Date.now()}`, rut, nombres, apellidos, email, rol,
-            apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : '—',
+          const est = estudiantes.find(e => e.id === pupiloUuid);
+          setApoderados(prev => [...prev, {
+            id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol,
+            pupiloUuid, pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : '—',
           }]);
+        } else if (rol === 'ESTUDIANTE') {
+          setEstudiantes(prev => [...prev, { id: `e${Date.now()}`, rut, nombres, apellidos, email, rol }]);
         }
       }
     } catch {
@@ -114,8 +118,8 @@ function GestionUsuariosPage() {
   }
 
   const lista = getLista();
-  const columnas = tabActiva === 'estudiantes'
-    ? ['RUT', 'Nombre', 'Correo', 'Apoderado']
+  const columnas = tabActiva === 'apoderados'
+    ? ['RUT', 'Nombre', 'Correo', 'Pupilo']
     : ['RUT', 'Nombre', 'Correo'];
 
   return (
@@ -133,7 +137,7 @@ function GestionUsuariosPage() {
             <FormularioUsuarioAdmin
               key={usuarioEditando?.id ?? 'nuevo'}
               onGuardar={handleGuardarDesdeFormulario}
-              apoderados={apoderados}
+              estudiantes={estudiantes}
               usuarioEditando={usuarioEditando}
               onCancelar={() => setUsuarioEditando(null)}
             />

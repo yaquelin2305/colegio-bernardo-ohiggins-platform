@@ -13,6 +13,17 @@ function getUuidFromToken() {
   }
 }
 
+function getPupiloUuidFromToken() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.pupiloUuid ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function adaptarBoletin(bff) {
   return {
     alumno: {
@@ -96,9 +107,19 @@ export async function obtenerBoletinPupilo(pupilId) {
   return adaptarBoletin(data);
 }
 
-// STUB: ms-usuario no expone endpoint de pupilos por apoderado. Mantener hasta que el equipo de backend lo exponga.
 export async function obtenerPupilos() {
-  return [];
+  const pupiloUuid = getPupiloUuidFromToken();
+  if (!pupiloUuid) return [];
+  try {
+    const { data } = await axiosClient.get(`/v1/admin/${pupiloUuid}`);
+    return [{
+      id: pupiloUuid,
+      nombre: data.nombreCompleto ?? '',
+      curso: '',
+    }];
+  } catch {
+    return [];
+  }
 }
 
 // Cursos
