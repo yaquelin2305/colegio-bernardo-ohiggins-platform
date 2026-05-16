@@ -26,7 +26,8 @@ export const obtenerEstudiantes = () => listarPorRol('ESTUDIANTE');
 export async function crearUsuario(payload) {
   const { data } = await axiosClient.post('/v1/admin/crear', {
     rut: payload.rut,
-    nombreCompleto: `${payload.nombres} ${payload.apellidos}`.trim(),
+    nombre: payload.nombres,
+    apellido: payload.apellidos,
     email: payload.email,
     password: payload.password,
     rol: payload.rol,
@@ -37,7 +38,8 @@ export async function crearUsuario(payload) {
 
 export async function actualizarUsuario(id, payload) {
   const { data } = await axiosClient.put(`/v1/admin/actualizar/${id}`, {
-    nombreCompleto: `${payload.nombres} ${payload.apellidos}`.trim(),
+    nombre: payload.nombres,
+    apellido: payload.apellidos,
     email: payload.email,
     pupiloUuid: payload.pupiloUuid ?? null,
   });
