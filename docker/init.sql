@@ -1,13 +1,17 @@
 -- ============================================================
 -- INIT.SQL — Plataforma Colegio Bernardo O'Higgins
 -- Una sola BD (colegio_db) con schemas separados por MS:
---   users_schema    → MS-Usuario
---   academico_schema → MS-Academico
+--   users_schema          → MS-Usuario
+--   academico_schema      → MS-Academico
+--   asistencia_schema     → MS-Asistencia
+--   comunicaciones_schema → MS-Comunicaciones
 -- ============================================================
 
 -- ── SCHEMAS ────────────────────────────────────────────────
 CREATE SCHEMA IF NOT EXISTS users_schema;
 CREATE SCHEMA IF NOT EXISTS academico_schema;
+CREATE SCHEMA IF NOT EXISTS asistencia_schema;
+CREATE SCHEMA IF NOT EXISTS comunicaciones_schema;
 
 -- ══════════════════════════════════════════════════════════
 -- USERS_SCHEMA — MS-Usuario
