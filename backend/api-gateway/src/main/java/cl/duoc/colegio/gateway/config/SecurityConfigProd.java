@@ -29,8 +29,7 @@ public class SecurityConfigProd {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
                                 "/actuator/health",
-                                "/actuator/info",
-                                "/fallback/**"
+                                "/actuator/info"
                         ).permitAll()
                         .anyExchange().permitAll() // JWT ya validado por JwtValidationFilter
                 )

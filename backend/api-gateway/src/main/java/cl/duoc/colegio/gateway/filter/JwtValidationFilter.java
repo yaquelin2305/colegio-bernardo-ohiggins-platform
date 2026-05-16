@@ -44,7 +44,7 @@ import java.util.Set;
  * Rutas públicas (sin token):
  *  POST /api/v1/auth/login
  *  GET  /api/v1/auth/health
- *  /actuator/health, /actuator/info, /fallback/**, /swagger-ui/**, /v3/api-docs/**
+ *  /actuator/health, /actuator/info, /swagger-ui/**, /v3/api-docs/**
  *
  * RBAC:
  *  /api/v1/admin/**              → solo ADMIN
@@ -78,7 +78,6 @@ public class JwtValidationFilter implements GlobalFilter {
             "/api/v1/auth/health",
             "/actuator/health",
             "/actuator/info",
-            "/fallback/",
             "/swagger-ui",
             "/v3/api-docs",
             "/health",

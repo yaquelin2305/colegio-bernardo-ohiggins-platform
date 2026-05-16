@@ -24,21 +24,6 @@ spring:
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/cursos/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academicoCB
-                fallbackUri: forward:/fallback/academico
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         # -----------------------------------------------
         # RUTA: MS-ACADÉMICO — Asignaturas (ADMIN + DOCENTE)
@@ -47,21 +32,6 @@ spring:
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/asignaturas/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academicoCB
-                fallbackUri: forward:/fallback/academico
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         # -----------------------------------------------
         # RUTA: MS-ACADÉMICO — Matrículas (ADMIN + DOCENTE)
@@ -70,21 +40,6 @@ spring:
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/matriculas/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academicoCB
-                fallbackUri: forward:/fallback/academico
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         # -----------------------------------------------
         # RUTA: MS-ACADÉMICO — Calificaciones (ADMIN + DOCENTE)
@@ -93,21 +48,6 @@ spring:
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/calificaciones/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academicoCB
-                fallbackUri: forward:/fallback/academico
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         # -----------------------------------------------
         # RUTA: MS-BFF — Backend For Frontend (agregación)
@@ -116,21 +56,6 @@ spring:
           uri: lb://MS-BFF
           predicates:
             - Path=/api/bff/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: bffCB
-                fallbackUri: forward:/fallback/bff
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
       # =============================================
       # CORS GLOBAL — permite al front (Vite :5173) consumir el Gateway
@@ -183,81 +108,6 @@ eureka:
     instance-id: ${spring.application.name}:${server.port}
 
 # =============================================
-# RESILIENCE4J — Circuit Breaker
-# =============================================
-resilience4j:
-  circuitbreaker:
-    instances:
-      # Circuit Breaker para MS-Académico
-      academicoCB:
-        # Ventana deslizante de 10 llamadas para calcular tasa de fallo
-        sliding-window-size: 10
-        # Si el 50% de las llamadas fallan → abre el circuito
-        failure-rate-threshold: 50
-        # Tiempo que el circuito permanece abierto antes de intentar HALF-OPEN
-        wait-duration-in-open-state: 10s
-        # Llamadas permitidas en estado HALF-OPEN para probar recuperación
-        permitted-number-of-calls-in-half-open-state: 3
-        # Tiempo mínimo de duración de llamada para considerarla lenta
-        slow-call-duration-threshold: 5s
-        # Si el 80% de llamadas son lentas → también abre el circuito
-        slow-call-rate-threshold: 80
-        # Registrar excepciones que cuentan como fallo
-        record-exceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - org.springframework.cloud.gateway.support.NotFoundException
-      # Circuit Breaker para MS-Comunicaciones
-      comunicacionesCB:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-        slow-call-duration-threshold: 5s
-        slow-call-rate-threshold: 80
-      # Circuit Breaker para MS-Usuario (Auth)
-      usuarioCB:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-        slow-call-duration-threshold: 5s
-        slow-call-rate-threshold: 80
-        record-exceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - org.springframework.cloud.gateway.support.NotFoundException
-      # Circuit Breaker para MS-BFF
-      bffCB:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
-        slow-call-duration-threshold: 5s
-        slow-call-rate-threshold: 80
-        record-exceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
-          - org.springframework.cloud.gateway.support.NotFoundException
-      # Circuit Breaker genérico (fallback para otros MSs futuros)
-      defaultCB:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 15s
-        permitted-number-of-calls-in-half-open-state: 2
-
-  timelimiter:
-    instances:
-      academicoCB:
-        timeout-duration: 8s
-      usuarioCB:
-        timeout-duration: 8s
-      bffCB:
-        timeout-duration: 8s
-      defaultCB:
-        timeout-duration: 8s
-
-# =============================================
 # CONFIGURACIÓN JWT
 # =============================================
 gateway:
@@ -271,7 +121,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, gateway, circuitbreakers, metrics
+        include: health, info, gateway, metrics
   endpoint:
     health:
       show-details: always
@@ -285,7 +135,6 @@ logging:
   level:
     cl.duoc.colegio.gateway: INFO
     org.springframework.cloud.gateway: INFO
-    io.github.resilience4j: INFO
 
 ---
 # =============================================
@@ -305,84 +154,34 @@ spring:
         - id: docker-academico-cursos
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/cursos/**]
-          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
 
         - id: docker-academico-asignaturas
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/asignaturas/**]
-          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
 
         - id: docker-academico-matriculas
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/matriculas/**]
-          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
 
         - id: docker-academico-calificaciones
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/calificaciones/**]
-          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
 
         - id: docker-academico-asignacion
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/asignacion-docente/**]
-          filters: [{name: CircuitBreaker, args: {name: academicoCB, fallbackUri: "forward:/fallback/academico"}}]
 
         - id: docker-usuario-auth
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/auth/**]
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: usuarioCB
-                fallbackUri: forward:/fallback/usuario
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         - id: docker-usuario-admin
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/admin/**]
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: usuarioCB
-                fallbackUri: forward:/fallback/usuario
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST, PUT, DELETE
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
         - id: docker-bff
           uri: http://ms-bff:8084
           predicates: [Path=/api/bff/**]
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: bffCB
-                fallbackUri: forward:/fallback/bff
-            - name: Retry
-              args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
-                methods: GET, POST
-                backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
-                  factor: 2
-                  basedOnPreviousValue: false
 
 eureka:
   client:
