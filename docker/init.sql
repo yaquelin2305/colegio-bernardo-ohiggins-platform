@@ -36,7 +36,7 @@ INSERT INTO users_schema.usuarios (rut, email, password_hash, rol, nombre, apell
 VALUES (
     '12345678-9',
     'admin@colegio-ohiggins.cl',
-    '$2b$12$xL0mt2HsxFqiIlOY3aWzUO45JoAKYspTDPzEGLEzjxrFEtMfb67eG',
+    '$2a$12$0IsFtHBXJGnszHB/rF/Q3e2sKpcpM2Y/mKM88SM3REX5riGPyv4ey',
     'ADMIN',
     'Administrador',
     'Sistema'
