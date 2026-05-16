@@ -1,7 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { useState } from 'react';
 import { TOKEN_KEY } from '../constants/api.constants';
-
-const AuthContext = createContext(null);
+import { AuthContext } from './authContext';
 
 function decodificarToken(token) {
   try {
@@ -46,12 +45,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
-  }
-  return context;
 }

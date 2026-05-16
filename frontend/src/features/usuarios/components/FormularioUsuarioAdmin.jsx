@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CreditCard, User, Mail, Lock, ChevronDown, Users, X } from 'lucide-react';
 import '../styles/FormularioUsuarioAdmin.css';
 
@@ -10,30 +10,22 @@ const estadoInicial = {
 function FormularioUsuarioAdmin({ onGuardar, apoderados = [], usuarioEditando = null, onCancelar }) {
   const modoEdicion = Boolean(usuarioEditando);
 
-  const [formulario, setFormulario] = useState(estadoInicial);
+  const [formulario, setFormulario] = useState(() =>
+    usuarioEditando
+      ? {
+          rut:             usuarioEditando.rut         || '',
+          nombres:         usuarioEditando.nombres      || '',
+          apellidos:       usuarioEditando.apellidos    || '',
+          email:           usuarioEditando.email        || '',
+          password:        '',
+          confirmPassword: '',
+          rol:             usuarioEditando.rol          || '',
+          apoderadoId:     usuarioEditando.apoderadoId || '',
+        }
+      : estadoInicial
+  );
   const [errores, setErrores] = useState({});
   const [mensajeExito, setMensajeExito] = useState('');
-
-  useEffect(() => {
-    if (usuarioEditando) {
-      setFormulario({
-        rut:             usuarioEditando.rut           || '',
-        nombres:         usuarioEditando.nombres        || '',
-        apellidos:       usuarioEditando.apellidos      || '',
-        email:           usuarioEditando.email          || '',
-        password:        '',
-        confirmPassword: '',
-        rol:             usuarioEditando.rol            || '',
-        apoderadoId:     usuarioEditando.apoderadoId   || '',
-      });
-      setErrores({});
-      setMensajeExito('');
-    } else {
-      setFormulario(estadoInicial);
-      setErrores({});
-      setMensajeExito('');
-    }
-  }, [usuarioEditando]);
 
   function handleChange(e) {
     const { name, value } = e.target;

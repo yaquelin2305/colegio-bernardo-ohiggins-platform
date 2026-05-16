@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, CalendarCheck, MessageSquare, Settings, ClipboardList, UserCheck, Users, History, FileCheck, ClipboardCheck } from 'lucide-react';
-import { useAuth } from '../../../core/context/AuthContext';
+import { useAuth } from '../../../core/context/useAuth';
 import '../../styles/Sidebar.css';
 
 const navLinks = [
@@ -19,9 +19,9 @@ const navLinks = [
 
 function Sidebar() {
   const { usuario } = useAuth();
-  const enlacesFiltrados = navLinks.filter(link =>
-    !usuario?.rol || link.roles.includes(usuario.rol)
-  );
+  const enlacesFiltrados = usuario?.rol
+    ? navLinks.filter(link => link.roles.includes(usuario.rol))
+    : [];
 
   return (
     <aside className="sidebar">

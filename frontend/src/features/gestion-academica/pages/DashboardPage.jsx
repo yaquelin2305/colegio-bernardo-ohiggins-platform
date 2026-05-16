@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, GraduationCap, AlertTriangle, TrendingUp, CalendarCheck, MessageSquare } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { useAuth } from '../../../core/context/AuthContext';
+import { useAuth } from '../../../core/context/useAuth';
 import TarjetaKpi from '../components/TarjetaKpi';
 import { obtenerKpisDashboard } from '../services/gestionAcademicaService';
 import '../styles/DashboardPage.css';

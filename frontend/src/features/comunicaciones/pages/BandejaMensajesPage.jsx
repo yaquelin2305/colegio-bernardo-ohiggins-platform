@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { useAuth } from '../../../core/context/AuthContext';
+import { useAuth } from '../../../core/context/useAuth';
 import CabeceraBandeja from '../components/CabeceraBandeja';
 import ListaMensajes from '../components/ListaMensajes';
 import { obtenerMensajes } from '../services/comunicacionesService';

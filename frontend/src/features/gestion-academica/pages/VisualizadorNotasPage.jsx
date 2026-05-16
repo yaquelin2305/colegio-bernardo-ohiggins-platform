@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { useAuth } from '../../../core/context/AuthContext';
+import { useAuth } from '../../../core/context/useAuth';
 import EncabezadoBoletin from '../components/EncabezadoBoletin';
 import TablaBoletinNotas from '../components/TablaBoletinNotas';
 import {
@@ -43,11 +43,18 @@ function VisualizadorNotasPage() {
 
   useEffect(() => {
     if (!esApoderado || !pupilId) return;
-    setIsLoading(true);
-    obtenerBoletinPupilo(pupilId)
-      .then(setBoletin)
-      .catch(() => setError('No se pudo cargar el boletín del pupilo.'))
-      .finally(() => setIsLoading(false));
+    async function cargar() {
+      setIsLoading(true);
+      try {
+        const data = await obtenerBoletinPupilo(pupilId);
+        setBoletin(data);
+      } catch {
+        setError('No se pudo cargar el boletín del pupilo.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    cargar();
   }, [esApoderado, pupilId]);
 
   const alumno      = boletin?.alumno      ?? null;
