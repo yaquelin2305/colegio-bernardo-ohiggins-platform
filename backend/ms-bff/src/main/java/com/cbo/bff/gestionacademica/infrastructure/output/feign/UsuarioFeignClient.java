@@ -16,4 +16,7 @@ public interface UsuarioFeignClient {
 
     @GetMapping("/api/v1/admin/{id}")
     Map<String, Object> obtenerPorId(@PathVariable("id") UUID id);
+
+    @GetMapping("/api/v1/usuarios/{uuid}/nombre")
+    Map<String, Object> obtenerNombre(@PathVariable("uuid") String uuid);
 }

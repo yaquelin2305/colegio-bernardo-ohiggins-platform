@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../services/authService';
 import { useAuth } from '../../../core/context/useAuth';
-import '../styles/RegisterForm.css';
+import '../styles/LoginForm.css';
 
 const initialState = {
   rut: '',
@@ -48,9 +48,9 @@ function LoginForm() {
       auth.login(token);
 
       const rol = obtenerRolDelToken(token);
-      const destino = (rol === 'ADMIN' || rol === 'DOCENTE')
-        ? '/dashboard'
-        : '/mis-calificaciones';
+      const destino = rol === 'ADMIN'   ? '/dashboard'
+                    : rol === 'DOCENTE' ? '/calificaciones'
+                                        : '/mis-calificaciones';
       navigate(destino, { replace: true });
     } catch (err) {
       const mensaje = err.response?.data?.mensaje

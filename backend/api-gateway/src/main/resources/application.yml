@@ -180,6 +180,10 @@ spring:
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/admin/**]
 
+        - id: docker-usuario-public
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/usuarios/**]
+
         - id: docker-bff
           uri: http://ms-bff:8084
           predicates: [Path=/api/bff/**]

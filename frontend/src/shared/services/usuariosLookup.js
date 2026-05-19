@@ -5,7 +5,7 @@ const cache = new Map();
 export async function obtenerUsuarioPorId(id) {
   if (cache.has(id)) return cache.get(id);
   try {
-    const { data } = await axiosClient.get(`/v1/admin/${id}`);
+    const { data } = await axiosClient.get(`/v1/usuarios/${id}/nombre`);
     cache.set(id, data);
     return data;
   } catch {

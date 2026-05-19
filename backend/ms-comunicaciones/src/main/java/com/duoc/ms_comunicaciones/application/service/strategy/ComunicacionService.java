@@ -37,7 +37,7 @@ public class ComunicacionService implements ComunicacionUseCase {
 
     @Override
     public List<Comunicacion> getBandeja(String usuarioId) {
-        return repositoryPort.findByUsuarioId(usuarioId);
+        return repositoryPort.findByDestinatario(usuarioId);
     }
     @Override
     public Optional<Comunicacion> getMensaje(Long mensajeId) {

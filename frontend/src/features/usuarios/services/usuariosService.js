@@ -41,7 +41,6 @@ export async function actualizarUsuario(id, payload) {
     nombre: payload.nombres,
     apellido: payload.apellidos,
     email: payload.email,
-    pupiloUuid: payload.pupiloUuid ?? null,
   });
   return mapeoUsuario(data);
 }

@@ -10,7 +10,7 @@ public interface ComunicacionRepositoryPort {
     Comunicacion save(Comunicacion comunicacion);
     
    
-    List<Comunicacion> findByUsuarioId(String usuarioId);
+    List<Comunicacion> findByDestinatario(String destinatario);
     
    
     Optional<Comunicacion> findById(Long id);

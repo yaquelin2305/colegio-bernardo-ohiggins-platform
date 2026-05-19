@@ -8,8 +8,3 @@ export async function login(rut, password) {
   });
   return data.accessToken;
 }
-
-// STUB: registro público no expuesto. Usar POST /v1/admin/crear (solo ADMIN). Mantener hasta que el equipo de backend lo exponga.
-export async function registrarUsuario() {
-  throw new Error('Registro de usuario no disponible.');
-}

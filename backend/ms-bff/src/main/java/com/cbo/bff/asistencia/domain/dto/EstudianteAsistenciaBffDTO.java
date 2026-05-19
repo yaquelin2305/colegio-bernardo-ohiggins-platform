@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EstudianteAsistenciaBffDTO {
     private Long id;
+    private String estudianteId;
     private String nombre;
     private String curso;
     private String estado;

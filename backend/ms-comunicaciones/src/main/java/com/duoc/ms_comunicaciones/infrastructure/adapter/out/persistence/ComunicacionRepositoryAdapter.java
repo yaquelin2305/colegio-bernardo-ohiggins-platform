@@ -28,8 +28,8 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
     }
 
     @Override
-    public List<Comunicacion> findByUsuarioId(String usuarioId) {
-        return jpaRepository.findByUsuarioId(usuarioId).stream()
+    public List<Comunicacion> findByDestinatario(String destinatario) {
+        return jpaRepository.findByDestinatario(destinatario).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -37,6 +38,16 @@ public class CursoController {
     public ResponseEntity<List<CursoResponse>> listar() {
         return ResponseEntity.ok(cursoRepository.listarTodos().stream()
                 .map(this::toResponse).toList());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un curso por ID")
+    public ResponseEntity<CursoResponse> obtenerPorId(@PathVariable Long id) {
+        return cursoRepository.buscarPorId(id)
+                .map(this::toResponse)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Curso no encontrado: id=" + id));
     }
 
     private CursoResponse toResponse(Curso c) {

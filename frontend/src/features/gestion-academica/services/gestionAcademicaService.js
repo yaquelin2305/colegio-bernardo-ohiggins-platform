@@ -2,26 +2,29 @@ import axiosClient from '../../../core/api/axiosClient';
 import { TOKEN_KEY } from '../../../core/constants/api.constants';
 import { resolverNombresPorIds } from '../../../shared/services/usuariosLookup';
 
-function getUuidFromToken() {
+function decodeBase64Utf8(b64) {
+  const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function leerClaim(claim) {
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return null;
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.userId ?? payload.sub ?? null;
+    const payload = JSON.parse(decodeBase64Utf8(token.split('.')[1]));
+    return payload[claim] ?? null;
   } catch {
     return null;
   }
 }
 
+function getUuidFromToken() {
+  return leerClaim('userId') ?? leerClaim('sub');
+}
+
 function getPupiloUuidFromToken() {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.pupiloUuid ?? null;
-  } catch {
-    return null;
-  }
+  return leerClaim('pupiloUuid');
 }
 
 function adaptarBoletin(bff) {
@@ -50,10 +53,10 @@ function adaptarBoletin(bff) {
 export async function obtenerKpisDashboard() {
   const { data } = await axiosClient.get('/bff/dashboard/stats');
   return [
-    { label: 'Estudiantes',  valor: data.totalEstudiantes,  iconKey: 'GraduationCap' },
-    { label: 'Docentes',     valor: data.totalDocentes,      iconKey: 'Users' },
-    { label: 'Cursos',       valor: data.totalCursos,        iconKey: 'CalendarCheck' },
-    { label: 'Asignaturas',  valor: data.totalAsignaturas,   iconKey: 'TrendingUp' },
+    { label: 'Estudiantes',  numero:data.totalEstudiantes,  iconKey: 'GraduationCap' },
+    { label: 'Docentes',     numero:data.totalDocentes,      iconKey: 'Users' },
+    { label: 'Cursos',       numero:data.totalCursos,        iconKey: 'CalendarCheck' },
+    { label: 'Asignaturas',  numero:data.totalAsignaturas,   iconKey: 'TrendingUp' },
   ];
 }
 
@@ -70,7 +73,7 @@ export async function obtenerCalificaciones(cursoId, asignaturaId) {
     return {
       id:          item.usuarioUuid,
       usuarioUuid: item.usuarioUuid,
-      rut:         u?.rut ?? '',
+      rut:         '',
       nombre:      u?.nombreCompleto ?? item.usuarioUuid,
       nota1:       item.nota1   ?? 0,
       nota2:       item.nota2   ?? 0,
@@ -107,20 +110,7 @@ export async function obtenerBoletinPupilo(pupilId) {
   return adaptarBoletin(data);
 }
 
-export async function obtenerPupilos() {
-  const pupiloUuid = getPupiloUuidFromToken();
-  if (!pupiloUuid) return [];
-  try {
-    const { data } = await axiosClient.get(`/v1/admin/${pupiloUuid}`);
-    return [{
-      id: pupiloUuid,
-      nombre: data.nombreCompleto ?? '',
-      curso: '',
-    }];
-  } catch {
-    return [];
-  }
-}
+export { getPupiloUuidFromToken };
 
 // Cursos
 
@@ -134,10 +124,9 @@ export async function crearCurso(datos) {
   return data;
 }
 
-// STUB: GET /api/v1/cursos/{id} no existe en backend — workaround: listar y filtrar.
 export async function obtenerCursoPorId(cursoId) {
-  const { data } = await axiosClient.get('/v1/cursos');
-  return data.find(c => String(c.id) === String(cursoId)) ?? null;
+  const { data } = await axiosClient.get(`/v1/cursos/${cursoId}`);
+  return data;
 }
 
 // Asignaturas
@@ -165,9 +154,9 @@ export async function obtenerDocentes() {
   }));
 }
 
-// STUB: GET /api/v1/asignacion-docente no existe en backend. Mantener hasta que el equipo de backend lo exponga.
 export async function obtenerAsignaciones() {
-  return [];
+  const { data } = await axiosClient.get('/v1/asignacion-docente');
+  return data;
 }
 
 export async function crearAsignacion(payload) {
@@ -179,9 +168,8 @@ export async function crearAsignacion(payload) {
   return data;
 }
 
-// STUB: DELETE /api/v1/asignacion-docente/{id} no existe en backend. Mantener hasta que el equipo de backend lo exponga.
-export async function eliminarAsignacion() {
-  return null;
+export async function eliminarAsignacion(id) {
+  await axiosClient.delete(`/v1/asignacion-docente/${id}`);
 }
 
 // Matriculas y estudiantes

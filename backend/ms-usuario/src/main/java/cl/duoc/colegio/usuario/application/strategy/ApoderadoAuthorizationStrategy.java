@@ -38,11 +38,10 @@ public class ApoderadoAuthorizationStrategy implements AuthorizationStrategy {
 
     @Override
     public Map<String, Object> generarClaimsAdicionales(Usuario usuario) {
-        // El claim "pupiloId" es la restricción principal de seguridad.
-        // El MS-Académico filtra TODAS las consultas usando este claim.
         return Map.of(
                 "rol", "APODERADO",
                 "pupiloId", usuario.getPerfilId() != null ? usuario.getPerfilId() : 0L,
+                "pupiloUuid", usuario.getPupiloUuid() != null ? usuario.getPupiloUuid().toString() : "",
                 "recursos", RECURSOS,
                 "soloLectura", true
         );

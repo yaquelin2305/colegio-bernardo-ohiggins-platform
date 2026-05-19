@@ -33,6 +33,8 @@ spring:
       on-profile: docker
   cloud:
     openfeign:
+      okhttp:
+        enabled: true
       client:
         config:
           ms-usuario:

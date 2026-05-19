@@ -3,6 +3,7 @@ package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest;
 import cl.duoc.colegio.usuario.application.dto.ActualizarUsuarioRequestDto;
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
+import cl.duoc.colegio.usuario.application.dto.NombreDto;
 import cl.duoc.colegio.usuario.application.dto.RegistroRequestDto;
 import cl.duoc.colegio.usuario.domain.exception.UsuarioNoEncontradoException;
 import cl.duoc.colegio.usuario.domain.model.RolUsuario;
@@ -10,13 +11,13 @@ import cl.duoc.colegio.usuario.domain.model.Usuario;
 import cl.duoc.colegio.usuario.domain.port.in.LoginUseCase;
 import cl.duoc.colegio.usuario.domain.port.in.RegistroUseCase;
 import cl.duoc.colegio.usuario.domain.port.out.UsuarioRepositoryPort;
+import cl.duoc.colegio.usuario.infrastructure.adapter.in.rest.dto.UsuarioResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -61,12 +62,26 @@ public class AuthController {
         return ResponseEntity.ok("MS-Usuario operativo");
     }
 
+    /**
+     * Lookup mínimo de nombre por UUID. Accesible a cualquier rol autenticado
+     * (whitelist en gateway). Solo expone nombreCompleto, sin email/rol/RUT.
+     */
+    @GetMapping("/api/v1/usuarios/{uuid}/nombre")
+    public ResponseEntity<NombreDto> obtenerNombre(@PathVariable UUID uuid) {
+        Usuario u = repositoryPort.buscarPorId(uuid)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(uuid.toString()));
+        return ResponseEntity.ok(new NombreDto(u.getNombreCompleto()));
+    }
+
     // ── Rutas de administración (/admin) — requieren JWT con rol ADMIN ────────
 
     /** Crear usuario (semántica administrativa, no auto-registro). */
     @PostMapping("/api/v1/admin/crear")
-    public ResponseEntity<AuthResponseDto> crear(@Valid @RequestBody RegistroRequestDto request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(registroUseCase.registrar(request));
+    public ResponseEntity<UsuarioResponseDto> crear(@Valid @RequestBody RegistroRequestDto request) {
+        registroUseCase.registrar(request);
+        Usuario creado = repositoryPort.buscarPorRut(request.rut())
+                .orElseThrow(() -> new UsuarioNoEncontradoException(request.rut()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDto.fromDomain(creado));
     }
 
     /**
@@ -75,17 +90,10 @@ public class AuthController {
      * Usado por el BFF para resolver nombreCompleto sin listar todos los usuarios.
      */
     @GetMapping("/api/v1/admin/{id}")
-    public ResponseEntity<Map<String, Object>> obtenerPorId(@PathVariable UUID id) {
+    public ResponseEntity<UsuarioResponseDto> obtenerPorId(@PathVariable UUID id) {
         Usuario u = repositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(id.toString()));
-        return ResponseEntity.ok(Map.of(
-                "id",            u.getId(),
-                "rut",           u.getRut(),
-                "nombreCompleto", u.getNombreCompleto(),
-                "email",         u.getEmail(),
-                "rol",           u.getRol().name(),
-                "activo",        u.isActivo()
-        ));
+        return ResponseEntity.ok(UsuarioResponseDto.fromDomain(u));
     }
 
     /**
@@ -93,18 +101,11 @@ public class AuthController {
      * GET /api/v1/admin/listar/DOCENTE, /listar/ESTUDIANTE, etc.
      */
     @GetMapping("/api/v1/admin/listar/{rol}")
-    public ResponseEntity<List<Map<String, Object>>> listarPorRol(@PathVariable String rol) {
+    public ResponseEntity<List<UsuarioResponseDto>> listarPorRol(@PathVariable String rol) {
         RolUsuario rolEnum = RolUsuario.valueOf(rol.toUpperCase());
-        List<Map<String, Object>> usuarios = repositoryPort.buscarPorRol(rolEnum.name())
+        List<UsuarioResponseDto> usuarios = repositoryPort.buscarPorRol(rolEnum.name())
                 .stream()
-                .map(u -> Map.<String, Object>of(
-                        "id",            u.getId(),
-                        "rut",           u.getRut(),
-                        "nombreCompleto", u.getNombreCompleto(),
-                        "email",         u.getEmail(),
-                        "rol",           u.getRol().name(),
-                        "activo",        u.isActivo()
-                ))
+                .map(UsuarioResponseDto::fromDomain)
                 .toList();
         return ResponseEntity.ok(usuarios);
     }
@@ -114,7 +115,7 @@ public class AuthController {
      * Solo ADMIN — validado por RBAC en Gateway.
      */
     @PutMapping("/api/v1/admin/actualizar/{id}")
-    public ResponseEntity<Map<String, Object>> actualizar(
+    public ResponseEntity<UsuarioResponseDto> actualizar(
             @PathVariable UUID id,
             @Valid @RequestBody ActualizarUsuarioRequestDto request) {
 
@@ -124,14 +125,7 @@ public class AuthController {
         usuario.actualizar(request.nombre(), request.apellido(), request.email());
         Usuario actualizado = repositoryPort.guardar(usuario);
 
-        return ResponseEntity.ok(Map.of(
-                "id",            actualizado.getId(),
-                "rut",           actualizado.getRut(),
-                "nombreCompleto", actualizado.getNombreCompleto(),
-                "email",         actualizado.getEmail(),
-                "rol",           actualizado.getRol().name(),
-                "activo",        actualizado.isActivo()
-        ));
+        return ResponseEntity.ok(UsuarioResponseDto.fromDomain(actualizado));
     }
 
     /**

@@ -8,6 +8,8 @@ import {
   obtenerAsignaturas,
   crearAsignatura,
 } from '../services/gestionAcademicaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/GestionAcademicaAdminPage.css';
 
 const formularioCursoInicial = {
@@ -30,6 +32,7 @@ function GestionAcademicaAdminPage() {
   const [formularioAsignatura, setFormularioAsignatura] = useState(formularioAsignaturaInicial);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([obtenerCursos(), obtenerAsignaturas()])
@@ -57,8 +60,9 @@ function GestionAcademicaAdminPage() {
       await crearCurso(formularioCurso);
       setCursos(prev => [...prev, { id: Date.now(), ...formularioCurso }]);
       setFormularioCurso(formularioCursoInicial);
+      showToast('Curso creado correctamente.');
     } catch {
-      setError('No se pudo crear el curso. Intenta nuevamente.');
+      showToast('No se pudo crear el curso.', 'error');
     }
   }
 
@@ -68,8 +72,9 @@ function GestionAcademicaAdminPage() {
       await crearAsignatura(formularioAsignatura);
       setAsignaturas(prev => [...prev, { id: Date.now(), ...formularioAsignatura }]);
       setFormularioAsignatura(formularioAsignaturaInicial);
+      showToast('Asignatura creada correctamente.');
     } catch {
-      setError('No se pudo agregar la asignatura. Intenta nuevamente.');
+      showToast('No se pudo agregar la asignatura.', 'error');
     }
   }
 
@@ -96,6 +101,7 @@ function GestionAcademicaAdminPage() {
         </>
       )}
 
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }

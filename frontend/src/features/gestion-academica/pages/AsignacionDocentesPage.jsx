@@ -11,6 +11,8 @@ import {
   crearAsignacion,
   eliminarAsignacion,
 } from '../services/gestionAcademicaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/AsignacionDocentesPage.css';
 
 const formularioInicial = { docenteId: '', cursoId: '', asignaturaId: '' };
@@ -26,6 +28,7 @@ function AsignacionDocentesPage() {
   const [formulario, setFormulario] = useState(formularioInicial);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([
@@ -38,7 +41,13 @@ function AsignacionDocentesPage() {
         setDocentes(datosDocentes);
         setCursos(datosCursos);
         setAsignaturas(datosAsignaturas);
-        setAsignaciones(datosAsignaciones);
+        const enriched = datosAsignaciones.map(a => ({
+          id: a.id,
+          docente:    datosDocentes.find(d => d.id === a.docenteUuid)    ?? { nombre: a.docenteUuid },
+          curso:      datosCursos.find(c => c.id === a.cursoId)           ?? { nombre: String(a.cursoId) },
+          asignatura: datosAsignaturas.find(s => s.id === a.asignaturaId) ?? { nombre: String(a.asignaturaId) },
+        }));
+        setAsignaciones(enriched);
       })
       .catch(() => setError('No se pudo cargar la información de asignaciones.'))
       .finally(() => setIsLoading(false));
@@ -55,17 +64,18 @@ function AsignacionDocentesPage() {
     if (!docenteId || !cursoId || !asignaturaId) return;
 
     const docente    = docentes.find(d => d.id === docenteId);
-    const curso      = cursos.find(c => c.id === cursoId);
-    const asignatura = asignaturas.find(a => a.id === asignaturaId);
+    const curso      = cursos.find(c => c.id == cursoId);
+    const asignatura = asignaturas.find(a => a.id == asignaturaId);
 
     const payload = { docenteId, cursoId, asignaturaId };
 
     try {
-      await crearAsignacion(payload);
-      setAsignaciones(prev => [...prev, { id: Date.now(), docente, curso, asignatura }]);
+      const creada = await crearAsignacion(payload);
+      setAsignaciones(prev => [...prev, { id: creada.id, docente, curso, asignatura }]);
       setFormulario(formularioInicial);
+      showToast('Asignación creada correctamente.');
     } catch {
-      setError('No se pudo crear la asignación. Intenta nuevamente.');
+      showToast('No se pudo crear la asignación.', 'error');
     }
   }
 
@@ -73,8 +83,9 @@ function AsignacionDocentesPage() {
     try {
       await eliminarAsignacion(id);
       setAsignaciones(prev => prev.filter(a => a.id !== id));
+      showToast('Asignación eliminada.');
     } catch {
-      setError('No se pudo eliminar la asignación. Intenta nuevamente.');
+      showToast('No se pudo eliminar la asignación.', 'error');
     }
   }
 
@@ -98,13 +109,11 @@ function AsignacionDocentesPage() {
             onChange={handleChange}
             onSubmit={handleAsignar}
           />
-          <p className="asignacion__aviso">
-            El listado y la eliminación de asignaciones aún no están disponibles — pendiente de implementación en backend (GET/DELETE /api/v1/asignacion-docente).
-          </p>
           <TablaAsignaciones asignaciones={asignaciones} onEliminar={handleEliminar} />
         </section>
       )}
 
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }

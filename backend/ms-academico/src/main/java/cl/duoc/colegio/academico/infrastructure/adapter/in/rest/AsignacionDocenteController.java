@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/asignacion-docente")
 @Tag(name = "Asignación Docente", description = "Asignación de docentes a cursos y asignaturas")
@@ -29,6 +31,23 @@ public class AsignacionDocenteController {
         this.asignacionRepository = asignacionRepository;
         this.cursoRepository = cursoRepository;
         this.asignaturaRepository = asignaturaRepository;
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar todas las asignaciones de docentes")
+    public ResponseEntity<List<AsignacionDocenteResponse>> listar() {
+        List<AsignacionDocenteResponse> result = asignacionRepository.buscarTodas()
+                .stream().map(this::toResponse).toList();
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar una asignación de docente")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        asignacionRepository.buscarPorId(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Asignación no encontrada: id=" + id));
+        asignacionRepository.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping

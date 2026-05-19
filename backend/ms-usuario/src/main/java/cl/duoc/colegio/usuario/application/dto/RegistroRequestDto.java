@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 /**
  * DTO de entrada para el caso de uso de Registro (POST /admin/crear).
  */
@@ -34,5 +36,8 @@ public record RegistroRequestDto(
         RolUsuario rol,
 
         /** Opcional: ID del perfil en MS-Académico (estudiante, docente, etc.) */
-        Long perfilId
+        Long perfilId,
+
+        /** Opcional: UUID del pupilo (solo para rol APODERADO). */
+        UUID pupiloUuid
 ) {}

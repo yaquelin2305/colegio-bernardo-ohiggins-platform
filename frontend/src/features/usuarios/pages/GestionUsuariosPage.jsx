@@ -11,6 +11,8 @@ import {
   actualizarUsuario,
   eliminarUsuario,
 } from '../services/usuariosService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/GestionUsuariosPage.css';
 
 function GestionUsuariosPage() {
@@ -25,12 +27,20 @@ function GestionUsuariosPage() {
   const [confirmarEliminarId, setConfirmarEliminarId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError]         = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([obtenerDocentes(), obtenerApoderados(), obtenerEstudiantes()])
       .then(([datosDocentes, datosApoderados, datosEstudiantes]) => {
+        const apoderadosEnriquecidos = datosApoderados.map(a => {
+          const est = datosEstudiantes.find(e => e.id === a.pupiloUuid);
+          return {
+            ...a,
+            pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre,
+          };
+        });
         setDocentes(datosDocentes);
-        setApoderados(datosApoderados);
+        setApoderados(apoderadosEnriquecidos);
         setEstudiantes(datosEstudiantes);
       })
       .catch(() => setError('No se pudo cargar el listado de usuarios.'))
@@ -74,6 +84,7 @@ function GestionUsuariosPage() {
         else if (rol === 'APODERADO') actualizarEnLista(setApoderados);
         else                          actualizarEnLista(setEstudiantes);
         setUsuarioEditando(null);
+        showToast('Usuario actualizado correctamente.');
       } else {
         await crearUsuario(payload);
         if (rol === 'DOCENTE') {
@@ -87,9 +98,10 @@ function GestionUsuariosPage() {
         } else if (rol === 'ESTUDIANTE') {
           setEstudiantes(prev => [...prev, { id: `e${Date.now()}`, rut, nombres, apellidos, email, rol }]);
         }
+        showToast('Usuario creado correctamente.');
       }
     } catch {
-      setError('No se pudo guardar el usuario. Intenta nuevamente.');
+      showToast('No se pudo guardar el usuario.', 'error');
     }
   }
 
@@ -106,8 +118,9 @@ function GestionUsuariosPage() {
       await eliminarUsuario(id);
       setLista(prev => prev.filter(u => u.id !== id));
       setConfirmarEliminarId(null);
+      showToast('Usuario eliminado.');
     } catch {
-      setError('No se pudo eliminar el usuario. Intenta nuevamente.');
+      showToast('No se pudo eliminar el usuario.', 'error');
     }
   }
 
@@ -159,6 +172,7 @@ function GestionUsuariosPage() {
         </div>
       )}
 
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }
