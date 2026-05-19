@@ -16,6 +16,9 @@ public interface AcademicoFeignClient {
     List<CalificacionesAcademicoDto> obtenerCalificacionesPorEstudiante(
             @PathVariable("usuarioUuid") UUID usuarioUuid);
 
+    @GetMapping("/api/v1/matriculas/estudiante/{uuid}")
+    List<Map<String, Object>> listarMatriculasPorEstudiante(@PathVariable("uuid") UUID uuid);
+
     @GetMapping("/api/v1/cursos")
     List<Map<String, Object>> listarCursos();
 

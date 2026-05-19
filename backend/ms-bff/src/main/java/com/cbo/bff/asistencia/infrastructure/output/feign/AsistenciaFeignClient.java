@@ -1,5 +1,7 @@
 package com.cbo.bff.asistencia.infrastructure.output.feign;
 
+import com.cbo.bff.asistencia.infrastructure.output.feign.dto.AnotacionMsRequestDTO;
+import com.cbo.bff.asistencia.infrastructure.output.feign.dto.AnotacionMsResponseDTO;
 import com.cbo.bff.asistencia.infrastructure.output.feign.dto.AsistenciaMsRequestDTO;
 import com.cbo.bff.asistencia.infrastructure.output.feign.dto.AsistenciaMsResponseDTO;
 import com.cbo.bff.asistencia.infrastructure.output.feign.dto.JustificacionMsRequestDTO;
@@ -42,4 +44,10 @@ public interface AsistenciaFeignClient {
     AsistenciaMsResponseDTO justificar(
             @PathVariable Long id,
             @RequestBody JustificacionMsRequestDTO request);
+
+    @PostMapping("/api/asistencia/anotaciones")
+    AnotacionMsResponseDTO guardarAnotacion(@RequestBody AnotacionMsRequestDTO request);
+
+    @GetMapping("/api/asistencia/anotaciones/estudiante/{estudianteId}")
+    List<AnotacionMsResponseDTO> getAnotacionesPorEstudiante(@PathVariable String estudianteId);
 }

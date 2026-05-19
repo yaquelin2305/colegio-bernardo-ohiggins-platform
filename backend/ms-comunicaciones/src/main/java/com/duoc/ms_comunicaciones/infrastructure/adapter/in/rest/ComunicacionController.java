@@ -29,8 +29,7 @@ public class ComunicacionController {
                 .destinatario(request.getDestinatario())
                 .asunto(request.getAsunto())
                 .mensaje(request.getMensaje())
-                // Si agregaste el campo 'tipo' en el DTO, descomenta la línea de abajo:
-                // .tipo(request.getTipo()) 
+                .tipo(request.getTipo())
                 .canal(Canal.valueOf(request.getCanal().toUpperCase()))
                 .fechaEnvio(LocalDateTime.now())
                 .leido(false)
@@ -76,8 +75,7 @@ public class ComunicacionController {
         dto.setDestinatario(dom.getDestinatario());
         dto.setAsunto(dom.getAsunto());
         dto.setMensaje(dom.getMensaje());
-        // Si usas el campo 'tipo', descomenta la línea de abajo:
-        // dto.setTipo(dom.getTipo());
+        dto.setTipo(dom.getTipo());
         dto.setCanal(dom.getCanal().name());
         dto.setFechaEnvio(dom.getFechaEnvio());
         dto.setLeido(dom.isLeido());

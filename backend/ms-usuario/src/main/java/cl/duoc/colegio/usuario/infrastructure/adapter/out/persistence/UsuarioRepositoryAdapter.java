@@ -75,6 +75,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
                 entity.getNombre(),
                 entity.getApellido(),
                 entity.getPerfilId(),
+                entity.getPupiloUuid(),
                 entity.isActivo(),
                 entity.getCreadoEn(),
                 entity.getActualizadoEn()
@@ -91,6 +92,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         entity.setNombre(usuario.getNombre());
         entity.setApellido(usuario.getApellido());
         entity.setPerfilId(usuario.getPerfilId());
+        entity.setPupiloUuid(usuario.getPupiloUuid());
         entity.setActivo(usuario.isActivo());
         entity.setCreadoEn(usuario.getCreadoEn());
         entity.setActualizadoEn(usuario.getActualizadoEn());

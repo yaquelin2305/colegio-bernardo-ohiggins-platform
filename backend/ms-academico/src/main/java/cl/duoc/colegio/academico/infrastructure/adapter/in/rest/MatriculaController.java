@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/matriculas")
@@ -53,6 +54,17 @@ public class MatriculaController {
         }
         Matricula nueva = new Matricula(null, request.getUsuarioUuid(), request.getCursoId());
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(matriculaRepository.guardar(nueva)));
+    }
+
+    @GetMapping("/estudiante/{uuid}")
+    @Operation(summary = "Listar matrículas de un estudiante")
+    public ResponseEntity<List<MatriculaResponse>> listarPorEstudiante(
+            @PathVariable java.util.UUID uuid) {
+        List<MatriculaResponse> resultado = matriculaRepository.buscarPorUsuarioUuid(uuid)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+        return ResponseEntity.ok(resultado);
     }
 
     @GetMapping("/curso/{cursoId}/estudiantes")

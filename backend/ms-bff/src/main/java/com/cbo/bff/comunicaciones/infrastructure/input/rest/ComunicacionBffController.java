@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,8 +40,9 @@ public class ComunicacionBffController {
     }
 
     @GetMapping("/destinatarios")
-    public ResponseEntity<List<DestinatarioDTO>> getDestinatarios() {
-        return ResponseEntity.ok(comunicacionBffService.getDestinatarios());
+    public ResponseEntity<List<DestinatarioDTO>> getDestinatarios(
+            @RequestHeader("X-User-Uuid") String currentUserUuid) {
+        return ResponseEntity.ok(comunicacionBffService.getDestinatarios(currentUserUuid));
     }
 
     @PatchMapping("/leido/{mensajeId}")

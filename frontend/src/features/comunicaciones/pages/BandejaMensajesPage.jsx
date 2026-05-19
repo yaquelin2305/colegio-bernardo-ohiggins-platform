@@ -18,7 +18,8 @@ function BandejaMensajesPage() {
 
   useEffect(() => {
     if (!usuario) return;
-    const identificador = usuario.rut || usuario.id;
+    const identificador = usuario.userId || usuario.sub || usuario.rut;
+    if (!identificador) return;
     obtenerMensajes(identificador)
       .then(setMensajes)
       .catch(() => setError('No se pudo cargar la bandeja de mensajes.'))

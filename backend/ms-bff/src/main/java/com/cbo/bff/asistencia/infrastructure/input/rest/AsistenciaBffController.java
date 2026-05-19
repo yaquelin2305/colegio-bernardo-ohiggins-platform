@@ -1,13 +1,8 @@
 package com.cbo.bff.asistencia.infrastructure.input.rest;
 
-import com.cbo.bff.asistencia.application.service.AsistenciaBffService;
-import com.cbo.bff.asistencia.domain.dto.AsistenciaRequestBffDTO;
-import com.cbo.bff.asistencia.domain.dto.EstudianteAsistenciaBffDTO;
-import com.cbo.bff.asistencia.domain.dto.HistorialAsistenciaBffDTO;
-import com.cbo.bff.asistencia.domain.dto.InasistenciaBffDTO;
-import com.cbo.bff.asistencia.domain.dto.JustificacionBffRequestDTO;
-import com.cbo.bff.asistencia.domain.dto.ResumenAsistenciaBffDTO;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.util.List;
+import com.cbo.bff.asistencia.application.service.AsistenciaBffService;
+import com.cbo.bff.asistencia.domain.dto.AnotacionBffDTO;
+import com.cbo.bff.asistencia.domain.dto.AsistenciaRequestBffDTO;
+import com.cbo.bff.asistencia.domain.dto.EstudianteAsistenciaBffDTO;
+import com.cbo.bff.asistencia.domain.dto.HistorialAsistenciaBffDTO;
+import com.cbo.bff.asistencia.domain.dto.InasistenciaBffDTO;
+import com.cbo.bff.asistencia.domain.dto.JustificacionBffRequestDTO;
+import com.cbo.bff.asistencia.domain.dto.ResumenAsistenciaBffDTO;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/bff/asistencia")
@@ -48,7 +51,7 @@ public class AsistenciaBffController {
         return ResponseEntity.ok(asistenciaBffService.getPorEstudiante(estudianteId));
     }
 
-    @GetMapping("/resumen")
+    @GetMapping("/resumen") // Cruzar estudiante id y resumen.
     public ResponseEntity<ResumenAsistenciaBffDTO> getResumen(
             @RequestParam String cursoId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
@@ -65,5 +68,16 @@ public class AsistenciaBffController {
             @PathVariable Long id,
             @RequestBody JustificacionBffRequestDTO request) {
         return ResponseEntity.ok(asistenciaBffService.justificar(id, request));
+    }
+
+    @PostMapping("/anotaciones")
+    public ResponseEntity<AnotacionBffDTO> guardarAnotacion(@RequestBody AnotacionBffDTO request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(asistenciaBffService.guardarAnotacion(request));
+    }
+
+    @GetMapping("/anotaciones/estudiante/{estudianteId}")
+    public ResponseEntity<List<AnotacionBffDTO>> getAnotaciones(@PathVariable String estudianteId) {
+        return ResponseEntity.ok(asistenciaBffService.getAnotacionesPorEstudiante(estudianteId));
     }
 }

@@ -1,5 +1,7 @@
 package com.cbo.bff.gestionacademica.application.service;
 
+import com.cbo.bff.asistencia.infrastructure.output.feign.AsistenciaFeignClient;
+import com.cbo.bff.asistencia.infrastructure.output.feign.dto.AsistenciaMsResponseDTO;
 import com.cbo.bff.gestionacademica.domain.dto.*;
 import com.cbo.bff.gestionacademica.infrastructure.output.feign.AcademicoFeignClient;
 import com.cbo.bff.gestionacademica.infrastructure.output.feign.UsuarioFeignClient;
@@ -16,6 +18,7 @@ public class GestionAcademicaBffService {
 
     private final AcademicoFeignClient academicoFeignClient;
     private final UsuarioFeignClient usuarioFeignClient;
+    private final AsistenciaFeignClient asistenciaFeignClient;
 
     public BoletinDto obtenerBoletin(UUID estudianteId) {
         List<CalificacionesAcademicoDto> calificaciones =
@@ -50,13 +53,39 @@ public class GestionAcademicaBffService {
 
         Map<String, Object> usuario = usuarioFeignClient.obtenerPorId(estudianteId);
         String nombreCompleto = usuario != null ? (String) usuario.get("nombreCompleto") : null;
+        String rut = usuario != null ? (String) usuario.get("rut") : null;
+
+        // Resolver curso desde matrículas del estudiante
+        List<Map<String, Object>> cursos = academicoFeignClient.listarCursos();
+        Map<Long, String> nombreCursos = cursos.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        c -> ((Number) c.get("id")).longValue(),
+                        c -> (String) c.get("nombre"),
+                        (a, b) -> a));
+        String curso = academicoFeignClient.listarMatriculasPorEstudiante(estudianteId)
+                .stream()
+                .findFirst()
+                .map(m -> nombreCursos.getOrDefault(((Number) m.get("cursoId")).longValue(), null))
+                .orElse(null);
+
+        // Calcular porcentaje de asistencia desde registros del estudiante
+        List<AsistenciaMsResponseDTO> asistencias = asistenciaFeignClient.getPorEstudiante(estudianteId.toString());
+        Double porcentajeAsistencia = null;
+        if (asistencias != null && !asistencias.isEmpty()) {
+            long presentes = asistencias.stream()
+                    .filter(a -> "PRESENTE".equalsIgnoreCase(a.getEstado()) || "JUSTIFICADO".equalsIgnoreCase(a.getEstado()))
+                    .count();
+            porcentajeAsistencia = Math.round((presentes * 100.0 / asistencias.size()) * 10.0) / 10.0;
+        }
 
         return BoletinDto.builder()
                 .estudianteUuid(estudianteId)
                 .nombreCompleto(nombreCompleto)
+                .rut(rut)
+                .curso(curso)
                 .calificaciones(resumen)
                 .promedioGeneral(promedioRedondeado)
-                .porcentajeAsistencia(null)
+                .porcentajeAsistencia(porcentajeAsistencia)
                 .build();
     }
 

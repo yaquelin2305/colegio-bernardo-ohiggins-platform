@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { TOKEN_KEY } from '../constants/api.constants';
 import { AuthContext } from './authContext';
 
+function decodeBase64Utf8(b64) {
+  const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
 function decodificarToken(token) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(decodeBase64Utf8(token.split('.')[1]));
     return {
       ...payload,
       rol: payload.role,

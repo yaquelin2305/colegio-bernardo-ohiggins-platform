@@ -71,6 +71,9 @@ public class RegistroUseCaseImpl implements RegistroUseCase {
         if (request.perfilId() != null) {
             nuevoUsuario.asociarPerfil(request.perfilId());
         }
+        if (request.pupiloUuid() != null) {
+            nuevoUsuario.asociarPupilo(request.pupiloUuid());
+        }
 
         // 6. Persistir
         Usuario guardado = repositoryPort.guardar(nuevoUsuario);

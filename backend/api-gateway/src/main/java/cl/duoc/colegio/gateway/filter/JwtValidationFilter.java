@@ -105,11 +105,10 @@ public class JwtValidationFilter implements GlobalFilter {
 
     /**
      * Rutas BFF de escritura — solo ADMIN y DOCENTE.
+     * Nota: /comunicaciones/enviar es accesible para todos los autenticados.
      */
     private static final List<String> BFF_WRITE_PATHS = List.of(
-            "/api/bff/asistencia/registrar",
-            "/api/bff/asistencia/",       // PATCH justificar
-            "/api/bff/comunicaciones/enviar"
+            "/api/bff/asistencia/registrar"
     );
 
     @Value("${gateway.jwt.secret}")
@@ -198,6 +197,11 @@ public class JwtValidationFilter implements GlobalFilter {
     private Mono<Void> checkRbac(ServerWebExchange exchange, String path,
                                     String role, String userId, Long estudianteId,
                                     HttpMethod method) {
+
+        // /api/v1/usuarios/** → cualquier autenticado (lookup mínimo de nombre por UUID)
+        if (path.startsWith("/api/v1/usuarios/")) {
+            return null;
+        }
 
         // /api/v1/admin/** → solo ADMIN
         if (matchesAny(path, ADMIN_ONLY_PATHS)) {

@@ -8,8 +8,11 @@ import {
   obtenerCursos,
   obtenerResumenDiario,
   obtenerAsistenciaPorCurso,
+  obtenerAlumnosPorCurso,
   guardarAsistencia,
 } from '../services/asistenciaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/AsistenciaPage.css';
 
 function AsistenciaPage() {
@@ -22,6 +25,7 @@ function AsistenciaPage() {
   const [filtroActual, setFiltroActual] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     const cargarDatosIniciales = async () => {
@@ -52,7 +56,29 @@ function AsistenciaPage() {
         obtenerAsistenciaPorCurso(curso, fecha),
         obtenerResumenDiario(curso, fecha),
       ]);
-      setEstudiantes(listaEstudiantes);
+      const cursoNombre = cursos.find(c => c.id == curso)?.nombre ?? String(curso);
+      let listado = listaEstudiantes;
+      if (!listado || listado.length === 0) {
+        const matricula = await obtenerAlumnosPorCurso(curso);
+        listado = matricula.map(m => ({
+          id: m.id,
+          estudianteId: m.id,
+          nombre: `${m.nombre} ${m.apellido}`.trim() || m.id,
+          curso: cursoNombre,
+          estado: 'presente',
+          hora: null,
+        }));
+      } else {
+        // Deduplicar por estudianteId: si el mismo estudiante tiene múltiples
+        // registros para esa fecha (sesiones anteriores), quedarse con el último.
+        const mapa = new Map();
+        listado.forEach(item => {
+          const key = item.estudianteId ?? item.id;
+          mapa.set(key, { ...item, curso: cursoNombre });
+        });
+        listado = Array.from(mapa.values());
+      }
+      setEstudiantes(listado);
       setResumen(resumenDiario);
       setFiltroActual({ curso, fecha });
     } catch {
@@ -73,8 +99,9 @@ function AsistenciaPage() {
     setError('');
     try {
       await guardarAsistencia(filtroActual.curso, filtroActual.fecha, estudiantes);
+      showToast('Asistencia guardada correctamente.');
     } catch {
-      setError('Error al guardar la asistencia. Intenta nuevamente.');
+      showToast('Error al guardar la asistencia.', 'error');
     }
   };
 
@@ -114,6 +141,8 @@ function AsistenciaPage() {
           )
         }
       </section>
+
+      <Toast toast={toast} onClose={() => {}} />
     </main>
   );
 }
