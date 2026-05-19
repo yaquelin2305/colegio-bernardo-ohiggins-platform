@@ -8,6 +8,8 @@ import java.util.UUID;
 public interface AsignacionDocenteRepositoryPort {
     AsignacionDocente guardar(AsignacionDocente asignacion);
     Optional<AsignacionDocente> buscarPorId(Long id);
+    List<AsignacionDocente> buscarTodas();
     List<AsignacionDocente> buscarPorDocenteUuid(UUID docenteUuid);
     boolean existePorDocenteCursoAsignatura(UUID docenteUuid, Long cursoId, Long asignaturaId);
+    void eliminar(Long id);
 }

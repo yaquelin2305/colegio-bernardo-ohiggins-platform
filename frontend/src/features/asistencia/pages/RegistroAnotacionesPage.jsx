@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import FiltroCursoAnotaciones from '../components/FiltroCursoAnotaciones';
 import TablaAnotaciones from '../components/TablaAnotaciones';
-import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion } from '../services/asistenciaService';
+import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion, obtenerAnotacionesPorEstudiante } from '../services/asistenciaService';
 import '../styles/RegistroAnotacionesPage.css';
 
 const formularioInicial = { tipo: 'positiva', descripcion: '' };
@@ -33,10 +33,19 @@ function RegistroAnotacionesPage() {
   useEffect(() => {
     if (!cursoId) return;
     obtenerAlumnosPorCurso(cursoId)
-      .then(data => {
+      .then(async (data) => {
         setAnotacionesPorAlumno({});
         setPanelActivo(null);
         setAlumnos(data);
+        const mapaAnotaciones = {};
+        await Promise.all(data.map(async (alumno) => {
+          try {
+            mapaAnotaciones[alumno.id] = await obtenerAnotacionesPorEstudiante(alumno.id);
+          } catch {
+            mapaAnotaciones[alumno.id] = [];
+          }
+        }));
+        setAnotacionesPorAlumno(mapaAnotaciones);
       })
       .catch(() => setError('No se pudo cargar los alumnos del curso.'));
   }, [cursoId]);
@@ -57,11 +66,10 @@ function RegistroAnotacionesPage() {
   async function handleGuardar(e, alumnoId) {
     e.preventDefault();
     if (!formulario.descripcion.trim()) return;
-    const nueva = { id: Date.now(), tipo: formulario.tipo, descripcion: formulario.descripcion };
-    await guardarAnotacion(alumnoId, nueva);
+    const guardada = await guardarAnotacion(alumnoId, { tipo: formulario.tipo, descripcion: formulario.descripcion });
     setAnotacionesPorAlumno(prev => ({
       ...prev,
-      [alumnoId]: [...(prev[alumnoId] || []), nueva],
+      [alumnoId]: [...(prev[alumnoId] || []), guardada],
     }));
     setPanelActivo(null);
   }
@@ -80,9 +88,6 @@ function RegistroAnotacionesPage() {
             onChange={handleCursoChange}
           />
 
-          <p className="anotaciones__aviso">
-            El registro de anotaciones no está disponible — pendiente de implementación en backend (ms-asistencia no soporta anotaciones).
-          </p>
           <TablaAnotaciones
             alumnos={alumnos}
             anotacionesPorAlumno={anotacionesPorAlumno}
@@ -93,7 +98,6 @@ function RegistroAnotacionesPage() {
             onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
             onGuardar={handleGuardar}
             onCancelar={() => setPanelActivo(null)}
-            guardadoDeshabilitado
           />
         </>
       )}

@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ComunicacionJpaRepository extends JpaRepository<ComunicacionEntity, Long> {
-    List<ComunicacionEntity> findByUsuarioId(String usuarioId);
+    List<ComunicacionEntity> findByDestinatario(String destinatario);
 }

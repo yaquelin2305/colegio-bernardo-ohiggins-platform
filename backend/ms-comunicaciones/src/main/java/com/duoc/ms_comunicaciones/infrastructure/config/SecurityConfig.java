@@ -26,7 +26,7 @@ public class SecurityConfig {
                 return config;
             }))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/comunicaciones/**").permitAll() 
+                .requestMatchers("/api/comunicaciones/**", "/actuator/**").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();

@@ -4,6 +4,8 @@ import { useOutletContext } from 'react-router-dom';
 import FiltrosRegistroNotas from '../components/FiltrosRegistroNotas';
 import TablaCalificaciones from '../components/TablaCalificaciones';
 import { obtenerCalificaciones, guardarCalificaciones, obtenerCursos, obtenerAsignaturas } from '../services/gestionAcademicaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/RegistroNotasPage.css';
 
 function calcularPromedio(nota1, nota2, nota3) {
@@ -23,6 +25,7 @@ function RegistroNotasPage() {
   const [alumnos, setAlumnos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([obtenerCursos(), obtenerAsignaturas()])
@@ -70,8 +73,9 @@ function RegistroNotasPage() {
   async function handleGuardar() {
     try {
       await guardarCalificaciones(curso, asignatura, alumnos);
+      showToast('Calificaciones guardadas correctamente.');
     } catch {
-      setError('No se pudieron guardar las calificaciones. Intenta nuevamente.');
+      showToast('No se pudieron guardar las calificaciones.', 'error');
     }
   }
 
@@ -103,6 +107,8 @@ function RegistroNotasPage() {
           Guardar Calificaciones
         </button>
       </footer>
+
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }

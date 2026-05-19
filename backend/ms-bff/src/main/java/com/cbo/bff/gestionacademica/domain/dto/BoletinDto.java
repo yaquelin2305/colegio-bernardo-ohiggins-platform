@@ -9,6 +9,8 @@ import java.util.UUID;
 public class BoletinDto {
     private UUID estudianteUuid;
     private String nombreCompleto;
+    private String rut;
+    private String curso;
     private List<CalificacionResumenDto> calificaciones;
     private Double promedioGeneral;
     private Double porcentajeAsistencia;

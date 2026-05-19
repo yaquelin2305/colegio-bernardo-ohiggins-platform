@@ -45,6 +45,9 @@ public class UsuarioEntity {
     @Column(name = "perfil_id")
     private Long perfilId;
 
+    @Column(name = "pupilo_uuid", columnDefinition = "uuid")
+    private UUID pupiloUuid;
+
     @Column(nullable = false)
     private boolean activo = true;
 
@@ -82,6 +85,8 @@ public class UsuarioEntity {
     public void setApellido(String apellido) { this.apellido = apellido; }
     public Long getPerfilId() { return perfilId; }
     public void setPerfilId(Long perfilId) { this.perfilId = perfilId; }
+    public UUID getPupiloUuid() { return pupiloUuid; }
+    public void setPupiloUuid(UUID pupiloUuid) { this.pupiloUuid = pupiloUuid; }
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
     public LocalDateTime getCreadoEn() { return creadoEn; }

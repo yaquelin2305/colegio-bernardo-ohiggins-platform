@@ -11,6 +11,8 @@ import {
   actualizarUsuario,
   eliminarUsuario,
 } from '../services/usuariosService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/GestionUsuariosPage.css';
 
 function GestionUsuariosPage() {
@@ -25,12 +27,20 @@ function GestionUsuariosPage() {
   const [confirmarEliminarId, setConfirmarEliminarId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError]         = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([obtenerDocentes(), obtenerApoderados(), obtenerEstudiantes()])
       .then(([datosDocentes, datosApoderados, datosEstudiantes]) => {
+        const apoderadosEnriquecidos = datosApoderados.map(a => {
+          const est = datosEstudiantes.find(e => e.id === a.pupiloUuid);
+          return {
+            ...a,
+            pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre,
+          };
+        });
         setDocentes(datosDocentes);
-        setApoderados(datosApoderados);
+        setApoderados(apoderadosEnriquecidos);
         setEstudiantes(datosEstudiantes);
       })
       .catch(() => setError('No se pudo cargar el listado de usuarios.'))
@@ -50,7 +60,7 @@ function GestionUsuariosPage() {
   }
 
   async function handleGuardarDesdeFormulario(payload) {
-    const { id, rol, rut, nombres, apellidos, email, apoderadoId } = payload;
+    const { id, rol, rut, nombres, apellidos, email, pupiloUuid } = payload;
 
     try {
       if (id) {
@@ -59,9 +69,13 @@ function GestionUsuariosPage() {
           prev.map(u => {
             if (u.id !== id) return u;
             const base = { ...u, rut, nombres, apellidos, email };
-            if (rol === 'ESTUDIANTE') {
-              const ap = apoderados.find(a => a.id === apoderadoId);
-              return { ...base, apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : u.apoderado };
+            if (rol === 'APODERADO') {
+              const est = estudiantes.find(e => e.id === pupiloUuid);
+              return {
+                ...base,
+                pupiloUuid,
+                pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : u.pupiloNombre,
+              };
             }
             return base;
           })
@@ -70,22 +84,24 @@ function GestionUsuariosPage() {
         else if (rol === 'APODERADO') actualizarEnLista(setApoderados);
         else                          actualizarEnLista(setEstudiantes);
         setUsuarioEditando(null);
+        showToast('Usuario actualizado correctamente.');
       } else {
         await crearUsuario(payload);
         if (rol === 'DOCENTE') {
           setDocentes(prev => [...prev, { id: `d${Date.now()}`, rut, nombres, apellidos, email, rol }]);
         } else if (rol === 'APODERADO') {
-          setApoderados(prev => [...prev, { id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol }]);
-        } else if (rol === 'ESTUDIANTE') {
-          const ap = apoderados.find(a => a.id === apoderadoId);
-          setEstudiantes(prev => [...prev, {
-            id: `e${Date.now()}`, rut, nombres, apellidos, email, rol,
-            apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : '—',
+          const est = estudiantes.find(e => e.id === pupiloUuid);
+          setApoderados(prev => [...prev, {
+            id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol,
+            pupiloUuid, pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : '—',
           }]);
+        } else if (rol === 'ESTUDIANTE') {
+          setEstudiantes(prev => [...prev, { id: `e${Date.now()}`, rut, nombres, apellidos, email, rol }]);
         }
+        showToast('Usuario creado correctamente.');
       }
     } catch {
-      setError('No se pudo guardar el usuario. Intenta nuevamente.');
+      showToast('No se pudo guardar el usuario.', 'error');
     }
   }
 
@@ -102,8 +118,9 @@ function GestionUsuariosPage() {
       await eliminarUsuario(id);
       setLista(prev => prev.filter(u => u.id !== id));
       setConfirmarEliminarId(null);
+      showToast('Usuario eliminado.');
     } catch {
-      setError('No se pudo eliminar el usuario. Intenta nuevamente.');
+      showToast('No se pudo eliminar el usuario.', 'error');
     }
   }
 
@@ -114,8 +131,8 @@ function GestionUsuariosPage() {
   }
 
   const lista = getLista();
-  const columnas = tabActiva === 'estudiantes'
-    ? ['RUT', 'Nombre', 'Correo', 'Apoderado']
+  const columnas = tabActiva === 'apoderados'
+    ? ['RUT', 'Nombre', 'Correo', 'Pupilo']
     : ['RUT', 'Nombre', 'Correo'];
 
   return (
@@ -133,7 +150,7 @@ function GestionUsuariosPage() {
             <FormularioUsuarioAdmin
               key={usuarioEditando?.id ?? 'nuevo'}
               onGuardar={handleGuardarDesdeFormulario}
-              apoderados={apoderados}
+              estudiantes={estudiantes}
               usuarioEditando={usuarioEditando}
               onCancelar={() => setUsuarioEditando(null)}
             />
@@ -155,6 +172,7 @@ function GestionUsuariosPage() {
         </div>
       )}
 
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }

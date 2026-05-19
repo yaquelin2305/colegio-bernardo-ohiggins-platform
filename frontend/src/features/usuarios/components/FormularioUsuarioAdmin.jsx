@@ -4,10 +4,10 @@ import '../styles/FormularioUsuarioAdmin.css';
 
 const estadoInicial = {
   rut: '', nombres: '', apellidos: '', email: '',
-  password: '', confirmPassword: '', rol: '', apoderadoId: '',
+  password: '', confirmPassword: '', rol: '', pupiloUuid: '',
 };
 
-function FormularioUsuarioAdmin({ onGuardar, apoderados = [], usuarioEditando = null, onCancelar }) {
+function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando = null, onCancelar }) {
   const modoEdicion = Boolean(usuarioEditando);
 
   const [formulario, setFormulario] = useState(() =>
@@ -20,7 +20,7 @@ function FormularioUsuarioAdmin({ onGuardar, apoderados = [], usuarioEditando = 
           password:        '',
           confirmPassword: '',
           rol:             usuarioEditando.rol          || '',
-          apoderadoId:     usuarioEditando.apoderadoId || '',
+          pupiloUuid:      usuarioEditando.pupiloUuid  || '',
         }
       : estadoInicial
   );
@@ -53,8 +53,8 @@ function FormularioUsuarioAdmin({ onGuardar, apoderados = [], usuarioEditando = 
       nuevosErrores.confirmPassword = 'Las contraseñas no coinciden.';
     }
 
-    if (formulario.rol === 'ESTUDIANTE' && !formulario.apoderadoId) {
-      nuevosErrores.apoderadoId = 'Debes asignar un apoderado al estudiante.';
+    if (formulario.rol === 'APODERADO' && !formulario.pupiloUuid) {
+      nuevosErrores.pupiloUuid = 'Debes asignar un pupilo al apoderado.';
     }
 
     return nuevosErrores;
@@ -159,28 +159,28 @@ function FormularioUsuarioAdmin({ onGuardar, apoderados = [], usuarioEditando = 
           {errores.rol && <span className="form-usuario__error" role="alert">{errores.rol}</span>}
         </div>
 
-        {/* ── Apoderado (solo si rol = ESTUDIANTE) ── */}
-        {formulario.rol === 'ESTUDIANTE' && (
+        {/* ── Pupilo (solo si rol = APODERADO) ── */}
+        {formulario.rol === 'APODERADO' && (
           <div className="form-usuario__grupo">
-            <label className="form-usuario__label" htmlFor="apoderadoId">Apoderado asignado</label>
-            <div className={`form-usuario__input-wrapper${errores.apoderadoId ? ' form-usuario__input-wrapper--error' : ''}`}>
+            <label className="form-usuario__label" htmlFor="pupiloUuid">Pupilo asignado</label>
+            <div className={`form-usuario__input-wrapper${errores.pupiloUuid ? ' form-usuario__input-wrapper--error' : ''}`}>
               <span className="form-usuario__icono" aria-hidden="true"><Users size={16} /></span>
               <select
-                id="apoderadoId"
-                name="apoderadoId"
-                value={formulario.apoderadoId}
+                id="pupiloUuid"
+                name="pupiloUuid"
+                value={formulario.pupiloUuid}
                 onChange={handleChange}
                 className="form-usuario__select"
               >
-                <option value="">— Selecciona un apoderado —</option>
-                {apoderados.map(ap => (
-                  <option key={ap.id} value={ap.id}>
-                    {ap.nombres} {ap.apellidos} ({ap.rut})
+                <option value="">— Selecciona un estudiante —</option>
+                {estudiantes.map(est => (
+                  <option key={est.id} value={est.id}>
+                    {est.nombres} {est.apellidos} ({est.rut})
                   </option>
                 ))}
               </select>
             </div>
-            {errores.apoderadoId && <span className="form-usuario__error" role="alert">{errores.apoderadoId}</span>}
+            {errores.pupiloUuid && <span className="form-usuario__error" role="alert">{errores.pupiloUuid}</span>}
           </div>
         )}
 

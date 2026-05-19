@@ -3,12 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../services/authService';
 import { useAuth } from '../../../core/context/useAuth';
-import '../styles/RegisterForm.css';
+import '../styles/LoginForm.css';
 
 const initialState = {
   rut: '',
   password: '',
 };
+
+function obtenerRolDelToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch {
+    return null;
+  }
+}
 
 function LoginForm() {
   const [form, setForm] = useState(initialState);
@@ -37,7 +46,12 @@ function LoginForm() {
     try {
       const token = await login(form.rut, form.password);
       auth.login(token);
-      navigate('/dashboard', { replace: true });
+
+      const rol = obtenerRolDelToken(token);
+      const destino = rol === 'ADMIN'   ? '/dashboard'
+                    : rol === 'DOCENTE' ? '/calificaciones'
+                                        : '/mis-calificaciones';
+      navigate(destino, { replace: true });
     } catch (err) {
       const mensaje = err.response?.data?.mensaje
         || err.response?.data?.detail
