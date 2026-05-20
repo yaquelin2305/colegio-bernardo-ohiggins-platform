@@ -1,16 +1,58 @@
-# React + Vite
+# Frontend — Colegio Bernardo O'Higgins
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web SPA para la plataforma de gestión escolar del Colegio Bernardo O'Higgins.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite 8
+- React Router DOM v7
+- Axios v1
+- lucide-react (iconos)
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 20+
+- El API Gateway corriendo en `http://localhost:8080`
 
-## Expanding the ESLint configuration
+## Desarrollo local
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+La app queda disponible en `http://localhost:5173`. Todas las peticiones API apuntan a `VITE_API_URL` (por defecto `http://localhost:8080`).
+
+## Build de producción
+
+```bash
+npm run build
+```
+
+El resultado queda en `dist/` y es servido por Nginx dentro del contenedor Docker.
+
+## Docker
+
+```bash
+# Desde la raíz del monorepo
+docker compose up --build frontend
+```
+
+## Estructura
+
+```
+src/
+├── core/           # Axios client, constantes, AuthContext
+├── features/       # Módulos por dominio (auth, asistencia, comunicaciones, etc.)
+├── shared/         # Componentes y utilidades reutilizables
+└── assets/styles/  # Variables CSS globales
+```
+
+## Roles y acceso
+
+| Rol | Acceso |
+|---|---|
+| ADMIN | Dashboard, gestión académica, usuarios, asignaturas, docentes |
+| DOCENTE | Calificaciones, asistencia, comunicaciones |
+| APODERADO | Boletin del pupilo, justificar inasistencias, comunicaciones |
+| ESTUDIANTE | Sus propias calificaciones, historial asistencia, comunicaciones |
