@@ -56,7 +56,7 @@ function AsistenciaPage() {
         obtenerAsistenciaPorCurso(curso, fecha),
         obtenerResumenDiario(curso, fecha),
       ]);
-      const cursoNombre = cursos.find(c => c.id == curso)?.nombre ?? String(curso);
+      const cursoNombre = resumenDiario?.nombreCurso ?? cursos.find(c => c.id == curso)?.nombre ?? String(curso);
       let listado = listaEstudiantes;
       if (!listado || listado.length === 0) {
         const matricula = await obtenerAlumnosPorCurso(curso);

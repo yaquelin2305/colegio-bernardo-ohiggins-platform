@@ -3,9 +3,9 @@ import { useOutletContext } from 'react-router-dom';
 import FiltroAlumno from '../components/FiltroAlumno';
 import InfoAlumno from '../components/InfoAlumno';
 import TablaHistorialAsistencia from '../components/TablaHistorialAsistencia';
-import { obtenerAlumnos, obtenerHistorialAsistencia, obtenerCursos, obtenerAlumnosPorCurso } from '../services/asistenciaService';
+import { obtenerAlumnos, obtenerAlumnosPorDocente, obtenerHistorialAsistencia } from '../services/asistenciaService';
 import axiosClient from '../../../core/api/axiosClient';
-import { getPupiloUuidFromToken } from '../../gestion-academica/services/gestionAcademicaService';
+import { getPupiloUuidFromToken } from '../../../shared/utils/tokenUtils';
 import { useAuth } from '../../../core/context/useAuth';
 import '../styles/HistorialAsistenciaPage.css';
 
@@ -41,19 +41,7 @@ function HistorialAsistenciaPage() {
         .catch(() => setError('No se pudo cargar el alumno.'))
         .finally(() => setIsLoading(false));
     } else if (rol === 'DOCENTE') {
-      obtenerCursos()
-        .then(cursos => Promise.all(cursos.map(c => obtenerAlumnosPorCurso(c.id).then(alums =>
-          alums.map(a => ({
-            id:     a.id,
-            nombre: `${a.nombre} ${a.apellido}`.trim(),
-            rut:    a.rut ?? '',
-            curso:  c.nombre,
-          }))
-        ))))
-        .then(grupos => {
-          const seen = new Set();
-          return grupos.flat().filter(a => { if (seen.has(a.id)) return false; seen.add(a.id); return true; });
-        })
+      obtenerAlumnosPorDocente()
         .then(setAlumnos)
         .catch(() => setError('No se pudo cargar el listado de alumnos.'))
         .finally(() => setIsLoading(false));

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import BarraAccionesDetalle from '../components/BarraAccionesDetalle';
 import EncabezadoMensaje from '../components/EncabezadoMensaje';
 import CuerpoMensaje from '../components/CuerpoMensaje';
-import { obtenerMensajePorId } from '../services/comunicacionesService';
+import { obtenerMensajePorId, marcarLeido } from '../services/comunicacionesService';
 import '../styles/DetalleMensajePage.css';
 
 function DetalleMensajePage() {
@@ -19,7 +19,10 @@ function DetalleMensajePage() {
 
   useEffect(() => {
     obtenerMensajePorId(id)
-      .then(setMensaje)
+      .then(data => {
+        setMensaje(data);
+        marcarLeido(id).catch(() => {});
+      })
       .catch(() => setError('No se pudo cargar el mensaje.'))
       .finally(() => setIsLoading(false));
   }, [id]);

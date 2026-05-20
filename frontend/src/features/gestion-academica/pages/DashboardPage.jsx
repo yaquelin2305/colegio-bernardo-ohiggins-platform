@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, GraduationCap, AlertTriangle, TrendingUp, CalendarCheck, MessageSquare } from 'lucide-react';
+import { Users, GraduationCap, AlertTriangle, TrendingUp, CalendarCheck, MessageSquare, Award } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { useAuth } from '../../../core/context/useAuth';
 import TarjetaKpi from '../components/TarjetaKpi';
@@ -13,6 +13,7 @@ const ICONOS = {
   TrendingUp:    <TrendingUp size={22} aria-hidden="true" />,
   CalendarCheck: <CalendarCheck size={22} aria-hidden="true" />,
   MessageSquare: <MessageSquare size={22} aria-hidden="true" />,
+  Award:         <Award size={22} aria-hidden="true" />,
 };
 
 function DashboardPage() {

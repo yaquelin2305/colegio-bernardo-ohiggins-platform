@@ -1,7 +1,7 @@
-import { Users, CheckCircle, XCircle, Clock3 } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock3, FileCheck } from 'lucide-react';
 import '../styles/ResumenAsistencia.css';
 
-const RESUMEN_VACIO = { total: 0, presentes: 0, ausentes: 0, porcentaje: 0 };
+const RESUMEN_VACIO = { total: 0, presentes: 0, ausentes: 0, totalJustificados: 0, porcentaje: 0 };
 
 function ResumenAsistencia({ resumen = RESUMEN_VACIO }) {
   const datos = resumen ?? RESUMEN_VACIO;
@@ -29,6 +29,13 @@ function ResumenAsistencia({ resumen = RESUMEN_VACIO }) {
       valueClass: 'resumen-asistencia__value--ausente',
     },
     {
+      icon: <FileCheck size={24} />,
+      iconClass: 'resumen-asistencia__icon--justificado',
+      label: 'Justificados',
+      value: datos.totalJustificados,
+      valueClass: 'resumen-asistencia__value--justificado',
+    },
+    {
       icon: <Clock3 size={24} />,
       iconClass: 'resumen-asistencia__icon--porcentaje',
       label: '% Asistencia',
@@ -39,6 +46,9 @@ function ResumenAsistencia({ resumen = RESUMEN_VACIO }) {
 
   return (
     <section className="resumen-asistencia" aria-label="Resumen de asistencia">
+      {datos.nombreCurso && (
+        <p className="resumen-asistencia__curso">{datos.nombreCurso}</p>
+      )}
       {cards.map((card, index) => (
         <article key={index} className="resumen-asistencia__card">
           <div className={`resumen-asistencia__icon ${card.iconClass}`}>{card.icon}</div>

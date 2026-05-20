@@ -1,6 +1,4 @@
 import axiosClient from '../../../core/api/axiosClient';
-import { obtenerCursos as obtenerCursosAcademico, obtenerEstudiantesPorCurso } from '../../gestion-academica/services/gestionAcademicaService';
-import { obtenerEstudiantes } from '../../usuarios/services/usuariosService';
 
 export async function obtenerResumenDiario(cursoId, fecha) {
   if (!cursoId) return null;
@@ -17,13 +15,53 @@ export async function obtenerAsistenciaPorCurso(cursoId, fecha) {
   return response.data;
 }
 
+export async function obtenerCursos() {
+  const { data } = await axiosClient.get('/bff/cursos');
+  return data;
+}
+
+export async function obtenerAlumnosPorCurso(cursoId) {
+  const { data } = await axiosClient.get(`/bff/asistencia/alumnos/${cursoId}`);
+  return data.map(d => {
+    const partes = (d.nombre ?? '').split(' ');
+    return {
+      id:       d.estudianteId,
+      rut:      d.rut ?? '',
+      nombre:   partes[0] ?? d.estudianteId,
+      apellido: partes.slice(1).join(' '),
+    };
+  });
+}
+
+export async function obtenerAlumnosPorDocente() {
+  const cursos = await obtenerCursos();
+  const grupos = await Promise.all(
+    cursos.map(c =>
+      obtenerAlumnosPorCurso(c.id).then(alums =>
+        alums.map(a => ({
+          id:     a.id,
+          nombre: `${a.nombre} ${a.apellido}`.trim(),
+          rut:    a.rut ?? '',
+          curso:  c.nombre,
+        }))
+      )
+    )
+  );
+  const seen = new Set();
+  return grupos.flat().filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  });
+}
+
 export async function obtenerAlumnos() {
-  const lista = await obtenerEstudiantes();
-  return lista.map(u => ({
-    id: u.id,
-    nombre: `${u.nombres} ${u.apellidos}`.trim(),
-    rut: u.rut,
-    curso: '',
+  const { data } = await axiosClient.get('/bff/usuarios/ESTUDIANTE');
+  return data.map(u => ({
+    id:     u.id,
+    nombre: u.nombreCompleto ?? '',
+    rut:    u.rut ?? '',
+    curso:  '',
   }));
 }
 
@@ -33,14 +71,8 @@ export async function obtenerHistorialAsistencia(alumnoId) {
 }
 
 export async function obtenerInasistencias() {
-  const [response, cursos] = await Promise.all([
-    axiosClient.get('/bff/asistencia/inasistencias'),
-    obtenerCursosAcademico(),
-  ]);
-  return response.data.map(item => ({
-    ...item,
-    curso: cursos.find(c => c.id == item.curso)?.nombre ?? String(item.curso ?? ''),
-  }));
+  const { data } = await axiosClient.get('/bff/asistencia/inasistencias');
+  return data;
 }
 
 export async function justificarInasistencia(inasistenciaId, payload) {
@@ -50,10 +82,6 @@ export async function justificarInasistencia(inasistenciaId, payload) {
   );
   return response.data;
 }
-
-export const obtenerCursos = obtenerCursosAcademico;
-
-export const obtenerAlumnosPorCurso = obtenerEstudiantesPorCurso;
 
 export async function guardarAnotacion(estudianteId, { tipo, descripcion }) {
   const { data } = await axiosClient.post('/bff/asistencia/anotaciones', {

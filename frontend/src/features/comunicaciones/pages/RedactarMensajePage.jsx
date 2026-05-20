@@ -24,7 +24,9 @@ function RedactarMensajePage() {
   useEffect(() => { setTitulo('Redactar Mensaje'); }, [setTitulo]);
 
   useEffect(() => {
-    obtenerDestinatarios().then(setDestinatarios);
+    obtenerDestinatarios()
+      .then(setDestinatarios)
+      .catch(() => setError('No se pudo cargar la lista de destinatarios.'));
   }, []);
 
   function handleChange(e) {

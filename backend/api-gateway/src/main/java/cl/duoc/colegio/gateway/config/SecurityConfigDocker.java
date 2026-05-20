@@ -41,6 +41,7 @@ public class SecurityConfigDocker {
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .authorizeExchange(exchanges -> exchanges
                         // ── Público ──────────────────────────────────────────
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers("/actuator/health", "/actuator/info", "/actuator/**").permitAll()
                         .pathMatchers("/health", "/info").permitAll()
                         .pathMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

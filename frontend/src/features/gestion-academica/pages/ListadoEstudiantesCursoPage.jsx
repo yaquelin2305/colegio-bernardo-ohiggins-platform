@@ -55,7 +55,8 @@ function ListadoEstudiantesCursoPage() {
 
     try {
       await matricularEstudiante(cursoId, alumnoSeleccionadoId);
-      setEstudiantes(prev => [...prev, alumno]);
+      const actualizados = await obtenerEstudiantesPorCurso(cursoId);
+      setEstudiantes(actualizados);
       setAlumnoSeleccionadoId('');
       setMostrarPanel(false);
     } catch {

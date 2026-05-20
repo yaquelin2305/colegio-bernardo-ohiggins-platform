@@ -4,7 +4,7 @@ import { useAuth } from '../../../core/context/useAuth';
 import '../../styles/Sidebar.css';
 
 const navLinks = [
-  { to: '/dashboard',                 label: 'Dashboard',          roles: ['ADMIN', 'DOCENTE'],                               icono: <LayoutDashboard size={18} /> },
+  { to: '/dashboard',                 label: 'Dashboard',          roles: ['ADMIN'],                                          icono: <LayoutDashboard size={18} /> },
   { to: '/calificaciones',            label: 'Calificaciones',     roles: ['ADMIN', 'DOCENTE'],                               icono: <BookOpen size={18} /> },
   { to: '/mis-calificaciones',        label: 'Mis Calificaciones', roles: ['APODERADO', 'ESTUDIANTE'],                        icono: <ClipboardList size={18} /> },
   { to: '/asistencia',               label: 'Toma Asistencia',    roles: ['ADMIN', 'DOCENTE'],                               icono: <ClipboardCheck size={18} /> },
