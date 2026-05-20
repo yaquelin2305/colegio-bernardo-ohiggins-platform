@@ -1,58 +1,45 @@
-# Frontend — Colegio Bernardo O'Higgins
+# Frontend - Colegio Bernardo O'Higgins
 
-Aplicación web SPA para la plataforma de gestión escolar del Colegio Bernardo O'Higgins.
+Aplicacion SPA desarrollada con React 19 y Vite. Consume la API del gateway en el puerto 8080.
 
-## Stack
+## Tecnologias
 
-- React 19 + Vite 8
+- React 19 + Vite
 - React Router DOM v7
-- Axios v1
-- lucide-react (iconos)
+- Axios
+- lucide-react
 
-## Requisitos
-
-- Node.js 20+
-- El API Gateway corriendo en `http://localhost:8080`
-
-## Desarrollo local
+## Levantar en desarrollo
 
 ```bash
 npm install
 npm run dev
 ```
 
-La app queda disponible en `http://localhost:5173`. Todas las peticiones API apuntan a `VITE_API_URL` (por defecto `http://localhost:8080`).
+Requiere el gateway corriendo en `http://localhost:8080`.
 
-## Build de producción
-
-```bash
-npm run build
-```
-
-El resultado queda en `dist/` y es servido por Nginx dentro del contenedor Docker.
-
-## Docker
+## Build y Docker
 
 ```bash
-# Desde la raíz del monorepo
+# Solo el contenedor del frontend
 docker compose up --build frontend
+
+# Stack completo
+docker compose up --build
 ```
 
-## Estructura
+## Estructura de carpetas
 
 ```
 src/
-├── core/           # Axios client, constantes, AuthContext
-├── features/       # Módulos por dominio (auth, asistencia, comunicaciones, etc.)
-├── shared/         # Componentes y utilidades reutilizables
-└── assets/styles/  # Variables CSS globales
+  core/        configuracion global, axios, contexto de auth
+  features/    modulos por funcionalidad (auth, asistencia, comunicaciones, etc)
+  shared/      componentes y utilidades reutilizables
 ```
 
-## Roles y acceso
+## Roles
 
-| Rol | Acceso |
-|---|---|
-| ADMIN | Dashboard, gestión académica, usuarios, asignaturas, docentes |
-| DOCENTE | Calificaciones, asistencia, comunicaciones |
-| APODERADO | Boletin del pupilo, justificar inasistencias, comunicaciones |
-| ESTUDIANTE | Sus propias calificaciones, historial asistencia, comunicaciones |
+- ADMIN: dashboard, gestion academica, usuarios
+- DOCENTE: calificaciones, asistencia, comunicaciones
+- APODERADO: boletin del pupilo, justificaciones, comunicaciones
+- ESTUDIANTE: sus notas, asistencia, comunicaciones
