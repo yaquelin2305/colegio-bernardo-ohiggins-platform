@@ -13,7 +13,7 @@ spring:
         locator:
           enabled: false
       routes:
-        # MS-Académico — ruta con prefijo /gestion
+        # ── MS-Académico — ruta /gestion (legacy) ─────────
         - id: academico-route
           uri: ${ACADEMICO_URI:http://localhost:8082}
           predicates:
@@ -21,7 +21,7 @@ spring:
           filters:
             - RewritePath=/api/v1/gestion/(?<segment>.*), /api/v1/${segment}
 
-        # MS-Académico — rutas directas
+        # ── MS-Académico — rutas directas ─────────────────
         - id: academico-cursos-route
           uri: ${ACADEMICO_URI:http://localhost:8082}
           predicates:
@@ -52,15 +52,21 @@ spring:
           predicates:
             - Path=/api/v1/estudiantes/**, /api/v1/notas/**, /api/v1/asistencias/**, /api/v1/reportes/**
 
-        # MS-Comunicaciones
+        # ── MS-Comunicaciones ─────────────────────────────
         - id: comunicaciones-route
           uri: ${COMUNICACIONES_URI:http://localhost:8085}
           predicates:
             - Path=/api/v1/comunicaciones/**
           filters:
-            - RewritePath=/api/v1/comunicaciones/(?<segment>.*), /api/${segment}
+            - RewritePath=/api/v1/comunicaciones(?<segment>/?.*), /api/comunicaciones${segment}
 
-        # MS-Usuario — Autenticación y Administración
+        # ── MS-Asistencia ─────────────────────────────────
+        - id: asistencia-route
+          uri: ${ASISTENCIA_URI:http://localhost:8085}
+          predicates:
+            - Path=/api/asistencia/**
+
+        # ── MS-Usuario — Autenticación y Admin ────────────
         - id: usuario-route
           uri: ${USUARIO_URI:http://localhost:8083}
           predicates:
@@ -71,7 +77,12 @@ spring:
           predicates:
             - Path=/api/v1/admin/**
 
-        # MS-BFF — Backend For Frontend
+        - id: usuario-public-route
+          uri: ${USUARIO_URI:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/usuarios/**
+
+        # ── MS-BFF — Backend For Frontend ─────────────────
         - id: bff-route
           uri: ${BFF_URI:http://localhost:8084}
           predicates:

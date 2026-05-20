@@ -17,41 +17,93 @@ spring:
           lower-case-service-id: true
 
       routes:
-        # -----------------------------------------------
-        # RUTA: MS-ACADÉMICO — Cursos (ADMIN + DOCENTE)
-        # -----------------------------------------------
+        # ── MS-USUARIO — Autenticación ──────────────────
+        - id: usuario-auth-route
+          uri: lb://MS-USUARIO
+          predicates:
+            - Path=/api/v1/auth/**
+
+        # ── MS-USUARIO — Admin usuarios ─────────────────
+        - id: usuario-admin-route
+          uri: lb://MS-USUARIO
+          predicates:
+            - Path=/api/v1/admin/**
+
+        # ── MS-USUARIO — Lookup público ─────────────────
+        - id: usuario-public-route
+          uri: lb://MS-USUARIO
+          predicates:
+            - Path=/api/v1/usuarios/**
+
+        # ── MS-ACADÉMICO — Cursos ───────────────────────
         - id: academico-cursos-route
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/cursos/**
 
-        # -----------------------------------------------
-        # RUTA: MS-ACADÉMICO — Asignaturas (ADMIN + DOCENTE)
-        # -----------------------------------------------
+        # ── MS-ACADÉMICO — Asignaturas ──────────────────
         - id: academico-asignaturas-route
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/asignaturas/**
 
-        # -----------------------------------------------
-        # RUTA: MS-ACADÉMICO — Matrículas (ADMIN + DOCENTE)
-        # -----------------------------------------------
+        # ── MS-ACADÉMICO — Asignación Docente ───────────
+        - id: academico-asignacion-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/asignacion-docente/**
+
+        # ── MS-ACADÉMICO — Matrículas ───────────────────
         - id: academico-matriculas-route
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/matriculas/**
 
-        # -----------------------------------------------
-        # RUTA: MS-ACADÉMICO — Calificaciones (ADMIN + DOCENTE)
-        # -----------------------------------------------
+        # ── MS-ACADÉMICO — Calificaciones ───────────────
         - id: academico-calificaciones-route
           uri: lb://MS-ACADEMICO
           predicates:
             - Path=/api/v1/calificaciones/**
 
-        # -----------------------------------------------
-        # RUTA: MS-BFF — Backend For Frontend (agregación)
-        # -----------------------------------------------
+        # ── MS-ACADÉMICO — Notas ────────────────────────
+        - id: academico-notas-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/notas/**
+
+        # ── MS-ACADÉMICO — Asistencias ──────────────────
+        - id: academico-asistencias-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/asistencias/**
+
+        # ── MS-ACADÉMICO — Estudiantes ──────────────────
+        - id: academico-estudiantes-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/estudiantes/**
+
+        # ── MS-ACADÉMICO — Reportes ─────────────────────
+        - id: academico-reportes-route
+          uri: lb://MS-ACADEMICO
+          predicates:
+            - Path=/api/v1/reportes/**
+
+        # ── MS-COMUNICACIONES ───────────────────────────
+        - id: comunicaciones-route
+          uri: lb://MS-COMUNICACIONES
+          predicates:
+            - Path=/api/v1/comunicaciones/**
+          filters:
+            - RewritePath=/api/v1/comunicaciones(?<segment>/?.*), /api/comunicaciones${segment}
+
+        # ── MS-ASISTENCIA ───────────────────────────────
+        - id: asistencia-route
+          uri: lb://MS-ASISTENCIA
+          predicates:
+            - Path=/api/asistencia/**
+
+        # ── MS-BFF — Backend For Frontend ───────────────
         - id: bff-route
           uri: lb://MS-BFF
           predicates:
@@ -168,6 +220,22 @@ spring:
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/calificaciones/**]
 
+        - id: docker-academico-notas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/notas/**]
+
+        - id: docker-academico-asistencias
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asistencias/**]
+
+        - id: docker-academico-estudiantes
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/estudiantes/**]
+
+        - id: docker-academico-reportes
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/reportes/**]
+
         - id: docker-academico-asignacion
           uri: http://ms-academico:8082
           predicates: [Path=/api/v1/asignacion-docente/**]
@@ -183,6 +251,16 @@ spring:
         - id: docker-usuario-public
           uri: http://ms-usuario:8083
           predicates: [Path=/api/v1/usuarios/**]
+
+        - id: docker-comunicaciones
+          uri: http://ms-comunicaciones:8081
+          predicates: [Path=/api/v1/comunicaciones/**]
+          filters:
+            - RewritePath=/api/v1/comunicaciones(?<segment>/?.*), /api/comunicaciones${segment}
+
+        - id: docker-asistencia
+          uri: http://ms-asistencia:8082
+          predicates: [Path=/api/asistencia/**]
 
         - id: docker-bff
           uri: http://ms-bff:8084
