@@ -56,6 +56,8 @@ function RegistroNotasPage() {
   }, [curso, asignatura]);
 
   function handleNotaChange(id, campo, valor) {
+    const num = parseFloat(valor);
+    if (valor !== '' && (isNaN(num) || num < 1.0 || num > 7.0)) return;
     setAlumnos(prev =>
       prev.map(alumno => {
         if (alumno.id !== id) return alumno;

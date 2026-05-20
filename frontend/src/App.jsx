@@ -17,6 +17,7 @@ import HistorialAsistenciaPage from './features/asistencia/pages/HistorialAsiste
 import JustificacionInasistenciasPage from './features/asistencia/pages/JustificacionInasistenciasPage';
 import GestionUsuariosPage from './features/usuarios/pages/GestionUsuariosPage';
 import LoginPage from './features/auth/pages/LoginPage';
+import NotFoundPage from './shared/components/NotFoundPage';
 
 function App() {
   return (
@@ -27,7 +28,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route path="dashboard" element={<DashboardPage />} />
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+            </Route>
             <Route path="calificaciones" element={<RegistroNotasPage />} />
             <Route path="mis-calificaciones" element={<VisualizadorNotasPage />} />
 
@@ -45,6 +48,8 @@ function App() {
             <Route path="admin/usuarios" element={<GestionUsuariosPage />} />
             <Route path="cursos/:cursoId/estudiantes" element={<ListadoEstudiantesCursoPage />} />
           </Route>
+
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </AuthProvider>

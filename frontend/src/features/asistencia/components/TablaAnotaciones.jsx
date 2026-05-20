@@ -1,6 +1,13 @@
-import { ThumbsUp, ThumbsDown, Plus, X } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 
 function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formulario, onTogglePanel, onTipoChange, onDescripcionChange, onGuardar, onCancelar, guardadoDeshabilitado = false }) {
+  const [historialAbierto, setHistorialAbierto] = useState(null);
+
+  function toggleHistorial(alumnoId) {
+    setHistorialAbierto(prev => prev === alumnoId ? null : alumnoId);
+  }
+
   return (
     <section className="anotaciones__tabla-wrapper" aria-label="Listado de alumnos">
       <table className="anotaciones__tabla">
@@ -10,6 +17,7 @@ function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formular
             <th scope="col">Alumno</th>
             <th scope="col">Positivas</th>
             <th scope="col">Negativas</th>
+            <th scope="col">Historial</th>
             <th scope="col">Acción</th>
           </tr>
         </thead>
@@ -29,16 +37,47 @@ function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formular
                   <td className="anotaciones__celda-rut">{alumno.rut}</td>
                   <td className="anotaciones__celda-nombre">{alumno.nombre}</td>
                   <td>
-                    <span className="anotaciones__contador anotaciones__contador--positivo">
+                    <button
+                      className="anotaciones__contador anotaciones__contador--positivo"
+                      onClick={() => anotaciones.length > 0 && toggleHistorial(alumno.id)}
+                      aria-expanded={historialAbierto === alumno.id}
+                      title={positivas > 0 ? 'Ver anotaciones positivas' : undefined}
+                      type="button"
+                    >
                       <ThumbsUp size={12} aria-hidden="true" />
                       {positivas}
-                    </span>
+                    </button>
                   </td>
                   <td>
-                    <span className="anotaciones__contador anotaciones__contador--negativo">
+                    <button
+                      className="anotaciones__contador anotaciones__contador--negativo"
+                      onClick={() => anotaciones.length > 0 && toggleHistorial(alumno.id)}
+                      aria-expanded={historialAbierto === alumno.id}
+                      title={negativas > 0 ? 'Ver anotaciones negativas' : undefined}
+                      type="button"
+                    >
                       <ThumbsDown size={12} aria-hidden="true" />
                       {negativas}
-                    </span>
+                    </button>
+                  </td>
+                  <td>
+                    {anotaciones.length > 0 ? (
+                      <button
+                        className="anotaciones__btn-historial"
+                        onClick={() => toggleHistorial(alumno.id)}
+                        aria-expanded={historialAbierto === alumno.id}
+                        aria-label={`Ver historial de ${alumno.nombre}`}
+                        type="button"
+                      >
+                        {historialAbierto === alumno.id
+                          ? <ChevronUp size={14} aria-hidden="true" />
+                          : <ChevronDown size={14} aria-hidden="true" />
+                        }
+                        {historialAbierto === alumno.id ? 'Ocultar' : 'Ver'}
+                      </button>
+                    ) : (
+                      <span className="anotaciones__sin-datos">—</span>
+                    )}
                   </td>
                   <td>
                     <button
@@ -55,9 +94,37 @@ function TablaAnotaciones({ alumnos, anotacionesPorAlumno, panelActivo, formular
                   </td>
                 </tr>
 
+                {historialAbierto === alumno.id && (
+                  <tr key={`historial-${alumno.id}`} className="anotaciones__fila-historial">
+                    <td colSpan={6}>
+                      <ul className="anotaciones__historial-lista">
+                        {anotaciones.map(a => (
+                          <li key={a.id} className={`anotaciones__historial-item anotaciones__historial-item--${a.tipo}`}>
+                            <span className="anotaciones__historial-tipo">
+                              {a.tipo === 'positiva'
+                                ? <ThumbsUp size={12} aria-hidden="true" />
+                                : <ThumbsDown size={12} aria-hidden="true" />
+                              }
+                              {a.tipo}
+                            </span>
+                            <span className="anotaciones__historial-desc">{a.descripcion}</span>
+                            {a.fecha && (
+                              <span className="anotaciones__historial-fecha">
+                                {new Date(a.fecha + 'T00:00:00').toLocaleDateString('es-CL', {
+                                  day: '2-digit', month: 'short', year: 'numeric',
+                                })}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                )}
+
                 {abierto && (
                   <tr key={`panel-${alumno.id}`} className="anotaciones__fila-panel">
-                    <td colSpan={5}>
+                    <td colSpan={6}>
                       <form
                         className="anotaciones__panel"
                         onSubmit={e => onGuardar(e, alumno.id)}

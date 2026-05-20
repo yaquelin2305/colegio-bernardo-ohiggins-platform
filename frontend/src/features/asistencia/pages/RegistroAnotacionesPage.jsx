@@ -3,12 +3,15 @@ import { useOutletContext } from 'react-router-dom';
 import FiltroCursoAnotaciones from '../components/FiltroCursoAnotaciones';
 import TablaAnotaciones from '../components/TablaAnotaciones';
 import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion, obtenerAnotacionesPorEstudiante } from '../services/asistenciaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/RegistroAnotacionesPage.css';
 
 const formularioInicial = { tipo: 'positiva', descripcion: '' };
 
 function RegistroAnotacionesPage() {
   const { setTitulo } = useOutletContext();
+  const { toast, showToast } = useToast();
   const [cursos, setCursos] = useState([]);
 
   useEffect(() => { setTitulo('Registro de Anotaciones'); }, [setTitulo]);
@@ -66,12 +69,17 @@ function RegistroAnotacionesPage() {
   async function handleGuardar(e, alumnoId) {
     e.preventDefault();
     if (!formulario.descripcion.trim()) return;
-    const guardada = await guardarAnotacion(alumnoId, { tipo: formulario.tipo, descripcion: formulario.descripcion });
-    setAnotacionesPorAlumno(prev => ({
-      ...prev,
-      [alumnoId]: [...(prev[alumnoId] || []), guardada],
-    }));
-    setPanelActivo(null);
+    try {
+      const guardada = await guardarAnotacion(alumnoId, { tipo: formulario.tipo, descripcion: formulario.descripcion });
+      setAnotacionesPorAlumno(prev => ({
+        ...prev,
+        [alumnoId]: [...(prev[alumnoId] || []), guardada],
+      }));
+      setPanelActivo(null);
+      showToast('Anotación guardada correctamente.');
+    } catch {
+      showToast('No se pudo guardar la anotación.', 'error');
+    }
   }
 
   return (
@@ -102,6 +110,7 @@ function RegistroAnotacionesPage() {
         </>
       )}
 
+      <Toast toast={toast} onClose={() => {}} />
     </div>
   );
 }

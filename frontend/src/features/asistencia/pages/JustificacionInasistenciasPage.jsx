@@ -4,14 +4,13 @@ import ResumenJustificaciones from '../components/ResumenJustificaciones';
 import TablaInasistenciasPendientes from '../components/TablaInasistenciasPendientes';
 import TablaInasistenciasJustificadas from '../components/TablaInasistenciasJustificadas';
 import { obtenerInasistencias, obtenerHistorialAsistencia, justificarInasistencia } from '../services/asistenciaService';
-import { getPupiloUuidFromToken } from '../../gestion-academica/services/gestionAcademicaService';
-import { obtenerUsuarioPorId } from '../../../shared/services/usuariosLookup';
+import { getPupiloUuidFromToken } from '../../../shared/utils/tokenUtils';
 import { useAuth } from '../../../core/context/useAuth';
 import { useToast } from '../../../shared/hooks/useToast';
 import Toast from '../../../shared/components/ui/Toast';
 import '../styles/JustificacionInasistenciasPage.css';
 
-const formularioInicial = { motivo: '', archivo: null };
+const formularioInicial = { motivo: '' };
 
 function JustificacionInasistenciasPage() {
   const { setTitulo } = useOutletContext();
@@ -31,19 +30,18 @@ function JustificacionInasistenciasPage() {
       ? (async () => {
           const pupiloUuid = getPupiloUuidFromToken();
           if (!pupiloUuid) return [];
-          const [historial, info] = await Promise.all([
-            obtenerHistorialAsistencia(pupiloUuid),
-            obtenerUsuarioPorId(pupiloUuid),
-          ]);
-          const nombrePupilo = info?.nombreCompleto ?? 'Pupilo';
+          const historial = await obtenerHistorialAsistencia(pupiloUuid);
           return historial
-            .filter(h => (h.estado ?? '').toLowerCase() === 'ausente')
+            .filter(h => {
+              const estado = (h.estado ?? '').toLowerCase();
+              return estado === 'ausente' || estado === 'justificado';
+            })
             .map(h => ({
               id: h.id,
               fecha: h.fecha,
-              alumno: nombrePupilo,
+              alumno: h.nombre ?? 'Pupilo',
               curso: '',
-              justificada: false,
+              justificada: (h.estado ?? '').toLowerCase() === 'justificado',
             }));
         })()
       : obtenerInasistencias();
@@ -65,8 +63,8 @@ function JustificacionInasistenciasPage() {
   }
 
   function handleChange(e) {
-    const { name, value, files } = e.target;
-    setFormulario(prev => ({ ...prev, [name]: files ? files[0] : value }));
+    const { name, value } = e.target;
+    setFormulario(prev => ({ ...prev, [name]: value }));
   }
 
   async function handleJustificar(e) {

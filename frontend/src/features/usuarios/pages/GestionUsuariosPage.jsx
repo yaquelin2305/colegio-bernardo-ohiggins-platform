@@ -88,15 +88,18 @@ function GestionUsuariosPage() {
       } else {
         await crearUsuario(payload);
         if (rol === 'DOCENTE') {
-          setDocentes(prev => [...prev, { id: `d${Date.now()}`, rut, nombres, apellidos, email, rol }]);
+          const lista = await obtenerDocentes();
+          setDocentes(lista);
         } else if (rol === 'APODERADO') {
-          const est = estudiantes.find(e => e.id === pupiloUuid);
-          setApoderados(prev => [...prev, {
-            id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol,
-            pupiloUuid, pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : '—',
-          }]);
+          const [listaAp, listaEst] = await Promise.all([obtenerApoderados(), obtenerEstudiantes()]);
+          setEstudiantes(listaEst);
+          setApoderados(listaAp.map(a => {
+            const est = listaEst.find(e => e.id === a.pupiloUuid);
+            return { ...a, pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre };
+          }));
         } else if (rol === 'ESTUDIANTE') {
-          setEstudiantes(prev => [...prev, { id: `e${Date.now()}`, rut, nombres, apellidos, email, rol }]);
+          const lista = await obtenerEstudiantes();
+          setEstudiantes(lista);
         }
         showToast('Usuario creado correctamente.');
       }

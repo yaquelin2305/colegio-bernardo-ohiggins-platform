@@ -1,31 +1,5 @@
 import axiosClient from '../../../core/api/axiosClient';
-import { TOKEN_KEY } from '../../../core/constants/api.constants';
-import { resolverNombresPorIds } from '../../../shared/services/usuariosLookup';
-
-function decodeBase64Utf8(b64) {
-  const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
-  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
-  return new TextDecoder('utf-8').decode(bytes);
-}
-
-function leerClaim(claim) {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(decodeBase64Utf8(token.split('.')[1]));
-    return payload[claim] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function getUuidFromToken() {
-  return leerClaim('userId') ?? leerClaim('sub');
-}
-
-function getPupiloUuidFromToken() {
-  return leerClaim('pupiloUuid');
-}
+import { getUuidFromToken, getPupiloUuidFromToken } from '../../../shared/utils/tokenUtils';
 
 function adaptarBoletin(bff) {
   return {
@@ -53,10 +27,10 @@ function adaptarBoletin(bff) {
 export async function obtenerKpisDashboard() {
   const { data } = await axiosClient.get('/bff/dashboard/stats');
   return [
-    { label: 'Estudiantes',  numero:data.totalEstudiantes,  iconKey: 'GraduationCap' },
-    { label: 'Docentes',     numero:data.totalDocentes,      iconKey: 'Users' },
-    { label: 'Cursos',       numero:data.totalCursos,        iconKey: 'CalendarCheck' },
-    { label: 'Asignaturas',  numero:data.totalAsignaturas,   iconKey: 'TrendingUp' },
+    { label: 'Estudiantes',  numero: data.totalEstudiantes, iconKey: 'GraduationCap', detalle: 'matriculados' },
+    { label: 'Docentes',     numero: data.totalDocentes,    iconKey: 'Users',          detalle: 'activos' },
+    { label: 'Cursos',       numero: data.totalCursos,      iconKey: 'CalendarCheck',  detalle: 'este año' },
+    { label: 'Asignaturas',  numero: data.totalAsignaturas, iconKey: 'TrendingUp',     detalle: 'en plan de estudio' },
   ];
 }
 
@@ -64,37 +38,28 @@ export async function obtenerKpisDashboard() {
 
 export async function obtenerCalificaciones(cursoId, asignaturaId) {
   const { data } = await axiosClient.get(
-    `/v1/calificaciones/curso/${cursoId}/asignatura/${asignaturaId}`
+    `/bff/calificaciones/curso/${cursoId}/asignatura/${asignaturaId}`
   );
-  const uuids = data.map(item => item.usuarioUuid);
-  const lookup = await resolverNombresPorIds(uuids);
-  return data.map(item => {
-    const u = lookup[item.usuarioUuid];
-    return {
-      id:          item.usuarioUuid,
-      usuarioUuid: item.usuarioUuid,
-      rut:         '',
-      nombre:      u?.nombreCompleto ?? item.usuarioUuid,
-      nota1:       item.nota1   ?? 0,
-      nota2:       item.nota2   ?? 0,
-      nota3:       item.nota3   ?? 0,
-      promedio:    item.promedio ?? 0,
-    };
-  });
+  return data.map(item => ({
+    id:          item.id,
+    usuarioUuid: item.id,
+    nombre:      item.nombre ?? item.id,
+    nota1:       item.nota1   ?? 0,
+    nota2:       item.nota2   ?? 0,
+    nota3:       item.nota3   ?? 0,
+    promedio:    item.promedio ?? 0,
+  }));
 }
 
 export async function guardarCalificaciones(cursoId, asignaturaId, alumnos) {
-  await Promise.all(
-    alumnos.map(alumno =>
-      axiosClient.put('/v1/calificaciones/guardar', {
-        usuarioUuid:  alumno.usuarioUuid ?? alumno.id,
-        asignaturaId: Number(asignaturaId),
-        nota1:        Number(alumno.nota1),
-        nota2:        Number(alumno.nota2),
-        nota3:        Number(alumno.nota3),
-      })
-    )
-  );
+  const payload = alumnos.map(alumno => ({
+    usuarioUuid:  alumno.usuarioUuid ?? alumno.id,
+    asignaturaId: Number(asignaturaId),
+    nota1:        Number(alumno.nota1),
+    nota2:        Number(alumno.nota2),
+    nota3:        Number(alumno.nota3),
+  }));
+  await axiosClient.put('/bff/calificaciones/guardar', payload);
 }
 
 // Boletin
@@ -115,7 +80,7 @@ export { getPupiloUuidFromToken };
 // Cursos
 
 export async function obtenerCursos() {
-  const { data } = await axiosClient.get('/v1/cursos');
+  const { data } = await axiosClient.get('/bff/cursos');
   return data;
 }
 
@@ -132,7 +97,7 @@ export async function obtenerCursoPorId(cursoId) {
 // Asignaturas
 
 export async function obtenerAsignaturas() {
-  const { data } = await axiosClient.get('/v1/asignaturas');
+  const { data } = await axiosClient.get('/bff/asignaturas');
   return data;
 }
 
@@ -147,11 +112,13 @@ export async function crearAsignatura(datos) {
 // Docentes y asignaciones
 
 export async function obtenerDocentes() {
-  const { data } = await axiosClient.get('/v1/admin/listar/DOCENTE');
-  return data.map(d => ({
-    id:     d.id,
-    nombre: d.nombreCompleto ?? d.nombre ?? '',
-  }));
+  const { data } = await axiosClient.get('/bff/usuarios/DOCENTE');
+  return data
+    .filter(d => d.activo !== false)
+    .map(d => ({
+      id:     d.id,
+      nombre: d.nombreCompleto ?? d.nombre ?? '',
+    }));
 }
 
 export async function obtenerAsignaciones() {
@@ -175,31 +142,30 @@ export async function eliminarAsignacion(id) {
 // Matriculas y estudiantes
 
 export async function obtenerEstudiantesPorCurso(cursoId) {
-  const { data } = await axiosClient.get(`/v1/matriculas/curso/${cursoId}/estudiantes`);
-  const uuids = data.map(m => m.usuarioUuid);
-  const lookup = await resolverNombresPorIds(uuids);
-  return data.map(m => {
-    const u = lookup[m.usuarioUuid];
-    const partes = (u?.nombreCompleto ?? '').split(' ');
+  const { data } = await axiosClient.get(`/bff/asistencia/alumnos/${cursoId}`);
+  return data.map(d => {
+    const partes = (d.nombre ?? '').split(' ');
     return {
-      id:        m.usuarioUuid,
-      rut:       u?.rut ?? '',
-      nombre:    partes[0] ?? m.usuarioUuid,
-      apellido:  partes.slice(1).join(' '),
-      email:     u?.email ?? '',
-      promedio:  0,
+      id:         d.estudianteId,
+      rut:        d.rut ?? '',
+      nombre:     partes[0] ?? d.estudianteId,
+      apellido:   partes.slice(1).join(' '),
+      email:      '',
+      promedio:   0,
       asistencia: 0,
     };
   });
 }
 
 export async function obtenerEstudiantesDisponibles() {
-  const { data } = await axiosClient.get('/v1/admin/listar/ESTUDIANTE');
-  return data.map(e => ({
-    id:     e.id,
-    nombre: e.nombreCompleto ?? e.nombre ?? '',
-    rut:    e.rut ?? '',
-  }));
+  const { data } = await axiosClient.get('/bff/usuarios/ESTUDIANTE');
+  return data
+    .filter(e => e.activo !== false)
+    .map(e => ({
+      id:     e.id,
+      nombre: e.nombreCompleto ?? e.nombre ?? '',
+      rut:    e.rut ?? '',
+    }));
 }
 
 export async function matricularEstudiante(cursoId, alumnoId) {

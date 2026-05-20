@@ -1,4 +1,5 @@
 import { Mail, AlertCircle } from 'lucide-react';
+import { formatearFecha } from '../../../shared/utils/fechaUtils';
 
 function ListaMensajes({ mensajes, onSeleccionarMensaje }) {
   if (mensajes.length === 0) {
@@ -24,14 +25,16 @@ function ListaMensajes({ mensajes, onSeleccionarMensaje }) {
           <div className="bandeja__contenido">
             <div className="bandeja__fila-superior">
               <span className="bandeja__remitente">{mensaje.remitente}</span>
-              <span className={`bandeja__etiqueta bandeja__etiqueta--${mensaje.tipo.toLowerCase().replace(' ', '-')}`}>
-                {mensaje.tipo}
-              </span>
+              {mensaje.tipo && (
+                <span className={`bandeja__etiqueta bandeja__etiqueta--${mensaje.tipo.toLowerCase().replace(' ', '-')}`}>
+                  {mensaje.tipo}
+                </span>
+              )}
             </div>
             <p className="bandeja__asunto">{mensaje.asunto}</p>
           </div>
 
-          <span className="bandeja__fecha">{mensaje.fecha}</span>
+          <span className="bandeja__fecha">{formatearFecha(mensaje.fecha)}</span>
         </li>
       ))}
     </ul>

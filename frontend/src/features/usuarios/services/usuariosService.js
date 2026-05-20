@@ -15,7 +15,7 @@ function mapeoUsuario(u) {
 }
 
 async function listarPorRol(rol) {
-  const { data } = await axiosClient.get(`/v1/admin/listar/${rol}`);
+  const { data } = await axiosClient.get(`/bff/usuarios/${rol}`);
   return data.map(mapeoUsuario);
 }
 

@@ -1,4 +1,4 @@
-import { AlertTriangle, FileCheck, Upload, X } from 'lucide-react';
+import { AlertTriangle, FileCheck, X } from 'lucide-react';
 
 function TablaInasistenciasPendientes({ pendientes, formularioActivo, formulario, onAbrir, onCerrar, onChange, onJustificar }) {
   return (
@@ -74,20 +74,7 @@ function TablaInasistenciasPendientes({ pendientes, formularioActivo, formulario
                             autoFocus
                           />
                         </div>
-                        <div className="justificacion__campo">
-                          <label htmlFor="archivo" className="justificacion__campo-label">
-                            <Upload size={13} aria-hidden="true" />
-                            Adjuntar documento (opcional)
-                          </label>
-                          <input
-                            id="archivo"
-                            name="archivo"
-                            type="file"
-                            className="justificacion__input-archivo"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={onChange}
-                          />
-                        </div>
+
                         <div className="justificacion__acciones">
                           <button type="submit" className="justificacion__btn-enviar">
                             <FileCheck size={15} aria-hidden="true" />

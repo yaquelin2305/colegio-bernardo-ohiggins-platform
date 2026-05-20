@@ -69,8 +69,9 @@ function GestionAcademicaAdminPage() {
   async function handleAgregarAsignatura(e) {
     e.preventDefault();
     try {
-      await crearAsignatura(formularioAsignatura);
-      setAsignaturas(prev => [...prev, { id: Date.now(), ...formularioAsignatura }]);
+      const payload = { ...formularioAsignatura, horasSemanales: Number(formularioAsignatura.horasSemanales) };
+      await crearAsignatura(payload);
+      setAsignaturas(prev => [...prev, { id: Date.now(), ...payload }]);
       setFormularioAsignatura(formularioAsignaturaInicial);
       showToast('Asignatura creada correctamente.');
     } catch {
