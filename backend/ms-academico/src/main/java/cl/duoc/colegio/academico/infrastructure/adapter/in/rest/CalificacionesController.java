@@ -1,11 +1,11 @@
 package cl.duoc.colegio.academico.infrastructure.adapter.in.rest;
 
 import cl.duoc.colegio.academico.application.port.out.AsignaturaRepositoryPort;
+import cl.duoc.colegio.academico.application.port.out.GradeRepositoryPort;
 import cl.duoc.colegio.academico.application.port.out.MatriculaRepositoryPort;
+import cl.duoc.colegio.academico.domain.model.GradeContract;
 import cl.duoc.colegio.academico.infrastructure.adapter.in.rest.dto.CalificacionesContractDto;
 import cl.duoc.colegio.academico.infrastructure.adapter.in.rest.dto.CalificacionesRequest;
-import cl.duoc.colegio.academico.infrastructure.adapter.out.persistence.entity.GradeEntity;
-import cl.duoc.colegio.academico.infrastructure.adapter.out.persistence.repository.GradeJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,11 +24,11 @@ import java.util.UUID;
 @Tag(name = "Calificaciones", description = "Gestión de notas según contrato ERD")
 public class CalificacionesController {
 
-    private final GradeJpaRepository gradeRepository;
+    private final GradeRepositoryPort gradeRepository;
     private final AsignaturaRepositoryPort asignaturaRepository;
     private final MatriculaRepositoryPort matriculaRepository;
 
-    public CalificacionesController(GradeJpaRepository gradeRepository,
+    public CalificacionesController(GradeRepositoryPort gradeRepository,
                                      AsignaturaRepositoryPort asignaturaRepository,
                                      MatriculaRepositoryPort matriculaRepository) {
         this.gradeRepository = gradeRepository;
@@ -46,10 +46,6 @@ public class CalificacionesController {
                     "Asignatura no encontrada: id=" + request.getAsignaturaId());
         }
 
-        Optional<GradeEntity> existente = gradeRepository
-                .findByUsuarioUuidAndAsignaturaId(request.getUsuarioUuid(), request.getAsignaturaId())
-                .stream().findFirst();
-
         List<Double> notasPresentes = new ArrayList<>();
         notasPresentes.add(request.getNota1());
         if (request.getNota2() != null) notasPresentes.add(request.getNota2());
@@ -58,16 +54,18 @@ public class CalificacionesController {
         double promedioRedondeado = Math.round(
                 notasPresentes.stream().mapToDouble(Double::doubleValue).average().orElse(0.0) * 10.0) / 10.0;
 
-        GradeEntity entity = existente.orElse(GradeEntity.builder()
-                .usuarioUuid(request.getUsuarioUuid())
-                .asignaturaId(request.getAsignaturaId())
-                .build());
+        Optional<GradeContract> existente = gradeRepository
+                .buscarContratoPorUsuarioUuidYAsignaturaId(request.getUsuarioUuid(), request.getAsignaturaId());
 
-        entity.setNota1(request.getNota1());
-        entity.setNota2(request.getNota2());
-        entity.setNota3(request.getNota3());
-        entity.setPromedio(promedioRedondeado);
-        gradeRepository.save(entity);
+        GradeContract contrato = new GradeContract(
+                request.getUsuarioUuid(),
+                request.getAsignaturaId(),
+                request.getNota1(),
+                request.getNota2(),
+                request.getNota3(),
+                promedioRedondeado);
+
+        gradeRepository.guardarContrato(contrato);
 
         HttpStatus status = existente.isPresent() ? HttpStatus.OK : HttpStatus.CREATED;
         return ResponseEntity.status(status).body(
@@ -86,21 +84,10 @@ public class CalificacionesController {
                 .toList();
 
         List<CalificacionesContractDto> resultado = estudiantesUuids.stream()
-                .map(uuid -> {
-                    Optional<GradeEntity> grade = gradeRepository
-                            .findByUsuarioUuidAndAsignaturaId(uuid, asignaturaId)
-                            .stream().findFirst();
-
-                    List<Double> notas = new ArrayList<>();
-                    if (grade.isPresent()) {
-                        GradeEntity g = grade.get();
-                        if (g.getNota1() != null) notas.add(g.getNota1());
-                        if (g.getNota2() != null) notas.add(g.getNota2());
-                        if (g.getNota3() != null) notas.add(g.getNota3());
-                    }
-
-                    return CalificacionesContractDto.from(uuid, asignaturaId, notas);
-                })
+                .map(uuid -> gradeRepository
+                        .buscarContratoPorUsuarioUuidYAsignaturaId(uuid, asignaturaId)
+                        .map(CalificacionesContractDto::from)
+                        .orElse(CalificacionesContractDto.from(uuid, asignaturaId, List.of())))
                 .toList();
 
         return ResponseEntity.ok(resultado);
@@ -112,18 +99,12 @@ public class CalificacionesController {
             @PathVariable UUID usuarioUuid,
             @PathVariable Long asignaturaId) {
 
-        GradeEntity entity = gradeRepository
-                .findByUsuarioUuidAndAsignaturaId(usuarioUuid, asignaturaId)
-                .stream().findFirst()
+        GradeContract contrato = gradeRepository
+                .buscarContratoPorUsuarioUuidYAsignaturaId(usuarioUuid, asignaturaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "No se encontraron calificaciones para ese estudiante y asignatura"));
 
-        List<Double> notas = new ArrayList<>();
-        if (entity.getNota1() != null) notas.add(entity.getNota1());
-        if (entity.getNota2() != null) notas.add(entity.getNota2());
-        if (entity.getNota3() != null) notas.add(entity.getNota3());
-
-        return ResponseEntity.ok(CalificacionesContractDto.from(usuarioUuid, asignaturaId, notas));
+        return ResponseEntity.ok(CalificacionesContractDto.from(contrato));
     }
 
     @GetMapping("/estudiante/{usuarioUuid}")
@@ -132,15 +113,9 @@ public class CalificacionesController {
             @PathVariable UUID usuarioUuid) {
 
         List<CalificacionesContractDto> resultado = gradeRepository
-                .findByUsuarioUuid(usuarioUuid)
+                .buscarContratosPorUsuarioUuid(usuarioUuid)
                 .stream()
-                .map(entity -> {
-                    List<Double> notas = new ArrayList<>();
-                    if (entity.getNota1() != null) notas.add(entity.getNota1());
-                    if (entity.getNota2() != null) notas.add(entity.getNota2());
-                    if (entity.getNota3() != null) notas.add(entity.getNota3());
-                    return CalificacionesContractDto.from(usuarioUuid, entity.getAsignaturaId(), notas);
-                })
+                .map(CalificacionesContractDto::from)
                 .toList();
 
         return ResponseEntity.ok(resultado);
