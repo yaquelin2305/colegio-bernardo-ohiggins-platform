@@ -1,4 +1,4 @@
-package cl.duoc.colegio.usuario.application.dto;
+package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest.dto;
 
 import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 import jakarta.validation.constraints.Email;
@@ -9,9 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
-/**
- * DTO de entrada para el caso de uso de Registro (POST /admin/crear).
- */
 public record RegistroRequestDto(
 
         @NotBlank(message = "El RUT es obligatorio")
@@ -35,9 +32,7 @@ public record RegistroRequestDto(
         @NotNull(message = "El rol es obligatorio")
         RolUsuario rol,
 
-        /** Opcional: ID del perfil en MS-Académico (estudiante, docente, etc.) */
         Long perfilId,
 
-        /** Opcional: UUID del pupilo (solo para rol APODERADO). */
         UUID pupiloUuid
 ) {}

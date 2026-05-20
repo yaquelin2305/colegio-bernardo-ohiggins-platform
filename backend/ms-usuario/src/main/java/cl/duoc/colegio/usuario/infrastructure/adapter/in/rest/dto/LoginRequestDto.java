@@ -1,13 +1,9 @@
-package cl.duoc.colegio.usuario.application.dto;
+package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO de entrada para el caso de uso de Login.
- * Credencial de acceso: RUT (formato chileno, ej: 12345678-9)
- */
 public record LoginRequestDto(
 
         @NotBlank(message = "El RUT es obligatorio")

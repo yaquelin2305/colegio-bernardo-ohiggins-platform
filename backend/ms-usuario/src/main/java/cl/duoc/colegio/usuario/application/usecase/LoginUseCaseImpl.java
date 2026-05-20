@@ -1,6 +1,5 @@
 package cl.duoc.colegio.usuario.application.usecase;
 
-import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.AuthorizationStrategy;
@@ -15,22 +14,10 @@ import cl.duoc.colegio.usuario.domain.port.out.TokenGeneratorPort;
 import cl.duoc.colegio.usuario.domain.port.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
 
-/**
- * Caso de Uso: Login de usuario.
- *
- * 1. Busca el usuario por RUT.
- * 2. Verifica que esté activo.
- * 3. Verifica las credenciales.
- * 4. Usa el Factory para obtener la Strategy del rol.
- * 5. Resuelve los permisos via Strategy.
- * 6. Genera access token (sub=RUT).
- *
- * NO conoce JPA, JWT concreto ni BCrypt — solo trabaja con puertos.
- */
 @Service
 public class LoginUseCaseImpl implements LoginUseCase {
 
-    private static final long ACCESS_TTL_MS = 86_400_000L; // 24h
+    private static final long ACCESS_TTL_MS = 86_400_000L;
 
     private final UsuarioRepositoryPort repositoryPort;
     private final PasswordEncoderPort passwordEncoderPort;
@@ -48,27 +35,22 @@ public class LoginUseCaseImpl implements LoginUseCase {
     }
 
     @Override
-    public AuthResponseDto login(LoginRequestDto request) {
-        // 1. Buscar por RUT
+    public AuthResponseDto login(String rut, String password) {
         Usuario usuario = repositoryPort
-                .buscarPorRut(request.rut())
-                .orElseThrow(() -> new UsuarioNoEncontradoException(request.rut()));
+                .buscarPorRut(rut)
+                .orElseThrow(() -> new UsuarioNoEncontradoException(rut));
 
-        // 2. Cuenta activa
         if (!usuario.puedeAutenticarse()) {
-            throw new UsuarioInactivoException(request.rut());
+            throw new UsuarioInactivoException(rut);
         }
 
-        // 3. Verificar contraseña
-        if (!passwordEncoderPort.matches(request.password(), usuario.getPasswordHash())) {
+        if (!passwordEncoderPort.matches(password, usuario.getPasswordHash())) {
             throw new CredencialesInvalidasException();
         }
 
-        // 4. Strategy por rol
         AuthorizationStrategy strategy = strategyFactory.crear(usuario.getRol());
         Permisos permisos = strategy.resolverPermisos(usuario);
 
-        // 5. Generar access token (sub=RUT)
         String accessToken = tokenGeneratorPort.generarToken(usuario);
 
         return AuthResponseDto.of(

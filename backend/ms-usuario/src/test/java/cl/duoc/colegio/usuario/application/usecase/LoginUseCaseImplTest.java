@@ -1,7 +1,6 @@
 package cl.duoc.colegio.usuario.application.usecase;
 
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
-import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.DocenteAuthorizationStrategy;
 import cl.duoc.colegio.usuario.domain.exception.CredencialesInvalidasException;
@@ -28,11 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-/**
- * Pruebas unitarias para LoginUseCaseImpl.
- * Usa Mockito para aislar completamente el caso de uso de sus dependencias.
- * Login se hace por RUT (formato chileno), no por email.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginUseCase — Pruebas Unitarias")
 class LoginUseCaseImplTest {
@@ -53,7 +47,6 @@ class LoginUseCaseImplTest {
     private LoginUseCaseImpl loginUseCase;
 
     private Usuario usuarioActivo;
-    private LoginRequestDto loginRequest;
 
     @BeforeEach
     void setUp() {
@@ -63,10 +56,8 @@ class LoginUseCaseImplTest {
                 "$2a$12$hashedPassword",
                 RolUsuario.DOCENTE,
                 "Carlos",
-                "Rodríguez"
+                "Rodriguez"
         );
-
-        loginRequest = new LoginRequestDto("11222333-4", "password123");
     }
 
     @Test
@@ -81,7 +72,7 @@ class LoginUseCaseImplTest {
         when(tokenGeneratorPort.generarToken(any(Usuario.class)))
                 .thenReturn("jwt.token.mock");
 
-        AuthResponseDto response = loginUseCase.login(loginRequest);
+        AuthResponseDto response = loginUseCase.login("11222333-4", "password123");
 
         assertThat(response).isNotNull();
         assertThat(response.accessToken()).isEqualTo("jwt.token.mock");
@@ -97,7 +88,7 @@ class LoginUseCaseImplTest {
         when(repositoryPort.buscarPorRut(anyString()))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(UsuarioNoEncontradoException.class);
 
         verify(passwordEncoderPort, never()).matches(anyString(), anyString());
@@ -111,7 +102,7 @@ class LoginUseCaseImplTest {
         when(passwordEncoderPort.matches(anyString(), anyString()))
                 .thenReturn(false);
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(CredencialesInvalidasException.class);
 
         verify(tokenGeneratorPort, never()).generarToken(any());
@@ -125,7 +116,7 @@ class LoginUseCaseImplTest {
         when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(UsuarioInactivoException.class);
 
         verify(passwordEncoderPort, never()).matches(anyString(), anyString());
@@ -142,7 +133,7 @@ class LoginUseCaseImplTest {
         when(strategyFactory.crear(RolUsuario.DOCENTE)).thenReturn(mockStrategy);
         when(tokenGeneratorPort.generarToken(any())).thenReturn("token");
 
-        loginUseCase.login(loginRequest);
+        loginUseCase.login("11222333-4", "password123");
 
         verify(strategyFactory).crear(RolUsuario.DOCENTE);
         verify(mockStrategy).resolverPermisos(any(Usuario.class));
@@ -158,7 +149,7 @@ class LoginUseCaseImplTest {
                 .thenReturn(new DocenteAuthorizationStrategy());
         when(tokenGeneratorPort.generarToken(any())).thenReturn("token");
 
-        AuthResponseDto response = loginUseCase.login(loginRequest);
+        AuthResponseDto response = loginUseCase.login("11222333-4", "password123");
 
         assertThat(response.permisos()).contains("notas", "asistencias");
     }
