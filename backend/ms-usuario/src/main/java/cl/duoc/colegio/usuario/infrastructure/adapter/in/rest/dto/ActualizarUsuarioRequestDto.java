@@ -1,13 +1,8 @@
-package cl.duoc.colegio.usuario.application.dto;
+package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * DTO de entrada para actualizar datos de un usuario existente.
- * Solo permite modificar nombre, apellido y email.
- * RUT y rol son inmutables después de la creación.
- */
 public record ActualizarUsuarioRequestDto(
         @NotBlank(message = "El nombre es obligatorio")
         String nombre,

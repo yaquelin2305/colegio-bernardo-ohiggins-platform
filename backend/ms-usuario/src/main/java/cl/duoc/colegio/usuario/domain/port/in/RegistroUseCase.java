@@ -1,11 +1,12 @@
 package cl.duoc.colegio.usuario.domain.port.in;
 
-import cl.duoc.colegio.usuario.application.dto.RegistroRequestDto;
 import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
+import cl.duoc.colegio.usuario.domain.model.RolUsuario;
 
-/**
- * Puerto de entrada (driving port) para el caso de uso de Registro.
- */
+import java.util.UUID;
+
 public interface RegistroUseCase {
-    AuthResponseDto registrar(RegistroRequestDto request);
+    AuthResponseDto registrar(String rut, String email, String password,
+                              String nombre, String apellido, RolUsuario rol,
+                              Long perfilId, UUID pupiloUuid);
 }
