@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class SmsStrategy implements ComunicacionStrategy {
     @Override
     public void dispatch(Comunicacion comunicacion) {
-        // Aquí iría la lógica de un proveedor de SMS como Twilio
+      
         System.out.println("Enviando SMS a: " + comunicacion.getDestinatario());
         System.out.println("Mensaje: " + comunicacion.getMensaje());
     }

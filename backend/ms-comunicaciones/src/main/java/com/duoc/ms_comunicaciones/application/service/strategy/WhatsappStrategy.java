@@ -12,13 +12,12 @@ public class WhatsappStrategy implements ComunicacionStrategy {
 
     @Override
     public void dispatch(Comunicacion comunicacion) {
-        // En una API real aquí llamarías a Meta. 
-        // Aquí simulamos creando el enlace profesional (Click to Chat)
+     
         
-        String telefono = comunicacion.getDestinatario(); // Ej: 56912345678
+        String telefono = comunicacion.getDestinatario(); 
         String mensajeRaw = "Asunto: " + comunicacion.getAsunto() + " - " + comunicacion.getMensaje();
         
-        // Codificamos el texto para que sea válido en una URL (cambia espacios por %20, etc.)
+       
         String mensajeEncoded = URLEncoder.encode(mensajeRaw, StandardCharsets.UTF_8);
         
         String linkWhatsapp = "https://wa.me/" + telefono + "?text=" + mensajeEncoded;
@@ -27,13 +26,12 @@ public class WhatsappStrategy implements ComunicacionStrategy {
         System.out.println("Generando enlace de envío: " + linkWhatsapp);
         System.out.println("===========================");
         
-        // Podríamos incluso guardar este link en un campo extra si quisiéramos, 
-        // pero por ahora lo dejamos como la acción de la estrategia.
+       
     }
 
     @Override
     public boolean supports(Canal canal) {
-        // Debes agregar WHATSAPP a tu Enum Canal para que esto no de error
+       
         return Canal.WHATSAPP.equals(canal);
     }
 }

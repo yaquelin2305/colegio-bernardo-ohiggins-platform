@@ -20,7 +20,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        # ESTE ES EL TUYO:
+     
         default_schema: comunicaciones_schema
     show-sql: false
 
@@ -50,7 +50,7 @@ spring:
       hibernate:
         default_schema: comunicaciones_schema
 
-  # Desactivamos Eureka en prod si el equipo no lo está usando en Docker
+ 
   eureka:
     client:
       enabled: false

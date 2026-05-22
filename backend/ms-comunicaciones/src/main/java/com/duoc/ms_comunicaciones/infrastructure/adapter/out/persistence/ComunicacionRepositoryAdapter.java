@@ -62,7 +62,7 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         ent.setDestinatario(dom.getDestinatario());
         ent.setAsunto(dom.getAsunto());
         ent.setMensaje(dom.getMensaje());
-        ent.setTipo(dom.getTipo()); // <--- MAPEO REAL AGREGADO
+        ent.setTipo(dom.getTipo()); 
         ent.setCanal(CanalEntity.valueOf(dom.getCanal().name()));
         ent.setFechaEnvio(dom.getFechaEnvio());
         ent.setLeido(dom.isLeido());
@@ -76,7 +76,7 @@ public class ComunicacionRepositoryAdapter implements ComunicacionRepositoryPort
         dom.setDestinatario(ent.getDestinatario());
         dom.setAsunto(ent.getAsunto());
         dom.setMensaje(ent.getMensaje());
-        dom.setTipo(ent.getTipo()); // <--- MAPEO REAL AGREGADO
+        dom.setTipo(ent.getTipo());
         dom.setCanal(Canal.valueOf(ent.getCanal().name()));
         dom.setFechaEnvio(ent.getFechaEnvio());
         dom.setLeido(ent.isLeido());
