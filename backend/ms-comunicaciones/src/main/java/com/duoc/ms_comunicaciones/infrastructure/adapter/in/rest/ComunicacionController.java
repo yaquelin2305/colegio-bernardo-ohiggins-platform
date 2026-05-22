@@ -25,7 +25,7 @@ public class ComunicacionController {
     @PostMapping("/enviar")
     public ResponseEntity<ComunicacionResponseDTO> enviar(@RequestBody ComunicacionRequestDTO request) {
         Comunicacion comunicacion = Comunicacion.builder()
-                .usuarioId(request.getDestinatario()) 
+                .usuarioId(request.getUsuarioId())
                 .destinatario(request.getDestinatario())
                 .asunto(request.getAsunto())
                 .mensaje(request.getMensaje())

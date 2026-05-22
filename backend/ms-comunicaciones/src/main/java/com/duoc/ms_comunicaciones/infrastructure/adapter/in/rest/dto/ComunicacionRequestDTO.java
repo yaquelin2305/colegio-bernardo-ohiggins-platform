@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ComunicacionRequestDTO {
+    private String usuarioId;
     private String destinatario; 
     private String asunto;
     private String mensaje;
