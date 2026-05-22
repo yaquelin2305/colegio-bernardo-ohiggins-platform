@@ -1,6 +1,6 @@
 package cl.duoc.colegio.usuario.infrastructure.adapter.in.rest;
 
-import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
+import cl.duoc.colegio.usuario.domain.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.dto.NombreDto;
 import cl.duoc.colegio.usuario.domain.model.Usuario;
 import cl.duoc.colegio.usuario.domain.port.in.GestionUsuariosUseCase;
@@ -18,6 +18,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Adaptador de entrada REST — expone los endpoints HTTP del MS-Usuario.
+ *
+ * Capa: INFRASTRUCTURE (adapter in).
+ * Depende de los 3 puertos de entrada del dominio:
+ * {@code LoginUseCase}, {@code RegistroUseCase}, {@code GestionUsuariosUseCase}.
+ *
+ * <h3>Endpoints</h3>
+ * <pre>
+ * Público (sin JWT en Gateway):
+ *   POST /api/v1/auth/login      → autenticación
+ *   GET  /api/v1/auth/health     → health check
+ *
+ * Lookup (autenticado):
+ *   GET  /api/v1/usuarios/{uuid}/nombre
+ *
+ * Admin (RBAC: ADMIN en Gateway):
+ *   POST   /api/v1/admin/crear
+ *   GET    /api/v1/admin/{id}
+ *   GET    /api/v1/admin/listar/{rol}
+ *   PUT    /api/v1/admin/actualizar/{id}
+ *   DELETE /api/v1/admin/eliminar/{id}  → soft delete
+ * </pre>
+ *
+ * <h3>Hexagonal: ¿por qué el Controller depende de interfaces?</h3>
+ * El controlador recibe {@code LoginUseCase}, NO {@code LoginUseCaseImpl}.
+ * Spring inyecta la implementación concreta. Si se cambia la implementación
+ * (ej: login con OAuth2), el controller no se modifica.
+ */
 @RestController
 public class AuthController {
 

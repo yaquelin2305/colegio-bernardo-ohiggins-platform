@@ -17,14 +17,45 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * FILTRO GLOBAL DE PROPAGACIÓN DE HEADERS + CHECKS FINOS
+ * Filtro Global de propagación de headers + self-access check — CAPA 2 de seguridad.
  *
- * Spring Security ya validó JWT + RBAC (SecurityConfigProd/Docker).
- * Este filtro solo:
- *  1. Bypass en rutas públicas (whitelist auxiliar)
- *  2. Bypass total en perfil DEV
- *  3. Propagar X-User-Id / X-User-Role / X-User-Uuid desde SecurityContext
- *  4. Verificar ESTUDIANTE solo accede a su propio boletín
+ * Ejecuta DESPUÉS de que Spring Security (SecurityConfigProd) ya validó
+ * el JWT y el RBAC. Corre como GlobalFilter con {@code @Order(HIGHEST_PRECEDENCE)}.
+ *
+ * <h3>Responsabilidades (en orden)</h3>
+ * <ol>
+ *   <li><b>Bypass en rutas públicas</b>: /actuator/**, /health, /info,
+ *       /swagger-ui/**, /v3/api-docs/**, /api/v1/auth/login, /api/v1/auth/health</li>
+ *   <li><b>Bypass total en perfil DEV</b>: si el perfil activo es "dev",
+ *       no se aplica ninguna verificación ni propagación</li>
+ *   <li><b>Self-access check para ESTUDIANTE</b>: si la ruta es
+ *       {@code /api/bff/boletin/{uuid}} y el rol es ESTUDIANTE,
+ *       verifica que el UUID de la ruta coincida con el userId del JWT.
+ *       Si no coincide → 403 Forbidden</li>
+ *   <li><b>Propagación de headers downstream</b>: inyecta en cada request
+ *       saliente los headers:
+ *       <ul>
+ *         <li>{@code X-User-Id}   = RUT del usuario (subject del JWT)</li>
+ *         <li>{@code X-User-Role} = rol sin prefijo ROLE_ (ej: "ADMIN")</li>
+ *         <li>{@code X-User-Uuid} = userId del JWT (UUID interno)</li>
+ *       </ul>
+ *   </li>
+ * </ol>
+ *
+ * <h3>¿Por qué existe si Spring Security ya validó?</h3>
+ * Spring Security hace RBAC grueso (¿tiene el rol para esta ruta?).
+ * Este filtro hace verificaciones FINAS que requieren lógica de negocio
+ * específica (ej: ¿es ESTE estudiante el dueño de ESTE boletín?).
+ * Además, propaga la identidad a los MS downstream sin que ellos tengan
+ * que re-validar el token (modelo Trust the Gateway).
+ *
+ * <h3>Orden de ejecución</h3>
+ * <pre>
+ * 1. SecurityWebFilter (Spring Security) → JWT + RBAC
+ * 2. Route Matching → decide a qué MS va la request
+ * 3. ESTE filtro (@Order HIGHEST_PRECEDENCE) → self-access + headers
+ * 4. NettyRoutingFilter → proxy HTTP al MS downstream
+ * </pre>
  */
 @Slf4j
 @Component

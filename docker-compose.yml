@@ -198,7 +198,7 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: colegio-bernardo-ohiggins-secret-key-2024-duoc-fs3-very-long-secret
       FRONTEND_URL: http://localhost:3000
     depends_on:

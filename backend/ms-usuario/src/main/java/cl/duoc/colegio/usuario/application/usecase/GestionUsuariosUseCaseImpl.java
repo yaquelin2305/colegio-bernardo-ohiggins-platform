@@ -10,6 +10,27 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Implementación del caso de uso Gestión de Usuarios (CRUD).
+ *
+ * Administra el ciclo de vida completo de los usuarios:
+ * consulta, actualización y eliminación lógica (soft delete).
+ *
+ * <h3>Transaccionalidad</h3>
+ * <ul>
+ *   <li>Lecturas: {@code @Transactional(readOnly = true)} — optimiza Hibernate</li>
+ *   <li>Escrituras: {@code @Transactional} — garantiza atomicidad</li>
+ * </ul>
+ *
+ * <h3>Soft Delete</h3>
+ * El método {@code eliminar()} invoca {@link Usuario#desactivar()} que
+ * marca {@code activo = false} en lugar de borrar el registro. Esto:
+ * <ul>
+ *   <li>Preserva la integridad referencial con otros microservicios</li>
+ *   <li>Permite auditoría (el registro sigue existiendo)</li>
+ *   <li>Impide que el usuario se autentique nuevamente</li>
+ * </ul>
+ */
 @Service
 public class GestionUsuariosUseCaseImpl implements GestionUsuariosUseCase {
 

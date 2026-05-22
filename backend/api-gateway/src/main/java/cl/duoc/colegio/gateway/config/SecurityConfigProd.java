@@ -13,6 +13,42 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
+/**
+ * Configuración de seguridad — Perfil PROD (Docker Compose).
+ *
+ * CAPA 1 (gruesa): Spring Security valida JWT + RBAC por ruta.
+ * CAPA 2 (fina): {@code JwtValidationFilter} agrega self-access check
+ *                para estudiantes y propaga headers X-User-* downstream.
+ *
+ * <h3>Modelo Trust the Gateway</h3>
+ * El JWT se valida AQUÍ (firma, expiración, rol). Los microservicios
+ * downstream reciben headers {@code X-User-Id}, {@code X-User-Role},
+ * {@code X-User-Uuid} y confían en que ya fueron autorizados.
+ *
+ * <h3>Tabla de RBAC</h3>
+ * <pre>
+ * /api/v1/admin/**              → ADMIN
+ * /api/v1/asignacion-docente/** → ADMIN
+ * /api/v1/cursos/**             → ADMIN, DOCENTE
+ * /api/v1/calificaciones/**     → ADMIN, DOCENTE
+ * /api/v1/reportes/**           → ADMIN, DOCENTE, APODERADO, ESTUDIANTE
+ * /api/bff/boletin/**           → ADMIN, DOCENTE, APODERADO, ESTUDIANTE*
+ * /api/bff/dashboard/**         → ADMIN
+ * POST /api/v1/auth/login       → público (sin token)
+ * GET  /api/v1/auth/health      → público
+ * </pre>
+ * * ESTUDIANTE tiene restricción adicional en JwtValidationFilter:
+ *   solo puede ver su propio boletín (userId == uuid en ruta).
+ *
+ * <h3>Flujo del AuthenticationWebFilter</h3>
+ * <ol>
+ *   <li>{@link JwtServerAuthenticationConverter} extrae "Bearer token"</li>
+ *   <li>{@link JwtReactiveAuthenticationManager} valida firma y claims</li>
+ *   <li>AuthenticationSuccessHandler guarda auth en exchange.attributes</li>
+ *   <li>NoOpServerSecurityContextRepository = sin sesiones (stateless)</li>
+ *   <li>authorizeExchange aplica RBAC por patrón de ruta</li>
+ * </ol>
+ */
 @Configuration
 @EnableWebFluxSecurity
 @Profile("prod")

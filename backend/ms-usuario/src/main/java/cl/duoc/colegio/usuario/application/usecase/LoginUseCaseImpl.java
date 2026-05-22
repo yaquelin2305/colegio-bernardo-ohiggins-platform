@@ -1,6 +1,6 @@
 package cl.duoc.colegio.usuario.application.usecase;
 
-import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
+import cl.duoc.colegio.usuario.domain.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.AuthorizationStrategy;
 import cl.duoc.colegio.usuario.domain.exception.CredencialesInvalidasException;
@@ -14,6 +14,33 @@ import cl.duoc.colegio.usuario.domain.port.out.TokenGeneratorPort;
 import cl.duoc.colegio.usuario.domain.port.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Implementación del caso de uso Login.
+ *
+ * Capa: APPLICATION (orquesta la lógica de negocio).
+ * Depende de 3 puertos de salida (interfaces del dominio) + 1 fábrica.
+ * NO conoce los adaptadores concretos — Spring inyecta las implementaciones.
+ *
+ * <h3>Flujo paso a paso</h3>
+ * <pre>
+ * POST /api/v1/auth/login
+ *   │
+ *   ├─ 1. repositoryPort.buscarPorRut(rut)    → Usuario o excepción
+ *   ├─ 2. usuario.puedeAutenticarse()          → lógica de dominio (activo?)
+ *   ├─ 3. passwordEncoderPort.matches(...)     → BCrypt verify
+ *   ├─ 4. strategyFactory.crear(rol)           → Factory → Strategy
+ *   ├─ 5. strategy.resolverPermisos(usuario)   → Permisos (VO)
+ *   ├─ 6. tokenGeneratorPort.generarToken(...) → JWT con claims
+ *   └─ 7. AuthResponseDto (token + permisos)
+ * </pre>
+ *
+ * <h3>Patrones aplicados</h3>
+ * <ul>
+ *   <li>Hexagonal: depende solo de interfaces (ports), no de adaptadores</li>
+ *   <li>Strategy + Factory: permisos variables por rol sin if/else</li>
+ *   <li>Constructor injection: sin {@code @Autowired}</li>
+ * </ul>
+ */
 @Service
 public class LoginUseCaseImpl implements LoginUseCase {
 
