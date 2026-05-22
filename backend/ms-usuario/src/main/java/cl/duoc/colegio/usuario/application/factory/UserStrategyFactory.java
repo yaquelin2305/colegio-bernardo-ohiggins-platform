@@ -24,14 +24,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class UserStrategyFactory {
-
-    /**
-     * Crea y retorna la estrategia de autorización correspondiente al rol.
-     *
-     * @param rol el rol del usuario autenticado
-     * @return la estrategia concreta para ese rol
-     * @throws RolNoSoportadoException si el rol no tiene estrategia registrada
-     */
     public AuthorizationStrategy crear(RolUsuario rol) {
         return switch (rol) {
             case DOCENTE    -> new DocenteAuthorizationStrategy();

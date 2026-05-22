@@ -1,4 +1,4 @@
-# 🌐 API Gateway — Colegio Bernardo O'Higgins
+# API Gateway — Colegio Bernardo O'Higgins
 
 > Punto de entrada único a la plataforma de microservicios | Proyecto Fullstack III — Duoc UC
 
@@ -7,7 +7,6 @@
 - [¿Qué hace el Gateway?](#qué-hace-el-gateway)
 - [Rutas Configuradas](#rutas-configuradas)
 - [Seguridad JWT + RBAC](#seguridad-jwt--rbac)
-- [Circuit Breaker — Resilience4j](#circuit-breaker--resilience4j)
 - [Perfiles de Ejecución](#perfiles-de-ejecución)
 - [Variables de Entorno](#variables-de-entorno)
 - [Ejecución Local](#ejecución-local)
@@ -26,10 +25,9 @@ Frontend / Cliente (:3000)
   ┌─────────────────────────────────────────────┐
   │              API GATEWAY                     │
   │                                              │
-  │  1. JwtValidationFilter   ← verifica token   │
-  │  2. RBAC por ruta         ← autoriza acceso  │
-  │  3. CircuitBreaker        ← protege el MS    │
-  │  4. CORS centralizado     ← headers globales │
+  │  1. Spring Security   ← valida JWT + RBAC    │
+  │  2. JwtValidationFilter ← self-access check  │
+  │  3. CORS centralizado  ← headers globales    │
   └──────────────┬──────────────────────────────┘
                  │
         ┌────────┼───────────┬────────────────┐
@@ -42,39 +40,55 @@ Frontend / Cliente (:3000)
 
 | Responsabilidad | Componente |
 |---|---|
-| Autenticación JWT | `JwtValidationFilter` |
-| Autorización RBAC | `JwtValidationFilter` (ADMIN, DOCENTE, APODERADO, ESTUDIANTE) |
-| Tolerancia a fallos | Resilience4j Circuit Breaker |
-| Degradación controlada | `FallbackController` (RFC 7807 Problem Details) |
-| CORS global | `application.yml` + `CorsConfig` |
-| Propagación de identidad | Headers `X-User-Id`, `X-User-Role` |
+| Autenticación JWT | `JwtReactiveAuthenticationManager` |
+| Autorización RBAC | `SecurityConfigProd` (ADMIN, DOCENTE, APODERADO, ESTUDIANTE) |
+| Self-access check | `JwtValidationFilter` (estudiante ve solo su boletín) |
+| CORS global | `application.yml` globalcors |
+| Propagación de identidad | Headers `X-User-Id`, `X-User-Role`, `X-User-Uuid` |
 
 ---
 
 ## Rutas Configuradas
 
-### Perfil `dev` / `local` (sin Eureka)
+### Perfil `dev` (localhost, sin Eureka)
 
-| Ruta Pública | Destino | Circuit Breaker |
-|---|---|---|
-| `/api/v1/auth/**` | `ms-usuario:8083` | usuarioCB |
-| `/api/v1/admin/**` | `ms-usuario:8083` | usuarioCB |
-| `/api/v1/cursos/**` | `ms-academico:8082` | academicoCB |
-| `/api/v1/asignaturas/**` | `ms-academico:8082` | academicoCB |
-| `/api/v1/matriculas/**` | `ms-academico:8082` | academicoCB |
-| `/api/v1/calificaciones/**` | `ms-academico:8082` | academicoCB |
-| `/api/v1/asignacion-docente/**` | `ms-academico:8082` | academicoCB |
-| `/api/bff/**` | `ms-bff:8084` | bffCB |
-| `/api/v1/comunicaciones/**` | `ms-comunicaciones:8085` | comunicacionesCB |
-| `/api/v1/asistencias/**` | `ms-comunicaciones:8085` | comunicacionesCB |
-| `/fallback/**` | `FallbackController` | — |
+| Ruta | Destino |
+|---|---|
+| `/api/v1/auth/**` | `localhost:8083` |
+| `/api/v1/admin/**` | `localhost:8083` |
+| `/api/v1/usuarios/**` | `localhost:8083` |
+| `/api/v1/cursos/**` | `localhost:8082` |
+| `/api/v1/asignaturas/**` | `localhost:8082` |
+| `/api/v1/matriculas/**` | `localhost:8082` |
+| `/api/v1/calificaciones/**` | `localhost:8082` |
+| `/api/v1/asignacion-docente/**` | `localhost:8082` |
+| `/api/v1/estudiantes/**` | `localhost:8082` |
+| `/api/v1/notas/**` | `localhost:8082` |
+| `/api/v1/asistencias/**` | `localhost:8082` |
+| `/api/v1/reportes/**` | `localhost:8082` |
+| `/api/v1/comunicaciones/**` | `localhost:8085` |
+| `/api/asistencia/**` | `localhost:8085` |
+| `/api/bff/**` | `localhost:8084` |
 
-### Perfil `docker` (Docker Compose)
+### Perfil `prod` (Docker Compose, URIs de contenedor)
 
-Igual rutas que `local`, pero con URIs estáticas a nombres de contenedor:
-```
-ms-usuario:8083, ms-academico:8082, ms-bff:8084, ms-comunicaciones:8085
-```
+| Ruta | Destino |
+|---|---|
+| `/api/v1/auth/**` | `ms-usuario:8083` |
+| `/api/v1/admin/**` | `ms-usuario:8083` |
+| `/api/v1/usuarios/**` | `ms-usuario:8083` |
+| `/api/v1/cursos/**` | `ms-academico:8082` |
+| `/api/v1/asignaturas/**` | `ms-academico:8082` |
+| `/api/v1/matriculas/**` | `ms-academico:8082` |
+| `/api/v1/calificaciones/**` | `ms-academico:8082` |
+| `/api/v1/asignacion-docente/**` | `ms-academico:8082` |
+| `/api/v1/notas/**` | `ms-academico:8082` |
+| `/api/v1/asistencias/**` | `ms-academico:8082` |
+| `/api/v1/estudiantes/**` | `ms-academico:8082` |
+| `/api/v1/reportes/**` | `ms-academico:8082` |
+| `/api/v1/comunicaciones/**` | `ms-comunicaciones:8081` |
+| `/api/asistencia/**` | `ms-asistencia:8082` |
+| `/api/bff/**` | `ms-bff:8084` |
 
 ---
 
@@ -83,13 +97,21 @@ ms-usuario:8083, ms-academico:8082, ms-bff:8084, ms-comunicaciones:8085
 ### Flujo de autenticación
 
 ```
-1. POST /api/v1/auth/login  →  bypass (PUBLIC_PATHS)
-2. MS-Usuario valida RUT + BCrypt  →  genera JWT
+1. POST /api/v1/auth/login  → bypass (público)
+2. MS-Usuario valida RUT + BCrypt → genera JWT
 3. Frontend almacena JWT en localStorage
 4. Todas las demás peticiones incluyen: Authorization: Bearer <token>
-5. JwtValidationFilter valida firma HMAC-SHA256 y expiración
-6. RBAC: verifica que el rol tenga acceso a la ruta
+5. JwtReactiveAuthenticationManager valida firma HMAC-SHA256 y expiración
+6. SecurityConfigProd: RBAC por ruta
+7. JwtValidationFilter: self-access check para estudiantes
 ```
+
+### Seguridad en 2 capas
+
+| Capa | Componente | Qué hace |
+|---|---|---|
+| Gruesa | `SecurityConfigProd` (Spring Security) | Valida JWT, asigna `ROLE_*`, verifica RBAC por ruta |
+| Fina | `JwtValidationFilter` (GlobalFilter) | Estudiante solo ve su propio boletín, propaga `X-User-*` headers |
 
 ### Rutas Públicas (sin token)
 
@@ -123,50 +145,11 @@ ms-usuario:8083, ms-academico:8082, ms-bff:8084, ms-comunicaciones:8085
   "nombre": "Admin Backup",
   "role": "ADMIN",
   "rol": "ADMIN",
-  "recursos": ["notas", "asistencias", "estudiantes", ...],
+  "recursos": ["notas", "asistencias", "estudiantes", "..."],
   "soloLectura": false,
   "iss": "ms-usuario",
   "iat": 1714298400,
   "exp": 1714384800
-}
-```
-
----
-
-## Circuit Breaker — Resilience4j
-
-### Parámetros por microservicio
-
-| Parámetro | Valor |
-|---|---|
-| `sliding-window-size` | 10 |
-| `failure-rate-threshold` | 50% |
-| `wait-duration-in-open-state` | 10s |
-| `timeout-duration` | 8s |
-
-### Estados del Circuit Breaker
-
-```
-CLOSED ──[50% fallos]──► OPEN ──[10s]──► HALF-OPEN
-  ▲                                         │
-  └────────[3 llamadas OK]──────────────────┘
-                           │
-                    [sigue fallando]
-                           │
-                           ▼
-                         OPEN
-```
-
-### Fallback Response (HTTP 503 → RFC 7807)
-
-```json
-{
-  "type": "about:blank",
-  "title": "Servicio no disponible",
-  "status": 503,
-  "detail": "El servicio no está disponible. Intente nuevamente.",
-  "service": "ms-academico",
-  "timestamp": "2024-05-15T12:00:00Z"
 }
 ```
 
@@ -177,9 +160,7 @@ CLOSED ──[50% fallos]──► OPEN ──[10s]──► HALF-OPEN
 | Perfil | Seguridad JWT | Eureka | Uso |
 |---|---|---|---|
 | `dev` | Desactivada | Deshabilitado | Desarrollo local |
-| `local` | Desactivada | Deshabilitado | Rutas directas configurables |
-| `docker` | Activada (RBAC) | Deshabilitado | Docker Compose |
-| `prod` | Activada (RBAC) | Habilitado | Producción |
+| `prod` | Activada (RBAC) | Deshabilitado | Docker Compose |
 
 ---
 
@@ -187,9 +168,14 @@ CLOSED ──[50% fallos]──► OPEN ──[10s]──► HALF-OPEN
 
 | Variable | Descripción | Default |
 |---|---|---|
-| `JWT_SECRET` | Clave HMAC-SHA256 (mín. 32 chars) | Requerido |
-| `FRONTEND_URL` | URL del frontend para CORS | `http://localhost:3000` |
-| `SPRING_PROFILES_ACTIVE` | Perfil (`dev`, `local`, `docker`, `prod`) | `prod` |
+| `JWT_SECRET` | Clave HMAC-SHA256 (mín. 32 chars) | Valor por defecto en YAML |
+| `FRONTEND_URL` | URL del frontend para CORS | `http://localhost:5173` |
+| `SPRING_PROFILES_ACTIVE` | Perfil (`dev`, `prod`) | `prod` |
+| `ACADEMICO_URI` | URI de ms-academico (solo perfil `dev`) | `http://localhost:8082` |
+| `USUARIO_URI` | URI de ms-usuario (solo perfil `dev`) | `http://localhost:8083` |
+| `COMUNICACIONES_URI` | URI de ms-comunicaciones (solo perfil `dev`) | `http://localhost:8085` |
+| `ASISTENCIA_URI` | URI de ms-asistencia (solo perfil `dev`) | `http://localhost:8085` |
+| `BFF_URI` | URI de ms-bff (solo perfil `dev`) | `http://localhost:8084` |
 
 ---
 
@@ -201,14 +187,14 @@ CLOSED ──[50% fallos]──► OPEN ──[10s]──► HALF-OPEN
 - Maven 3.9+
 - Microservicios downstream corriendo
 
-### Perfil dev (sin seguridad)
+### Perfil dev (sin seguridad, rutas a localhost)
 
 ```bash
 cd backend/api-gateway
-mvn spring-boot:run -Dspring-boot.run.profiles=dev,local
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-### Perfil prod (JWT + RBAC activo)
+### Perfil prod (JWT + RBAC activo, rutas a contenedores Docker)
 
 ```bash
 JWT_SECRET=clave-secreta-de-32-caracteres-minimo \
@@ -216,36 +202,17 @@ SPRING_PROFILES_ACTIVE=prod \
 mvn spring-boot:run
 ```
 
-### Tests
-
-```bash
-mvn test
-```
-
 ---
 
 ## Docker
 
-### Construir imagen
-
-```bash
-docker build -t api-gateway:1.0.0 .
-```
-
-### Ejecutar contenedor
-
-```bash
-docker run -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=docker \
-  -e JWT_SECRET=clave-secreta-de-32-caracteres-minimo \
-  api-gateway:1.0.0
-```
-
 ### Con Docker Compose
 
 ```bash
-docker compose -f docker-compose.test.yml up --build
+docker compose up --build
 ```
+
+El docker-compose ya configura `SPRING_PROFILES_ACTIVE=prod` automáticamente.
 
 ---
 

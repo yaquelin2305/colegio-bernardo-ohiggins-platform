@@ -1,6 +1,6 @@
 package cl.duoc.colegio.usuario.application.usecase;
 
-import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
+import cl.duoc.colegio.usuario.domain.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.DocenteAuthorizationStrategy;
 import cl.duoc.colegio.usuario.domain.exception.CredencialesInvalidasException;

@@ -1,4 +1,4 @@
-package cl.duoc.colegio.usuario.application.dto;
+package cl.duoc.colegio.usuario.domain.dto;
 
 import java.util.List;
 
