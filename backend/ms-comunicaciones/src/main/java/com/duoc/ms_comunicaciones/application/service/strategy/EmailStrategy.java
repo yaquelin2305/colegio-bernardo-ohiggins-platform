@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class EmailStrategy implements ComunicacionStrategy {
     @Override
     public void dispatch(Comunicacion comunicacion) {
-        // Aquí iría la lógica real de JavaMailSender
+       
         System.out.println("Enviando EMAIL a: " + comunicacion.getDestinatario());
         System.out.println("Asunto: " + comunicacion.getAsunto());
     }

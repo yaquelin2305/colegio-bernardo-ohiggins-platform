@@ -22,8 +22,7 @@ public class ComunicacionEntity {
     @Column(columnDefinition = "TEXT")
     private String mensaje;
 
-    private String tipo; // <--- AGREGADO: Para guardar Administrativo, Consulta, etc.
-
+    private String tipo;
     @Enumerated(EnumType.STRING)
     private CanalEntity canal; 
 

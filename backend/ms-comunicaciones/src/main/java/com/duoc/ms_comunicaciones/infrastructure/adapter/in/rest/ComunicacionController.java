@@ -39,13 +39,12 @@ public class ComunicacionController {
         return ResponseEntity.ok(toResponseDTO(guardada));
     }
 
-    // 1. Endpoint para que el Frontend llene el <select> de destinatarios
+ 
     @GetMapping("/destinatarios")
     public ResponseEntity<List<String>> getDestinatarios() {
         return ResponseEntity.ok(useCase.obtenerDestinatarios());
     }
 
-    // 2. Endpoint para obtener el detalle de UN mensaje específico
     @GetMapping("/{mensajeId}")
     public ResponseEntity<ComunicacionResponseDTO> getMensaje(@PathVariable Long mensajeId) {
         return useCase.getMensaje(mensajeId)
