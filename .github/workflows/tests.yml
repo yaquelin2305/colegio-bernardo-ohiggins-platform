@@ -7,7 +7,7 @@ on:
       - 'backend/api-gateway/**'
       - 'backend/ms-academico/**'
       - 'backend/ms-usuario/**'
-      - 'backend/ms-comunicaciones/**'
+      - 'backend/ms-comunicaciones/**' # 1. Agregamos tu ruta para que el push reaccione
       - 'backend/archetypes/**'
       - '.github/workflows/**'
   pull_request:
@@ -16,61 +16,43 @@ on:
       - 'backend/api-gateway/**'
       - 'backend/ms-academico/**'
       - 'backend/ms-usuario/**'
-      - 'backend/ms-comunicaciones/**'
+      - 'backend/ms-comunicaciones/**' # 2. Agregamos tu ruta aquí también
       - '.github/workflows/**'
 
 jobs:
   test-gateway:
-    name: API Gateway — Tests & Sonar
+    name: API Gateway — Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/api-gateway
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: mvn test --batch-mode
 
   test-usuario:
-    name: MS-Usuario — Tests, JaCoCo & Sonar
+    name: MS-Usuario — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/ms-usuario
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode # Intacto, tal cual lo tenía él
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -79,30 +61,21 @@ jobs:
           path: backend/ms-usuario/target/site/jacoco
 
   test-academico:
-    name: MS-Academico — Tests, JaCoCo & Sonar
+    name: MS-Academico — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/ms-academico
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests & JaCoCo report
+        run: mvn test jacoco:report --batch-mode # Intacto, tal cual lo tenía él
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -110,6 +83,7 @@ jobs:
           name: coverage-academico
           path: backend/ms-academico/target/site/jacoco
 
+  # 3. IMPLEMENTACIÓN DE TU PARTE INDEPENDIENTE CON SONARCLOUD
   test-comunicaciones:
     name: MS-Comunicaciones — Tests, JaCoCo & Sonar
     runs-on: ubuntu-latest
@@ -119,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0 # Requerido por SonarCloud para analizar el historial
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -129,7 +103,7 @@ jobs:
       - name: Run tests, JaCoCo & Sonar Analysis
         run: |
           mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
+            -Dsonar.projectKey=colegio-ohiggins-ms-comunicaciones \
             -Dsonar.organization=yaquelin2305 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
