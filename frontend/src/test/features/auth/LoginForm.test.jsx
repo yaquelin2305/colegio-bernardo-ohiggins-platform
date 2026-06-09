@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LoginForm from '../../../features/auth/components/LoginForm';
-import { AuthProvider } from '../../../core/context/AuthContext';
+import { AuthProvider } from '../../../core/context/AuthContext.jsx';
 import { buildFakeJwt } from '../../helpers/jwtFake';
 
 vi.mock('../../../features/auth/services/authService');
@@ -107,5 +107,37 @@ describe('LoginForm — estado de carga', () => {
     llenarYEnviar();
     const boton = await screen.findByRole('button', { name: 'Iniciando sesión...' });
     expect(boton).toBeDisabled();
+  });
+});
+
+describe('LoginForm — cobertura adicional', () => {
+  it('llama a authService.login con el rut y contraseña ingresados', async () => {
+    authService.login.mockResolvedValue(buildFakeJwt({ role: 'ADMIN' }));
+    render(<LoginForm />, { wrapper });
+    llenarYEnviar();
+    await waitFor(() => {
+      expect(authService.login).toHaveBeenCalledTimes(1);
+      expect(authService.login).toHaveBeenCalledWith('12345678-9', 'Admin1234!');
+    });
+  });
+
+  it('deshabilita ambos campos mientras se realiza la autenticación', async () => {
+    authService.login.mockReturnValue(new Promise(() => {}));
+    render(<LoginForm />, { wrapper });
+    llenarYEnviar();
+    const boton = await screen.findByRole('button', { name: 'Iniciando sesión...' });
+    expect(boton).toBeDisabled();
+    expect(screen.getByPlaceholderText('12345678-9')).toBeDisabled();
+    expect(screen.getByPlaceholderText('••••••••')).toBeDisabled();
+  });
+
+  it('vuelve a habilitar el formulario cuando ocurre un error de autenticación', async () => {
+    authService.login.mockRejectedValue(new Error('Error de autenticación'));
+    render(<LoginForm />, { wrapper });
+    llenarYEnviar();
+    expect(await screen.findByText('Error de autenticación')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Entrar' })).not.toBeDisabled();
+    expect(screen.getByPlaceholderText('12345678-9')).not.toBeDisabled();
+    expect(screen.getByPlaceholderText('••••••••')).not.toBeDisabled();
   });
 });
