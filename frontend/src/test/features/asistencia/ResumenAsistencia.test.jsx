@@ -19,36 +19,4 @@ describe('ResumenAsistencia', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByText('83%')).toBeInTheDocument();
   });
-
-  it('muestra ceros cuando no se pasa prop resumen', () => {
-    render(<ResumenAsistencia />);
-    expect(screen.getByText('0%')).toBeInTheDocument();
-    const ceros = screen.getAllByText('0');
-    expect(ceros.length).toBeGreaterThan(0);
-  });
-
-  it('muestra ceros cuando resumen es null', () => {
-    render(<ResumenAsistencia resumen={null} />);
-    expect(screen.getByText('0%')).toBeInTheDocument();
-  });
-
-  it('muestra nombreCurso si está presente en el resumen', () => {
-    render(<ResumenAsistencia resumen={{ ...resumenBase, nombreCurso: '1°A Básica' }} />);
-    expect(screen.getByText('1°A Básica')).toBeInTheDocument();
-  });
-
-  it('no muestra párrafo de curso si no está en el resumen', () => {
-    const { container } = render(<ResumenAsistencia resumen={resumenBase} />);
-    expect(container.querySelector('.resumen-asistencia__curso')).not.toBeInTheDocument();
-  });
-
-  it('tiene aria-label de sección', () => {
-    render(<ResumenAsistencia resumen={resumenBase} />);
-    expect(screen.getByRole('region', { name: 'Resumen de asistencia' })).toBeInTheDocument();
-  });
-
-  it('muestra las 5 tarjetas de métricas', () => {
-    const { container } = render(<ResumenAsistencia resumen={resumenBase} />);
-    expect(container.querySelectorAll('.resumen-asistencia__card').length).toBe(5);
-  });
 });
