@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { AuthProvider } from '../../core/context/AuthContext';
+import { AuthProvider } from '../../core/context/AuthContext.jsx';
 import { useAuth } from '../../core/context/useAuth';
 import { buildFakeJwt } from '../helpers/jwtFake';
 

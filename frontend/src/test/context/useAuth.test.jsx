@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useAuth } from '../../core/context/useAuth';
-import { AuthProvider } from '../../core/context/AuthContext';
+import { AuthProvider } from '../../core/context/AuthContext.jsx';
 
 const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LoginForm from '../../../features/auth/components/LoginForm';
-import { AuthProvider } from '../../../core/context/AuthContext';
+import { AuthProvider } from '../../../core/context/AuthContext.jsx';
 import { buildFakeJwt } from '../../helpers/jwtFake';
 
 vi.mock('../../../features/auth/services/authService');
