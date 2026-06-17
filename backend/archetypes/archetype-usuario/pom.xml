@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cl.duoc.colegio</groupId>
+    <artifactId>archetype-usuario</artifactId>
+    <version>1.0.0</version>
+    <packaging>maven-archetype</packaging>
+    <name>Arquetipo Usuario/Auth — Colegio Bernardo O'Higgins</name>
+    <description>
+        Arquetipo Maven para microservicios de autenticación con Arquitectura Hexagonal.
+        Incluye Spring Boot 3.2, Spring Security, JWT (jjwt 0.11.5), BCrypt, Patrón Strategy para autorización por roles y Factory Method.
+    </description>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.archetype</groupId>
+                <artifactId>archetype-packaging</artifactId>
+                <version>3.2.1</version>
+            </extension>
+        </extensions>
+    </build>
+</project>

@@ -1,208 +1,166 @@
-# 🌐 API Gateway — Colegio Bernardo O'Higgins
+# API Gateway — Colegio Bernardo O'Higgins
 
 > Punto de entrada único a la plataforma de microservicios | Proyecto Fullstack III — Duoc UC
 
 ## Índice
 
 - [¿Qué hace el Gateway?](#qué-hace-el-gateway)
-- [Diagrama de Secuencia](#diagrama-de-secuencia)
 - [Rutas Configuradas](#rutas-configuradas)
-- [Seguridad JWT por Perfil](#seguridad-jwt-por-perfil)
-- [Circuit Breaker — Resilience4j](#circuit-breaker--resilience4j)
+- [Seguridad JWT + RBAC](#seguridad-jwt--rbac)
+- [Perfiles de Ejecución](#perfiles-de-ejecución)
 - [Variables de Entorno](#variables-de-entorno)
-- [Levantar en perfil dev vs prod](#levantar-en-perfil-dev-vs-prod)
+- [Ejecución Local](#ejecución-local)
 - [Docker](#docker)
 
 ---
 
 ## ¿Qué hace el Gateway?
 
-El API Gateway actúa como **fachada inteligente** frente a todos los microservicios. Es el único componente que expone puertos al mundo exterior:
+El API Gateway actúa como **fachada inteligente** frente a todos los microservicios:
 
 ```
-Internet / Frontend
+Frontend / Cliente (:3000)
         │
         ▼ :8080
   ┌─────────────────────────────────────────────┐
   │              API GATEWAY                     │
   │                                              │
-  │  1. JwtValidationFilter   ← verifica token   │
-  │  2. CircuitBreaker        ← protege el MS    │
-  │  3. Route + RewritePath   ← enruta al MS     │
-  │  4. FallbackController    ← responde si cae  │
+  │  1. Spring Security   ← valida JWT + RBAC    │
+  │  2. JwtValidationFilter ← self-access check  │
+  │  3. CORS centralizado  ← headers globales    │
   └──────────────┬──────────────────────────────┘
-                 │  lb://MS-ACADEMICO (via Eureka)
-                 ▼
-         MS-Académico :8082
+                 │
+        ┌────────┼───────────┬────────────────┐
+        ▼        ▼           ▼                ▼
+   MS-Usuario  MS-Academico  MS-BFF  MS-Comunicaciones
+    :8083       :8082        :8084       :8085
 ```
 
 ### Responsabilidades
 
 | Responsabilidad | Componente |
 |---|---|
-| Autenticación JWT | `JwtValidationFilter` |
-| Enrutamiento dinámico | Spring Cloud Gateway + Eureka |
-| Tolerancia a fallos | Resilience4j Circuit Breaker |
-| Degradación controlada | `FallbackController` |
-| CORS global | `CorsConfig` |
-| Propagación de identidad | Headers `X-User-Id`, `X-User-Role` |
-
----
-
-## Diagrama de Secuencia
-
-```
-Cliente              API Gateway          Circuit Breaker        MS-Académico
-   │                     │                      │                      │
-   │── GET /api/v1/       │                      │                      │
-   │   gestion/notas/1 ──►│                      │                      │
-   │                     │                      │                      │
-   │                     │◄── JwtValidationFilter ──                   │
-   │                     │    (valida Bearer token)                    │
-   │                     │                      │                      │
-   │                [token OK]                  │                      │
-   │                     │                      │                      │
-   │                     │── CircuitBreaker ────►│                      │
-   │                     │   academicoCB         │                      │
-   │                     │                      │                      │
-   │                     │              [CLOSED - normal]              │
-   │                     │                      │──── lb:// ──────────►│
-   │                     │                      │   (Eureka discovery)  │
-   │                     │                      │                      │
-   │                     │                      │◄── HTTP 200 ─────────│
-   │◄── HTTP 200 ────────│                      │                      │
-   │                     │                      │                      │
-   ═══════════════ ESCENARIO: MS caído ════════════════════════════════
-   │                     │                      │                      │
-   │── GET /api/v1/ ─────►│                      │                      │
-   │   gestion/notas/1    │                      │                      │
-   │                     │── CircuitBreaker ────►│                      │
-   │                     │   academicoCB         │                      │
-   │                     │                [OPEN - 50% fallos]          │
-   │                     │◄── Circuit abierto ───│                      │
-   │                     │                                             │
-   │                     │── forward: /fallback/academico              │
-   │                     │         │                                   │
-   │                     │         ▼                                   │
-   │                     │   FallbackController                        │
-   │                     │   HTTP 503 + Problem Details                │
-   │◄── HTTP 503 ────────│                                             │
-   │   (JSON amigable)   │                                             │
-```
+| Autenticación JWT | `JwtReactiveAuthenticationManager` |
+| Autorización RBAC | `SecurityConfigProd` (ADMIN, DOCENTE, APODERADO, ESTUDIANTE) |
+| Self-access check | `JwtValidationFilter` (estudiante ve solo su boletín) |
+| CORS global | `application.yml` globalcors |
+| Propagación de identidad | Headers `X-User-Id`, `X-User-Role`, `X-User-Uuid` |
 
 ---
 
 ## Rutas Configuradas
 
-| Ruta Pública | Destino | Método |
-|---|---|---|
-| `/api/v1/gestion/**` | `lb://MS-ACADEMICO` | Todos (via rewrite) |
-| `/api/v1/estudiantes/**` | `lb://MS-ACADEMICO` | Todos (directo) |
-| `/api/v1/notas/**` | `lb://MS-ACADEMICO` | Todos (directo) |
-| `/api/v1/asistencias/**` | `lb://MS-ACADEMICO` | Todos (directo) |
-| `/api/v1/reportes/**` | `lb://MS-ACADEMICO` | Todos (directo) |
-| `/fallback/**` | `FallbackController` | GET |
-| `/actuator/health` | Gateway local | GET |
+### Perfil `dev` (localhost, sin Eureka)
 
-### Rewrite de rutas
+| Ruta | Destino |
+|---|---|
+| `/api/v1/auth/**` | `localhost:8083` |
+| `/api/v1/admin/**` | `localhost:8083` |
+| `/api/v1/usuarios/**` | `localhost:8083` |
+| `/api/v1/cursos/**` | `localhost:8082` |
+| `/api/v1/asignaturas/**` | `localhost:8082` |
+| `/api/v1/matriculas/**` | `localhost:8082` |
+| `/api/v1/calificaciones/**` | `localhost:8082` |
+| `/api/v1/asignacion-docente/**` | `localhost:8082` |
+| `/api/v1/estudiantes/**` | `localhost:8082` |
+| `/api/v1/notas/**` | `localhost:8082` |
+| `/api/v1/asistencias/**` | `localhost:8082` |
+| `/api/v1/reportes/**` | `localhost:8082` |
+| `/api/v1/comunicaciones/**` | `localhost:8085` |
+| `/api/asistencia/**` | `localhost:8085` |
+| `/api/bff/**` | `localhost:8084` |
 
-```
-Request externo:  GET /api/v1/gestion/estudiantes/1
-                              ↓  RewritePath
-Request al MS:    GET /api/v1/estudiantes/1
-```
+### Perfil `prod` (Docker Compose, URIs de contenedor)
+
+| Ruta | Destino |
+|---|---|
+| `/api/v1/auth/**` | `ms-usuario:8083` |
+| `/api/v1/admin/**` | `ms-usuario:8083` |
+| `/api/v1/usuarios/**` | `ms-usuario:8083` |
+| `/api/v1/cursos/**` | `ms-academico:8082` |
+| `/api/v1/asignaturas/**` | `ms-academico:8082` |
+| `/api/v1/matriculas/**` | `ms-academico:8082` |
+| `/api/v1/calificaciones/**` | `ms-academico:8082` |
+| `/api/v1/asignacion-docente/**` | `ms-academico:8082` |
+| `/api/v1/notas/**` | `ms-academico:8082` |
+| `/api/v1/asistencias/**` | `ms-academico:8082` |
+| `/api/v1/estudiantes/**` | `ms-academico:8082` |
+| `/api/v1/reportes/**` | `ms-academico:8082` |
+| `/api/v1/comunicaciones/**` | `ms-comunicaciones:8081` |
+| `/api/asistencia/**` | `ms-asistencia:8082` |
+| `/api/bff/**` | `ms-bff:8084` |
 
 ---
 
-## Seguridad JWT por Perfil
+## Seguridad JWT + RBAC
 
-### Perfil `dev` — Desarrollo local
+### Flujo de autenticación
 
-```yaml
-# Sin validación JWT — ideal para pruebas con Postman/Swagger
-spring:
-  profiles:
-    active: dev
+```
+1. POST /api/v1/auth/login  → bypass (público)
+2. MS-Usuario valida RUT + BCrypt → genera JWT
+3. Frontend almacena JWT en localStorage
+4. Todas las demás peticiones incluyen: Authorization: Bearer <token>
+5. JwtReactiveAuthenticationManager valida firma HMAC-SHA256 y expiración
+6. SecurityConfigProd: RBAC por ruta
+7. JwtValidationFilter: self-access check para estudiantes
 ```
 
-- ✅ Todas las rutas accesibles sin token
-- ✅ Log en DEBUG para ver el routing
-- ⚠️ Aviso en consola: **"Seguridad JWT DESACTIVADA"**
+### Seguridad en 2 capas
 
-### Perfil `prod` — Producción
+| Capa | Componente | Qué hace |
+|---|---|---|
+| Gruesa | `SecurityConfigProd` (Spring Security) | Valida JWT, asigna `ROLE_*`, verifica RBAC por ruta |
+| Fina | `JwtValidationFilter` (GlobalFilter) | Estudiante solo ve su propio boletín, propaga `X-User-*` headers |
 
-```yaml
-spring:
-  profiles:
-    active: prod
-```
+### Rutas Públicas (sin token)
 
-- 🔒 Todas las rutas requieren header `Authorization: Bearer <token>`
-- 🔒 Token validado con HMAC-SHA256
-- 🔒 Headers `X-User-Id` y `X-User-Role` propagados al MS downstream
-- ❌ Sin token → HTTP 401 (RFC 7807 Problem Details)
-- ❌ Token expirado → HTTP 401 con mensaje específico
+| Ruta | Método |
+|---|---|
+| `/api/v1/auth/login` | POST |
+| `/api/v1/auth/health` | GET |
 
-### Ejemplo de request con token (prod)
+### RBAC por Ruta
 
-```bash
-curl -X GET http://localhost:8080/api/v1/gestion/estudiantes \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
-```
+| Ruta | Roles Permitidos |
+|---|---|
+| `/api/v1/admin/**` | ADMIN |
+| `/api/v1/asignacion-docente/**` | ADMIN |
+| `/api/v1/cursos/**` | ADMIN, DOCENTE |
+| `/api/v1/asignaturas/**` | ADMIN, DOCENTE |
+| `/api/v1/matriculas/**` | ADMIN, DOCENTE |
+| `/api/v1/calificaciones/**` | ADMIN, DOCENTE |
+| `/api/bff/boletin/{uuid}` | ADMIN, DOCENTE, APODERADO, ESTUDIANTE* |
+| `/api/bff/dashboard/**` | ADMIN |
 
-### Respuesta 401 (RFC 7807)
+> \* ESTUDIANTE solo puede ver su propio boletín — se valida `userId` del token contra el UUID de la ruta.
+
+### JWT Claims
 
 ```json
 {
-  "type": "about:blank",
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "Token de autenticación requerido",
-  "timestamp": "2024-05-15T12:00:00Z"
+  "sub": "99888777-6",
+  "userId": "uuid-del-usuario",
+  "email": "admin@test.cl",
+  "nombre": "Admin Backup",
+  "role": "ADMIN",
+  "rol": "ADMIN",
+  "recursos": ["notas", "asistencias", "estudiantes", "..."],
+  "soloLectura": false,
+  "iss": "ms-usuario",
+  "iat": 1714298400,
+  "exp": 1714384800
 }
 ```
 
 ---
 
-## Circuit Breaker — Resilience4j
+## Perfiles de Ejecución
 
-### Parámetros `academicoCB`
-
-| Parámetro | Valor | Descripción |
-|---|---|---|
-| `sliding-window-size` | `10` | Evalúa las últimas 10 llamadas |
-| `failure-rate-threshold` | `50%` | Abre el circuito si 5 de 10 fallan |
-| `wait-duration-in-open-state` | `10s` | Espera 10s antes de intentar recuperar |
-| `permitted-number-of-calls-in-half-open-state` | `3` | 3 llamadas de prueba en HALF-OPEN |
-| `slow-call-duration-threshold` | `5s` | Llamadas > 5s se consideran lentas |
-| `slow-call-rate-threshold` | `80%` | Abre si 80% de las llamadas son lentas |
-| `timeout-duration` | `8s` | Timeout total por llamada |
-
-### Estados del Circuit Breaker
-
-```
-CLOSED ──[50% fallas]──► OPEN ──[10s]──► HALF-OPEN
-  ▲                                           │
-  └────────[3 llamadas OK]────────────────────┘
-                            │
-                     [sigue fallando]
-                            │
-                            ▼
-                          OPEN
-```
-
-### Fallback Response (HTTP 503)
-
-```json
-{
-  "type": "about:blank",
-  "title": "Servicio no disponible",
-  "status": 503,
-  "detail": "El servicio de Gestión Académica no está disponible en este momento. Por favor, intente nuevamente en unos minutos.",
-  "service": "ms-academico",
-  "timestamp": "2024-05-15T12:00:00Z"
-}
-```
+| Perfil | Seguridad JWT | Eureka | Uso |
+|---|---|---|---|
+| `dev` | Desactivada | Deshabilitado | Desarrollo local |
+| `prod` | Activada (RBAC) | Deshabilitado | Docker Compose |
 
 ---
 
@@ -210,35 +168,36 @@ CLOSED ──[50% fallas]──► OPEN ──[10s]──► HALF-OPEN
 
 | Variable | Descripción | Default |
 |---|---|---|
-| `JWT_SECRET` | Clave secreta HMAC para validar tokens | `colegio-bernardo-...` (inseguro, solo dev) |
-| `EUREKA_URL` | URL del servidor de discovery | `http://localhost:8761/eureka` |
-| `SPRING_PROFILES_ACTIVE` | Perfil activo (`dev` o `prod`) | `prod` en Docker |
+| `JWT_SECRET` | Clave HMAC-SHA256 (mín. 32 chars) | Valor por defecto en YAML |
+| `FRONTEND_URL` | URL del frontend para CORS | `http://localhost:5173` |
+| `SPRING_PROFILES_ACTIVE` | Perfil (`dev`, `prod`) | `prod` |
+| `ACADEMICO_URI` | URI de ms-academico (solo perfil `dev`) | `http://localhost:8082` |
+| `USUARIO_URI` | URI de ms-usuario (solo perfil `dev`) | `http://localhost:8083` |
+| `COMUNICACIONES_URI` | URI de ms-comunicaciones (solo perfil `dev`) | `http://localhost:8085` |
+| `ASISTENCIA_URI` | URI de ms-asistencia (solo perfil `dev`) | `http://localhost:8085` |
+| `BFF_URI` | URI de ms-bff (solo perfil `dev`) | `http://localhost:8084` |
 
 ---
 
-## Levantar en perfil dev vs prod
+## Ejecución Local
 
-### Desarrollo local (sin token)
+### Pre-requisitos
+
+- Java 17+
+- Maven 3.9+
+- Microservicios downstream corriendo
+
+### Perfil dev (sin seguridad, rutas a localhost)
 
 ```bash
 cd backend/api-gateway
-
-# Con Maven
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-# Con variable de entorno
-SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 ```
 
-### Producción (validación JWT activa)
+### Perfil prod (JWT + RBAC activo, rutas a contenedores Docker)
 
 ```bash
-# Con Maven
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
-
-# Variables de entorno obligatorias en prod:
-JWT_SECRET=tu-clave-secreta-muy-larga \
-EUREKA_URL=http://eureka-server:8761/eureka \
+JWT_SECRET=clave-secreta-de-32-caracteres-minimo \
 SPRING_PROFILES_ACTIVE=prod \
 mvn spring-boot:run
 ```
@@ -247,36 +206,13 @@ mvn spring-boot:run
 
 ## Docker
 
-### Construir imagen
+### Con Docker Compose
 
 ```bash
-docker build -t api-gateway:1.0.0 .
+docker compose up --build
 ```
 
-### Ejecutar en prod
-
-```bash
-docker run -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=prod \
-  -e JWT_SECRET=tu-clave-secreta-segura-de-al-menos-32-chars \
-  -e EUREKA_URL=http://eureka-server:8761/eureka \
-  api-gateway:1.0.0
-```
-
-### Ejecutar en dev (sin JWT)
-
-```bash
-docker run -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=dev \
-  api-gateway:1.0.0
-```
-
-### Con Docker Compose (ecosistema completo)
-
-```bash
-# Desde la raíz del proyecto
-docker-compose up api-gateway ms-academico
-```
+El docker-compose ya configura `SPRING_PROFILES_ACTIVE=prod` automáticamente.
 
 ---
 

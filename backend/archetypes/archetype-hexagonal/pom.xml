@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cl.duoc.colegio</groupId>
+    <artifactId>archetype-hexagonal</artifactId>
+    <version>1.0.0</version>
+    <packaging>maven-archetype</packaging>
+    <name>Arquetipo Hexagonal — Colegio Bernardo O'Higgins</name>
+    <description>
+        Arquetipo Maven base para microservicios con Arquitectura Hexagonal (Ports &amp; Adapters).
+        Incluye Spring Boot 3.2, JPA, Lombok, JaCoCo (cobertura mínima 60%) y estructura de capas domain/application/infrastructure.
+    </description>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.archetype</groupId>
+                <artifactId>archetype-packaging</artifactId>
+                <version>3.2.1</version>
+            </extension>
+        </extensions>
+    </build>
+</project>

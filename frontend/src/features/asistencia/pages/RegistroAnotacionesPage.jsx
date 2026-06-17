@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FiltroCursoAnotaciones from '../components/FiltroCursoAnotaciones';
 import TablaAnotaciones from '../components/TablaAnotaciones';
-import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion } from '../services/asistenciaService';
+import { obtenerCursos, obtenerAlumnosPorCurso, guardarAnotacion, obtenerAnotacionesPorEstudiante } from '../services/asistenciaService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/RegistroAnotacionesPage.css';
 
 const formularioInicial = { tipo: 'positiva', descripcion: '' };
 
 function RegistroAnotacionesPage() {
+  const { setTitulo } = useOutletContext();
+  const { toast, showToast } = useToast();
   const [cursos, setCursos] = useState([]);
+
+  useEffect(() => { setTitulo('Registro de Anotaciones'); }, [setTitulo]);
   const [cursoId, setCursoId] = useState('');
   const [alumnos, setAlumnos] = useState([]);
   const [anotacionesPorAlumno, setAnotacionesPorAlumno] = useState({});
@@ -28,14 +34,22 @@ function RegistroAnotacionesPage() {
   }, []);
 
   useEffect(() => {
-    if (!cursoId) {
-      setAlumnos([]);
-      return;
-    }
-    setAnotacionesPorAlumno({});
-    setPanelActivo(null);
+    if (!cursoId) return;
     obtenerAlumnosPorCurso(cursoId)
-      .then(setAlumnos)
+      .then(async (data) => {
+        setAnotacionesPorAlumno({});
+        setPanelActivo(null);
+        setAlumnos(data);
+        const mapaAnotaciones = {};
+        await Promise.all(data.map(async (alumno) => {
+          try {
+            mapaAnotaciones[alumno.id] = await obtenerAnotacionesPorEstudiante(alumno.id);
+          } catch {
+            mapaAnotaciones[alumno.id] = [];
+          }
+        }));
+        setAnotacionesPorAlumno(mapaAnotaciones);
+      })
       .catch(() => setError('No se pudo cargar los alumnos del curso.'));
   }, [cursoId]);
 
@@ -55,46 +69,49 @@ function RegistroAnotacionesPage() {
   async function handleGuardar(e, alumnoId) {
     e.preventDefault();
     if (!formulario.descripcion.trim()) return;
-    const nueva = { id: Date.now(), tipo: formulario.tipo, descripcion: formulario.descripcion };
-    await guardarAnotacion(alumnoId, nueva);
-    setAnotacionesPorAlumno(prev => ({
-      ...prev,
-      [alumnoId]: [...(prev[alumnoId] || []), nueva],
-    }));
-    setPanelActivo(null);
+    try {
+      const guardada = await guardarAnotacion(alumnoId, { tipo: formulario.tipo, descripcion: formulario.descripcion });
+      setAnotacionesPorAlumno(prev => ({
+        ...prev,
+        [alumnoId]: [...(prev[alumnoId] || []), guardada],
+      }));
+      setPanelActivo(null);
+      showToast('Anotación guardada correctamente.');
+    } catch {
+      showToast('No se pudo guardar la anotación.', 'error');
+    }
   }
 
   return (
-    <MainLayout titulo="Registro de Anotaciones">
-      <div className="anotaciones">
+    <div className="anotaciones">
 
-        {isLoading && <p className="anotaciones__cargando">Cargando...</p>}
-        {error && <p className="anotaciones__error">{error}</p>}
+      {isLoading && <p className="anotaciones__cargando">Cargando...</p>}
+      {error && <p className="anotaciones__error">{error}</p>}
 
-        {!isLoading && !error && (
-          <>
-            <FiltroCursoAnotaciones
-              cursos={cursos}
-              cursoId={cursoId}
-              onChange={handleCursoChange}
-            />
+      {!isLoading && !error && (
+        <>
+          <FiltroCursoAnotaciones
+            cursos={cursos}
+            cursoId={cursoId}
+            onChange={handleCursoChange}
+          />
 
-            <TablaAnotaciones
-              alumnos={alumnos}
-              anotacionesPorAlumno={anotacionesPorAlumno}
-              panelActivo={panelActivo}
-              formulario={formulario}
-              onTogglePanel={handleTogglePanel}
-              onTipoChange={tipo => setFormulario(prev => ({ ...prev, tipo }))}
-              onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
-              onGuardar={handleGuardar}
-              onCancelar={() => setPanelActivo(null)}
-            />
-          </>
-        )}
+          <TablaAnotaciones
+            alumnos={alumnos}
+            anotacionesPorAlumno={anotacionesPorAlumno}
+            panelActivo={panelActivo}
+            formulario={formulario}
+            onTogglePanel={handleTogglePanel}
+            onTipoChange={tipo => setFormulario(prev => ({ ...prev, tipo }))}
+            onDescripcionChange={e => setFormulario(prev => ({ ...prev, descripcion: e.target.value }))}
+            onGuardar={handleGuardar}
+            onCancelar={() => setPanelActivo(null)}
+          />
+        </>
+      )}
 
-      </div>
-    </MainLayout>
+      <Toast toast={toast} onClose={() => {}} />
+    </div>
   );
 }
 

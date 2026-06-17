@@ -1,4 +1,5 @@
 import { Mail, Calendar, User, Tag } from 'lucide-react';
+import { formatearFecha } from '../../../shared/utils/fechaUtils';
 
 function EncabezadoMensaje({ mensaje }) {
   return (
@@ -24,7 +25,7 @@ function EncabezadoMensaje({ mensaje }) {
             <Calendar size={13} aria-hidden="true" />
             Fecha
           </dt>
-          <dd className="detalle-mensaje__meta-valor">{mensaje.fecha}</dd>
+          <dd className="detalle-mensaje__meta-valor">{formatearFecha(mensaje.fecha)}</dd>
         </div>
         <div className="detalle-mensaje__meta-item">
           <dt className="detalle-mensaje__meta-etiqueta">
@@ -32,9 +33,10 @@ function EncabezadoMensaje({ mensaje }) {
             Tipo
           </dt>
           <dd className="detalle-mensaje__meta-valor">
-            <span className={`detalle-mensaje__etiqueta detalle-mensaje__etiqueta--${mensaje.tipo.toLowerCase().replace(' ', '-')}`}>
-              {mensaje.tipo}
-            </span>
+            {mensaje.tipo
+              ? <span className={`detalle-mensaje__etiqueta detalle-mensaje__etiqueta--${mensaje.tipo.toLowerCase().replace(' ', '-')}`}>{mensaje.tipo}</span>
+              : <span className="detalle-mensaje__meta-valor">—</span>
+            }
           </dd>
         </div>
         <div className="detalle-mensaje__meta-item">

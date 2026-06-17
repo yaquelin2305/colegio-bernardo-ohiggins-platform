@@ -1,8 +1,16 @@
 .resumen-asistencia {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.resumen-asistencia__curso {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: 0 0 0.25rem 0;
 }
 
 .resumen-asistencia__card {
@@ -46,6 +54,11 @@
   color: var(--color-warning);
 }
 
+.resumen-asistencia__icon--justificado {
+  background-color: rgba(26, 43, 72, 0.08);
+  color: var(--color-primary);
+}
+
 .resumen-asistencia__icon--porcentaje {
   background-color: rgba(38, 166, 154, 0.15);
   color: var(--color-accent);
@@ -58,7 +71,7 @@
 
 .resumen-asistencia__label {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -77,9 +90,13 @@
   color: var(--color-warning);
 }
 
+.resumen-asistencia__value--justificado {
+  color: var(--color-primary);
+}
+
 @media (max-width: 1024px) {
   .resumen-asistencia {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

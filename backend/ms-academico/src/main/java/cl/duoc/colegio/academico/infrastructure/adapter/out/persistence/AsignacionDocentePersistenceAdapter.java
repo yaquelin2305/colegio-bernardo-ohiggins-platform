@@ -35,8 +35,18 @@ public class AsignacionDocentePersistenceAdapter implements AsignacionDocenteRep
     }
 
     @Override
+    public List<AsignacionDocente> buscarTodas() {
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Override
     public boolean existePorDocenteCursoAsignatura(UUID docenteUuid, Long cursoId, Long asignaturaId) {
         return jpaRepository.existsByDocenteUuidAndCursoIdAndAsignaturaId(docenteUuid, cursoId, asignaturaId);
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        jpaRepository.deleteById(id);
     }
 
     private AsignacionDocente toDomain(AsignacionDocenteEntity e) {

@@ -1,5 +1,8 @@
 package cl.duoc.colegio.academico.infrastructure.adapter.in.rest.dto;
 
+import cl.duoc.colegio.academico.domain.model.GradeContract;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,10 +49,18 @@ public record CalificacionesContractDto(
                 .average()
                 .orElse(0.0);
 
-        // Redondear a 1 decimal (convención nota chilena)
         double promedioRedondeado = Math.round(promedio * 10.0) / 10.0;
 
         return new CalificacionesContractDto(usuarioUuid, asignaturaId,
                 n1, n2, n3, promedioRedondeado);
+    }
+
+    public static CalificacionesContractDto from(GradeContract contrato) {
+        List<Double> notas = new ArrayList<>();
+        if (contrato.getNota1() != null) notas.add(contrato.getNota1());
+        if (contrato.getNota2() != null) notas.add(contrato.getNota2());
+        if (contrato.getNota3() != null) notas.add(contrato.getNota3());
+
+        return from(contrato.getUsuarioUuid(), contrato.getAsignaturaId(), notas);
     }
 }

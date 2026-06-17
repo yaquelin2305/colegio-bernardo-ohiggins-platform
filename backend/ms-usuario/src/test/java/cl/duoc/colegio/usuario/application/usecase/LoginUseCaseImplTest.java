@@ -1,7 +1,6 @@
 package cl.duoc.colegio.usuario.application.usecase;
 
-import cl.duoc.colegio.usuario.application.dto.AuthResponseDto;
-import cl.duoc.colegio.usuario.application.dto.LoginRequestDto;
+import cl.duoc.colegio.usuario.domain.dto.AuthResponseDto;
 import cl.duoc.colegio.usuario.application.factory.UserStrategyFactory;
 import cl.duoc.colegio.usuario.application.strategy.DocenteAuthorizationStrategy;
 import cl.duoc.colegio.usuario.domain.exception.CredencialesInvalidasException;
@@ -28,10 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-/**
- * Pruebas unitarias para LoginUseCaseImpl.
- * Usa Mockito para aislar completamente el caso de uso de sus dependencias.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginUseCase — Pruebas Unitarias")
 class LoginUseCaseImplTest {
@@ -52,26 +47,23 @@ class LoginUseCaseImplTest {
     private LoginUseCaseImpl loginUseCase;
 
     private Usuario usuarioActivo;
-    private LoginRequestDto loginRequest;
 
     @BeforeEach
     void setUp() {
         usuarioActivo = new Usuario(
+                "11222333-4",
                 "docente@colegio.cl",
                 "$2a$12$hashedPassword",
                 RolUsuario.DOCENTE,
                 "Carlos",
-                "Rodríguez"
+                "Rodriguez"
         );
-
-        loginRequest = new LoginRequestDto("docente@colegio.cl", "password123");
     }
 
     @Test
     @DisplayName("Login exitoso retorna AuthResponseDto con token")
     void login_credencialesValidas_retornaToken() {
-        // Arrange
-        when(repositoryPort.buscarPorEmail("docente@colegio.cl"))
+        when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoderPort.matches("password123", "$2a$12$hashedPassword"))
                 .thenReturn(true);
@@ -80,14 +72,12 @@ class LoginUseCaseImplTest {
         when(tokenGeneratorPort.generarToken(any(Usuario.class)))
                 .thenReturn("jwt.token.mock");
 
-        // Act
-        AuthResponseDto response = loginUseCase.login(loginRequest);
+        AuthResponseDto response = loginUseCase.login("11222333-4", "password123");
 
-        // Assert
         assertThat(response).isNotNull();
-        assertThat(response.token()).isEqualTo("jwt.token.mock");
+        assertThat(response.accessToken()).isEqualTo("jwt.token.mock");
         assertThat(response.tipo()).isEqualTo("Bearer");
-        assertThat(response.email()).isEqualTo("docente@colegio.cl");
+        assertThat(response.rut()).isEqualTo("11222333-4");
         assertThat(response.rol()).isEqualTo("DOCENTE");
         assertThat(response.permisos()).isNotEmpty();
     }
@@ -95,44 +85,40 @@ class LoginUseCaseImplTest {
     @Test
     @DisplayName("Login con usuario inexistente lanza UsuarioNoEncontradoException")
     void login_usuarioNoExiste_lanzaExcepcion() {
-        when(repositoryPort.buscarPorEmail(anyString()))
+        when(repositoryPort.buscarPorRut(anyString()))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(UsuarioNoEncontradoException.class);
 
-        // Nunca debe llegar a verificar la contraseña
         verify(passwordEncoderPort, never()).matches(anyString(), anyString());
     }
 
     @Test
     @DisplayName("Login con contraseña incorrecta lanza CredencialesInvalidasException")
     void login_passwordIncorrecto_lanzaExcepcion() {
-        when(repositoryPort.buscarPorEmail("docente@colegio.cl"))
+        when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoderPort.matches(anyString(), anyString()))
                 .thenReturn(false);
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(CredencialesInvalidasException.class);
 
-        // Nunca debe generar token
         verify(tokenGeneratorPort, never()).generarToken(any());
     }
 
     @Test
     @DisplayName("Login con usuario inactivo lanza UsuarioInactivoException")
     void login_usuarioInactivo_lanzaExcepcion() {
-        // Desactivar el usuario
         usuarioActivo.desactivar();
 
-        when(repositoryPort.buscarPorEmail("docente@colegio.cl"))
+        when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
 
-        assertThatThrownBy(() -> loginUseCase.login(loginRequest))
+        assertThatThrownBy(() -> loginUseCase.login("11222333-4", "password123"))
                 .isInstanceOf(UsuarioInactivoException.class);
 
-        // No debe verificar contraseña si el usuario está inactivo
         verify(passwordEncoderPort, never()).matches(anyString(), anyString());
     }
 
@@ -141,31 +127,29 @@ class LoginUseCaseImplTest {
     void login_exitoso_invocaFactoryYStrategy() {
         DocenteAuthorizationStrategy mockStrategy = spy(new DocenteAuthorizationStrategy());
 
-        when(repositoryPort.buscarPorEmail("docente@colegio.cl"))
+        when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoderPort.matches(anyString(), anyString())).thenReturn(true);
         when(strategyFactory.crear(RolUsuario.DOCENTE)).thenReturn(mockStrategy);
         when(tokenGeneratorPort.generarToken(any())).thenReturn("token");
 
-        loginUseCase.login(loginRequest);
+        loginUseCase.login("11222333-4", "password123");
 
-        // Verificar que se invocó el factory con el rol correcto
         verify(strategyFactory).crear(RolUsuario.DOCENTE);
-        // Verificar que se invocó la strategy
         verify(mockStrategy).resolverPermisos(any(Usuario.class));
     }
 
     @Test
     @DisplayName("El response incluye permisos de DOCENTE (notas, asistencias)")
     void login_rolDocente_responseContienePermisosDocente() {
-        when(repositoryPort.buscarPorEmail("docente@colegio.cl"))
+        when(repositoryPort.buscarPorRut("11222333-4"))
                 .thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoderPort.matches(anyString(), anyString())).thenReturn(true);
         when(strategyFactory.crear(RolUsuario.DOCENTE))
                 .thenReturn(new DocenteAuthorizationStrategy());
         when(tokenGeneratorPort.generarToken(any())).thenReturn("token");
 
-        AuthResponseDto response = loginUseCase.login(loginRequest);
+        AuthResponseDto response = loginUseCase.login("11222333-4", "password123");
 
         assertThat(response.permisos()).contains("notas", "asistencias");
     }

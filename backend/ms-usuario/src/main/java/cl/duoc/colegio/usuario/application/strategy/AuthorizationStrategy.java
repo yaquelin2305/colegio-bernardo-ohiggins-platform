@@ -17,20 +17,7 @@ import cl.duoc.colegio.usuario.domain.model.Usuario;
  */
 public interface AuthorizationStrategy {
 
-    /**
-     * Determina los permisos del usuario basándose en su rol y contexto.
-     *
-     * @param usuario el usuario autenticado
-     * @return permisos construidos para este usuario
-     */
     Permisos resolverPermisos(Usuario usuario);
 
-    /**
-     * Genera los claims adicionales para incluir en el JWT.
-     * Cada rol puede incluir datos específicos en el token.
-     *
-     * @param usuario el usuario autenticado
-     * @return mapa de claims adicionales
-     */
     java.util.Map<String, Object> generarClaimsAdicionales(Usuario usuario);
 }

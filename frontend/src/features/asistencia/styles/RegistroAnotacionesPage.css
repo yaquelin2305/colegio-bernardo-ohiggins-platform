@@ -116,6 +116,14 @@
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: opacity 0.15s;
+}
+
+.anotaciones__contador:hover {
+  opacity: 0.75;
 }
 
 .anotaciones__contador--positivo {
@@ -126,6 +134,95 @@
 .anotaciones__contador--negativo {
   background-color: rgba(255, 152, 0, 0.1);
   color: var(--color-warning);
+}
+
+/* ── Botón historial ── */
+.anotaciones__btn-historial {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.anotaciones__btn-historial:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.anotaciones__sin-datos {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* ── Fila historial expandible ── */
+.anotaciones__fila-historial td {
+  padding: 0;
+  border-bottom: 1px solid var(--color-border-light);
+  background-color: var(--color-background);
+}
+
+.anotaciones__historial-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.anotaciones__historial-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.anotaciones__historial-item:last-child {
+  border-bottom: none;
+}
+
+.anotaciones__historial-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.anotaciones__historial-item--positiva .anotaciones__historial-tipo {
+  color: var(--color-accent);
+}
+
+.anotaciones__historial-item--negativa .anotaciones__historial-tipo {
+  color: var(--color-warning);
+}
+
+.anotaciones__historial-desc {
+  flex: 1;
+  color: var(--color-primary);
+}
+
+.anotaciones__historial-fecha {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Botón toggle ── */

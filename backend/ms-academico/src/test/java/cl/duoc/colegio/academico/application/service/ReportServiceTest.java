@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -29,6 +30,10 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReportService — Generación de reportes académicos")
 class ReportServiceTest {
+
+    private static final UUID TEST_UUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID UUID_INEXISTENTE = UUID.fromString("99999999-9999-9999-9999-999999999999");
+    private static final Long ASIGNATURA_ID = 100L;
 
     @Mock private StudentRepositoryPort studentRepository;
     @Mock private GradeRepositoryPort gradeRepository;
@@ -47,8 +52,8 @@ class ReportServiceTest {
     @Test
     @DisplayName("Genera reporte SIN_ALERTA con buen promedio y buena asistencia")
     void buenEstudiante_sinAlerta() {
-        given(studentRepository.buscarPorId(1L)).willReturn(Optional.of(student));
-        given(gradeRepository.buscarPorStudentId(1L)).willReturn(List.of(
+        given(studentRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(Optional.of(student));
+        given(gradeRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(List.of(
             grade(5.5), grade(6.0), grade(6.5)
         ));
         given(attendanceRepository.buscarPorStudentId(1L)).willReturn(List.of(
@@ -56,7 +61,7 @@ class ReportServiceTest {
             asistencia(true), asistencia(true)
         ));
 
-        AcademicReport report = reportService.generarReporteEstudiante(1L);
+        AcademicReport report = reportService.generarReporteEstudiante(TEST_UUID);
 
         assertThat(report.getAlerta()).isEqualTo(AcademicReport.TipoAlerta.SIN_ALERTA);
         assertThat(report.tieneAlerta()).isFalse();
@@ -66,8 +71,8 @@ class ReportServiceTest {
     @Test
     @DisplayName("Genera ALERTA_RENDIMIENTO con promedio bajo 4.0")
     void promedioReprobatorio_alertaRendimiento() {
-        given(studentRepository.buscarPorId(1L)).willReturn(Optional.of(student));
-        given(gradeRepository.buscarPorStudentId(1L)).willReturn(List.of(
+        given(studentRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(Optional.of(student));
+        given(gradeRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(List.of(
             grade(2.0), grade(3.0), grade(3.5)
         ));
         given(attendanceRepository.buscarPorStudentId(1L)).willReturn(List.of(
@@ -75,7 +80,7 @@ class ReportServiceTest {
             asistencia(true), asistencia(true)
         ));
 
-        AcademicReport report = reportService.generarReporteEstudiante(1L);
+        AcademicReport report = reportService.generarReporteEstudiante(TEST_UUID);
 
         assertThat(report.getAlerta()).isEqualTo(AcademicReport.TipoAlerta.ALERTA_RENDIMIENTO);
         assertThat(report.tieneAlerta()).isTrue();
@@ -84,8 +89,8 @@ class ReportServiceTest {
     @Test
     @DisplayName("Genera ALERTA_CRITICA con bajo rendimiento Y baja asistencia")
     void reprobadoYAusenteFrequente_alertaCritica() {
-        given(studentRepository.buscarPorId(1L)).willReturn(Optional.of(student));
-        given(gradeRepository.buscarPorStudentId(1L)).willReturn(List.of(
+        given(studentRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(Optional.of(student));
+        given(gradeRepository.buscarPorUsuarioUuid(TEST_UUID)).willReturn(List.of(
             grade(2.0), grade(2.5)
         ));
         // 60% asistencia — bajo 85%
@@ -94,7 +99,7 @@ class ReportServiceTest {
             asistencia(false), asistencia(false)
         ));
 
-        AcademicReport report = reportService.generarReporteEstudiante(1L);
+        AcademicReport report = reportService.generarReporteEstudiante(TEST_UUID);
 
         assertThat(report.getAlerta()).isEqualTo(AcademicReport.TipoAlerta.ALERTA_CRITICA);
         assertThat(report.getMensajeAlerta()).contains("ALERTA CRÍTICA");
@@ -103,14 +108,14 @@ class ReportServiceTest {
     @Test
     @DisplayName("Lanza StudentNotFoundException si el estudiante no existe")
     void estudianteInexistente_lanzaExcepcion() {
-        given(studentRepository.buscarPorId(99L)).willReturn(Optional.empty());
+        given(studentRepository.buscarPorUsuarioUuid(UUID_INEXISTENTE)).willReturn(Optional.empty());
 
         assertThatExceptionOfType(StudentNotFoundException.class)
-            .isThrownBy(() -> reportService.generarReporteEstudiante(99L));
+            .isThrownBy(() -> reportService.generarReporteEstudiante(UUID_INEXISTENTE));
     }
 
     private Grade grade(double nota) {
-        return new Grade(null, 1L, "Matemáticas", nota, "PRUEBA", LocalDate.now(), null);
+        return new Grade(null, TEST_UUID, ASIGNATURA_ID, nota, "PRUEBA", null);
     }
 
     private Attendance asistencia(boolean presente) {

@@ -3,6 +3,7 @@ package cl.duoc.colegio.academico.application.port.out;
 import cl.duoc.colegio.academico.domain.model.Student;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Puerto de salida — Repositorio de Estudiantes.
@@ -14,6 +15,8 @@ public interface StudentRepositoryPort {
     Student guardar(Student student);
 
     Optional<Student> buscarPorId(Long id);
+
+    Optional<Student> buscarPorUsuarioUuid(UUID usuarioUuid);
 
     Optional<Student> buscarPorRut(String rut);
 

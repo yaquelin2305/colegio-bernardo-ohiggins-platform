@@ -17,7 +17,7 @@ function FiltroAlumno({ alumnos, alumnoId, onChange }) {
           <option value="">— Selecciona un alumno —</option>
           {alumnos.map(a => (
             <option key={a.id} value={a.id}>
-              {a.nombre} ({a.curso})
+              {a.nombre}{a.curso ? ` (${a.curso})` : ''}
             </option>
           ))}
         </select>

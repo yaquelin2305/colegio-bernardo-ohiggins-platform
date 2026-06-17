@@ -114,6 +114,31 @@
   color: var(--color-secondary);
 }
 
+.asistencia-table__select {
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.asistencia-table__select--presente {
+  background-color: rgba(38, 166, 154, 0.15);
+  color: var(--color-accent);
+}
+
+.asistencia-table__select--ausente {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--color-warning);
+}
+
+.asistencia-table__select--justificado {
+  background-color: rgba(66, 133, 244, 0.15);
+  color: #1a73e8;
+}
+
 .asistencia-table__empty {
   text-align: center;
   padding: 3rem;

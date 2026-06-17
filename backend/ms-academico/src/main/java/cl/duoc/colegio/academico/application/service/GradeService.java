@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Servicio de notas académicas.
@@ -31,8 +32,8 @@ public class GradeService implements GradeUseCase {
     @Override
     public Grade registrarNota(Grade grade) {
         // Validar que el estudiante existe antes de registrar nota
-        studentRepository.buscarPorId(grade.getStudentId())
-                .orElseThrow(() -> new StudentNotFoundException(grade.getStudentId()));
+        studentRepository.buscarPorUsuarioUuid(grade.getUsuarioUuid())
+                .orElseThrow(() -> new StudentNotFoundException(grade.getUsuarioUuid()));
         return gradeRepository.guardar(grade);
     }
 
@@ -45,22 +46,22 @@ public class GradeService implements GradeUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Grade> listarNotasPorEstudiante(Long studentId) {
-        studentRepository.buscarPorId(studentId)
-                .orElseThrow(() -> new StudentNotFoundException(studentId));
-        return gradeRepository.buscarPorStudentId(studentId);
+    public List<Grade> listarNotasPorEstudiante(UUID usuarioUuid) {
+        studentRepository.buscarPorUsuarioUuid(usuarioUuid)
+                .orElseThrow(() -> new StudentNotFoundException(usuarioUuid));
+        return gradeRepository.buscarPorUsuarioUuid(usuarioUuid);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Grade> listarNotasPorEstudianteYAsignatura(Long studentId, String asignatura) {
-        return gradeRepository.buscarPorStudentIdYAsignatura(studentId, asignatura);
+    public List<Grade> listarNotasPorEstudianteYAsignatura(UUID usuarioUuid, Long asignaturaId) {
+        return gradeRepository.buscarPorUsuarioUuidYAsignaturaId(usuarioUuid, asignaturaId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public double calcularPromedioEstudiante(Long studentId) {
-        List<Grade> notas = listarNotasPorEstudiante(studentId);
+    public double calcularPromedioEstudiante(UUID usuarioUuid) {
+        List<Grade> notas = listarNotasPorEstudiante(usuarioUuid);
         if (notas.isEmpty()) return 0.0;
         return notas.stream()
                 .mapToDouble(Grade::getNota)
@@ -70,8 +71,8 @@ public class GradeService implements GradeUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public double calcularPromedioEstudiantePorAsignatura(Long studentId, String asignatura) {
-        List<Grade> notas = listarNotasPorEstudianteYAsignatura(studentId, asignatura);
+    public double calcularPromedioEstudiantePorAsignatura(UUID usuarioUuid, Long asignaturaId) {
+        List<Grade> notas = listarNotasPorEstudianteYAsignatura(usuarioUuid, asignaturaId);
         if (notas.isEmpty()) return 0.0;
         return notas.stream()
                 .mapToDouble(Grade::getNota)

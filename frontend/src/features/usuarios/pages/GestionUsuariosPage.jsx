@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
+import { useOutletContext } from 'react-router-dom';
 import FormularioUsuarioAdmin from '../components/FormularioUsuarioAdmin';
 import TabsUsuarios from '../components/TabsUsuarios';
 import TablaUsuarios from '../components/TablaUsuarios';
@@ -11,10 +11,15 @@ import {
   actualizarUsuario,
   eliminarUsuario,
 } from '../services/usuariosService';
+import { useToast } from '../../../shared/hooks/useToast';
+import Toast from '../../../shared/components/ui/Toast';
 import '../styles/GestionUsuariosPage.css';
 
 function GestionUsuariosPage() {
+  const { setTitulo } = useOutletContext();
   const [tabActiva, setTabActiva] = useState('docentes');
+
+  useEffect(() => { setTitulo('Gestión de Usuarios'); }, [setTitulo]);
   const [docentes, setDocentes]       = useState([]);
   const [apoderados, setApoderados]   = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
@@ -22,12 +27,20 @@ function GestionUsuariosPage() {
   const [confirmarEliminarId, setConfirmarEliminarId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError]         = useState(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     Promise.all([obtenerDocentes(), obtenerApoderados(), obtenerEstudiantes()])
       .then(([datosDocentes, datosApoderados, datosEstudiantes]) => {
+        const apoderadosEnriquecidos = datosApoderados.map(a => {
+          const est = datosEstudiantes.find(e => e.id === a.pupiloUuid);
+          return {
+            ...a,
+            pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre,
+          };
+        });
         setDocentes(datosDocentes);
-        setApoderados(datosApoderados);
+        setApoderados(apoderadosEnriquecidos);
         setEstudiantes(datosEstudiantes);
       })
       .catch(() => setError('No se pudo cargar el listado de usuarios.'))
@@ -47,7 +60,7 @@ function GestionUsuariosPage() {
   }
 
   async function handleGuardarDesdeFormulario(payload) {
-    const { id, rol, rut, nombres, apellidos, email, apoderadoId } = payload;
+    const { id, rol, rut, nombres, apellidos, email, pupiloUuid } = payload;
 
     try {
       if (id) {
@@ -56,9 +69,13 @@ function GestionUsuariosPage() {
           prev.map(u => {
             if (u.id !== id) return u;
             const base = { ...u, rut, nombres, apellidos, email };
-            if (rol === 'ESTUDIANTE') {
-              const ap = apoderados.find(a => a.id === apoderadoId);
-              return { ...base, apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : u.apoderado };
+            if (rol === 'APODERADO') {
+              const est = estudiantes.find(e => e.id === pupiloUuid);
+              return {
+                ...base,
+                pupiloUuid,
+                pupiloNombre: est ? `${est.nombres} ${est.apellidos}` : u.pupiloNombre,
+              };
             }
             return base;
           })
@@ -67,22 +84,27 @@ function GestionUsuariosPage() {
         else if (rol === 'APODERADO') actualizarEnLista(setApoderados);
         else                          actualizarEnLista(setEstudiantes);
         setUsuarioEditando(null);
+        showToast('Usuario actualizado correctamente.');
       } else {
         await crearUsuario(payload);
         if (rol === 'DOCENTE') {
-          setDocentes(prev => [...prev, { id: `d${Date.now()}`, rut, nombres, apellidos, email, rol }]);
+          const lista = await obtenerDocentes();
+          setDocentes(lista);
         } else if (rol === 'APODERADO') {
-          setApoderados(prev => [...prev, { id: `ap${Date.now()}`, rut, nombres, apellidos, email, rol }]);
+          const [listaAp, listaEst] = await Promise.all([obtenerApoderados(), obtenerEstudiantes()]);
+          setEstudiantes(listaEst);
+          setApoderados(listaAp.map(a => {
+            const est = listaEst.find(e => e.id === a.pupiloUuid);
+            return { ...a, pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre };
+          }));
         } else if (rol === 'ESTUDIANTE') {
-          const ap = apoderados.find(a => a.id === apoderadoId);
-          setEstudiantes(prev => [...prev, {
-            id: `e${Date.now()}`, rut, nombres, apellidos, email, rol,
-            apoderadoId, apoderado: ap ? `${ap.nombres} ${ap.apellidos}` : '—',
-          }]);
+          const lista = await obtenerEstudiantes();
+          setEstudiantes(lista);
         }
+        showToast('Usuario creado correctamente.');
       }
     } catch {
-      setError('No se pudo guardar el usuario. Intenta nuevamente.');
+      showToast('No se pudo guardar el usuario.', 'error');
     }
   }
 
@@ -99,8 +121,9 @@ function GestionUsuariosPage() {
       await eliminarUsuario(id);
       setLista(prev => prev.filter(u => u.id !== id));
       setConfirmarEliminarId(null);
+      showToast('Usuario eliminado.');
     } catch {
-      setError('No se pudo eliminar el usuario. Intenta nuevamente.');
+      showToast('No se pudo eliminar el usuario.', 'error');
     }
   }
 
@@ -111,49 +134,49 @@ function GestionUsuariosPage() {
   }
 
   const lista = getLista();
-  const columnas = tabActiva === 'estudiantes'
-    ? ['RUT', 'Nombre', 'Correo', 'Apoderado']
+  const columnas = tabActiva === 'apoderados'
+    ? ['RUT', 'Nombre', 'Correo', 'Pupilo']
     : ['RUT', 'Nombre', 'Correo'];
 
   return (
-    <MainLayout titulo="Gestión de Usuarios">
-      <div className="gestion-usuarios">
+    <div className="gestion-usuarios">
 
-        <TabsUsuarios tabActiva={tabActiva} onCambiarTab={handleCambiarTab} />
+      <TabsUsuarios tabActiva={tabActiva} onCambiarTab={handleCambiarTab} />
 
-        {isLoading && <p className="gestion-usuarios__cargando">Cargando...</p>}
-        {error && <p className="gestion-usuarios__error">{error}</p>}
+      {isLoading && <p className="gestion-usuarios__cargando">Cargando...</p>}
+      {error && <p className="gestion-usuarios__error">{error}</p>}
 
-        {!isLoading && (
-          <div className="gestion-usuarios__contenido">
+      {!isLoading && (
+        <div className="gestion-usuarios__contenido">
 
-            <section className="gestion-usuarios__seccion gestion-usuarios__seccion--formulario" aria-label="Crear o editar usuario">
-              <FormularioUsuarioAdmin
-                onGuardar={handleGuardarDesdeFormulario}
-                apoderados={apoderados}
-                usuarioEditando={usuarioEditando}
-                onCancelar={() => setUsuarioEditando(null)}
-              />
-            </section>
-
-            <TablaUsuarios
-              lista={lista}
-              tabActiva={tabActiva}
-              columnas={columnas}
+          <section className="gestion-usuarios__seccion gestion-usuarios__seccion--formulario" aria-label="Crear o editar usuario">
+            <FormularioUsuarioAdmin
+              key={usuarioEditando?.id ?? 'nuevo'}
+              onGuardar={handleGuardarDesdeFormulario}
+              estudiantes={estudiantes}
               usuarioEditando={usuarioEditando}
-              confirmarEliminarId={confirmarEliminarId}
-              onEditar={handleEditar}
-              onEliminar={handleEliminar}
-              onToggleConfirmar={id => setConfirmarEliminarId(
-                confirmarEliminarId === id ? null : id
-              )}
+              onCancelar={() => setUsuarioEditando(null)}
             />
+          </section>
 
-          </div>
-        )}
+          <TablaUsuarios
+            lista={lista}
+            tabActiva={tabActiva}
+            columnas={columnas}
+            usuarioEditando={usuarioEditando}
+            confirmarEliminarId={confirmarEliminarId}
+            onEditar={handleEditar}
+            onEliminar={handleEliminar}
+            onToggleConfirmar={id => setConfirmarEliminarId(
+              confirmarEliminarId === id ? null : id
+            )}
+          />
 
-      </div>
-    </MainLayout>
+        </div>
+      )}
+
+      <Toast toast={toast} onClose={() => {}} />
+    </div>
   );
 }
 

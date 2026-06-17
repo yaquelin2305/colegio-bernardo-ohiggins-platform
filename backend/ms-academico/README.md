@@ -2,12 +2,15 @@
 
 > Colegio Bernardo O'Higgins | Proyecto Fullstack III — Duoc UC
 
+Microservicio de gestión de **cursos, asignaturas, matrículas, calificaciones, asistencia y reportes académicos** con notas en escala chilena (1.0–7.0).
+
+---
+
 ## Índice
 
 - [Arquitectura Hexagonal](#arquitectura-hexagonal)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Diagrama de Flujo](#diagrama-de-flujo)
 - [Patrones de Diseño](#patrones-de-diseño)
+- [Estructura del Proyecto](#estructura-del-proyecto)
 - [Endpoints API](#endpoints-api)
 - [Variables de Entorno](#variables-de-entorno)
 - [Ejecución Local](#ejecución-local)
@@ -32,14 +35,17 @@ Este microservicio implementa **Arquitectura Hexagonal (Ports & Adapters)** estr
 │    │                  APLICACIÓN                      │          │
 │    │  Puertos IN          │        Puertos OUT         │         │
 │    │  (interfaces)        │        (interfaces)        │         │
-│    │  StudentUseCase      │     StudentRepositoryPort  │         │
-│    │  GradeUseCase        │     GradeRepositoryPort    │         │
-│    │  AttendanceUseCase   │     AttendanceRepositoryPort│        │
-│    │  ReportUseCase       │                            │         │
+│    │  CursoUseCase        │     CursoRepositoryPort    │         │
+│    │  AsignaturaUseCase   │     AsignaturaRepositoryPort│        │
+│    │  MatriculaUseCase    │     MatriculaRepositoryPort │        │
+│    │  CalificacionUseCase │     CalificacionRepositoryPort│      │
+│    │  AsistenciaUseCase   │     AsistenciaRepositoryPort│        │
+│    │  ReporteUseCase      │                            │         │
 │    │         │            │                            │         │
 │    │  ┌──────▼──────────────────────────────────┐     │         │
 │    │  │            DOMINIO                       │     │         │
-│    │  │  Student, Grade, Attendance              │     │         │
+│    │  │  Curso, Asignatura, Matricula             │     │         │
+│    │  │  Calificacion, Asistencia                 │     │         │
 │    │  │  AcademicReport (Value Object)           │     │         │
 │    │  │  Lógica de negocio pura                  │     │         │
 │    │  └──────────────────────────────────────────┘     │         │
@@ -50,235 +56,186 @@ Este microservicio implementa **Arquitectura Hexagonal (Ports & Adapters)** estr
 ### Capas y responsabilidades
 
 | Capa | Paquete | Contenido |
-|------|---------|-----------|
-| **Domain** | `domain.model` | Entidades puras sin frameworks |
-| **Domain** | `domain.exception` | Excepciones de negocio |
-| **Application** | `application.port.in` | Puertos de entrada (contratos) |
-| **Application** | `application.port.out` | Puertos de salida (contratos) |
-| **Application** | `application.service` | Casos de uso implementados |
-| **Infrastructure** | `infrastructure.adapter.in.rest` | Controladores REST |
-| **Infrastructure** | `infrastructure.adapter.out.persistence` | Adaptadores JPA |
-| **Infrastructure** | `infrastructure.config` | Configuraciones Spring |
-| **Infrastructure** | `infrastructure.factory` | Factory Method para reportes |
-
----
-
-## Estructura del Proyecto
-
-```
-ms-academico/
-├── src/
-│   ├── main/
-│   │   ├── java/cl/duoc/colegio/academico/
-│   │   │   ├── MsAcademicoApplication.java
-│   │   │   ├── domain/
-│   │   │   │   ├── model/
-│   │   │   │   │   ├── Student.java
-│   │   │   │   │   ├── Grade.java
-│   │   │   │   │   ├── Attendance.java
-│   │   │   │   │   └── AcademicReport.java
-│   │   │   │   └── exception/
-│   │   │   │       ├── AcademicoException.java
-│   │   │   │       ├── StudentNotFoundException.java
-│   │   │   │       ├── GradeNotFoundException.java
-│   │   │   │       └── AttendanceNotFoundException.java
-│   │   │   ├── application/
-│   │   │   │   ├── port/
-│   │   │   │   │   ├── in/  (StudentUseCase, GradeUseCase, AttendanceUseCase, ReportUseCase)
-│   │   │   │   │   └── out/ (StudentRepositoryPort, GradeRepositoryPort, AttendanceRepositoryPort)
-│   │   │   │   └── service/
-│   │   │   │       ├── StudentService.java
-│   │   │   │       ├── GradeService.java
-│   │   │   │       ├── AttendanceService.java
-│   │   │   │       └── ReportService.java
-│   │   │   └── infrastructure/
-│   │   │       ├── adapter/
-│   │   │       │   ├── in/rest/        (StudentController, GradeController, etc.)
-│   │   │       │   └── out/persistence/ (Entities, JpaRepositories, Adapters, Mappers)
-│   │   │       ├── config/             (SecurityConfig, OpenApiConfig, GlobalExceptionHandler)
-│   │   │       └── factory/            (AcademicReportFactory)
-│   │   └── resources/
-│   │       └── application.yml
-│   └── test/
-│       └── java/cl/duoc/colegio/academico/
-│           ├── domain/model/           (StudentTest, GradeTest)
-│           └── application/service/   (GradeServiceTest, AttendanceServiceTest, ReportServiceTest)
-├── Dockerfile
-├── pom.xml
-└── README.md
-```
-
----
-
-## Diagrama de Flujo
-
-Flujo completo de una petición desde el cliente hasta la base de datos:
-
-```
-Cliente / Frontend
-        │
-        ▼
-  ┌──────────────┐
-  │  API Gateway  │  ← Valida JWT, enruta a ms-academico
-  │  (port 8080)  │
-  └──────┬───────┘
-         │  HTTP / Service Discovery (Eureka)
-         ▼
-  ┌──────────────┐
-  │     BFF       │  ← Orquesta múltiples MSs (opcional)
-  │  (port 8090)  │
-  └──────┬───────┘
-         │  HTTP → ms-academico
-         ▼
-  ┌──────────────────────────────────────────┐
-  │            MS-ACADÉMICO (port 8082)       │
-  │                                           │
-  │  1. REST Controller recibe la petición    │
-  │  2. Llama al UseCase (puerto de entrada)  │
-  │  3. Service ejecuta la lógica             │
-  │  4. Llama al RepositoryPort (puerto out)  │
-  │  5. Persistence Adapter consulta JPA      │
-  │  6. JPA → PostgreSQL (Supabase)           │
-  └──────────────────────────────────────────┘
-         │
-         ▼
-  ┌──────────────┐
-  │  PostgreSQL   │  (Supabase cloud)
-  └──────────────┘
-```
+|---|---|---|
+| **Domain** | `domain.model` | Entidades puras: Curso, Asignatura, Matricula, Calificacion, Asistencia |
+| **Domain** | `domain.exception` | AcademicoException, NotFoundException |
+| **Application** | `application.port.in` | Puertos de entrada (UseCase interfaces) |
+| **Application** | `application.port.out` | Puertos de salida (RepositoryPort interfaces) |
+| **Application** | `application.service` | Casos de uso implementados con `@Service` |
+| **Application** | `application.dto` | DTOs de respuesta (CursoResponse, AsignaturaResponse, etc.) |
+| **Infrastructure** | `infrastructure.adapter.in.rest` | Controladores REST con DTOs |
+| **Infrastructure** | `infrastructure.adapter.out.persistence` | JPA Entities, Spring Data repos, Adapter |
+| **Infrastructure** | `infrastructure.config` | GlobalExceptionHandler, OpenApiConfig |
+| **Infrastructure** | `infrastructure.factory` | AcademicReportFactory |
 
 ---
 
 ## Patrones de Diseño
 
 ### 1. Repository Pattern
+
 Separa el acceso a datos de la lógica de negocio mediante puertos de salida:
+
 ```
-GradeUseCase → GradeRepositoryPort (interfaz) ← GradePersistenceAdapter (implementación JPA)
+CursoService → CursoRepositoryPort (interfaz) ← CursoPersistenceAdapter (JPA)
 ```
 
 ### 2. Factory Method — `AcademicReportFactory`
-Centraliza la creación de `AcademicReport` con su tipo de alerta:
+
+Centraliza la creación de `AcademicReport` determinando automáticamente el tipo de alerta:
+
 ```java
-AcademicReport report = AcademicReportFactory.crear(student, grades, porcentajeAsistencia);
-// → Determina automáticamente: SIN_ALERTA / ALERTA_RENDIMIENTO / ALERTA_ASISTENCIA / ALERTA_CRITICA
+AcademicReport report = AcademicReportFactory.crear(estudiante, calificaciones, porcentajeAsistencia);
+// Tipos de alerta:
+//   SIN_ALERTA — Rendimiento y asistencia OK
+//   ALERTA_RENDIMIENTO — Promedio bajo 4.0
+//   ALERTA_ASISTENCIA — Asistencia bajo 85%
+//   ALERTA_CRITICA — Ambas condiciones
 ```
 
-### 3. Singleton via Spring Beans
-Todos los `@Service` y `@Component` son Singletons gestionados por el contenedor IoC de Spring.
-Un Bean = una única instancia compartida en toda la aplicación.
+### 3. DTO Pattern
+
+Todas las respuestas de los controladores usan **DTOs inmutables** (Lombok `@Builder` / `@Getter`) para desacoplar la capa REST del dominio:
+
+```
+Controller → Service → Domain Entity → ResponseDTO → JSON
+```
 
 ---
 
 ## Endpoints API
 
-Swagger UI disponible en: `http://localhost:8082/swagger-ui.html`
-
-### Estudiantes `/api/v1/estudiantes`
+### Cursos `/api/v1/cursos`
 
 | Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `POST` | `/` | Crear estudiante |
-| `GET` | `/{id}` | Obtener por ID |
-| `GET` | `/rut/{rut}` | Obtener por RUT |
-| `GET` | `/` | Listar todos |
-| `GET` | `/curso/{curso}` | Listar por curso |
-| `PUT` | `/{id}` | Actualizar |
-| `DELETE` | `/{id}` | Eliminar |
+|---|---|---|
+| `GET` | `/` | Listar todos los cursos |
+| `POST` | `/crear` | Crear curso |
 
-### Notas `/api/v1/notas`
+### Asignaturas `/api/v1/asignaturas`
 
 | Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `POST` | `/` | Registrar nota |
-| `GET` | `/{id}` | Obtener por ID |
-| `GET` | `/estudiante/{studentId}` | Notas del estudiante |
-| `GET` | `/estudiante/{studentId}/asignatura/{asignatura}` | Notas por asignatura |
-| `GET` | `/estudiante/{studentId}/promedio` | Calcular promedio general |
-| `GET` | `/estudiante/{studentId}/promedio/asignatura/{asignatura}` | Promedio por asignatura |
-| `PUT` | `/{id}` | Actualizar nota |
-| `DELETE` | `/{id}` | Eliminar nota |
+|---|---|---|
+| `GET` | `/` | Listar todas las asignaturas |
+| `POST` | `/crear` | Crear asignatura |
+
+### Matrículas `/api/v1/matriculas`
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/curso/{cursoId}/estudiantes` | Listar estudiantes del curso |
+| `POST` | `/matricular` | Matricular estudiante en curso |
+
+### Calificaciones `/api/v1/calificaciones`
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/curso/{cursoId}/asignatura/{asignaturaId}` | Calificaciones del curso por asignatura |
+| `GET` | `/estudiante/{usuarioUuid}` | Calificaciones del estudiante |
+| `GET` | `/estudiante/{usuarioUuid}/asignatura/{asignaturaId}` | Nota por estudiante y asignatura |
+| `PUT` | `/guardar` | Guardar o actualizar calificación |
 
 ### Asistencias `/api/v1/asistencias`
 
 | Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `POST` | `/` | Registrar asistencia |
+|---|---|---|
 | `GET` | `/{id}` | Obtener por ID |
 | `GET` | `/estudiante/{studentId}` | Asistencias del estudiante |
-| `GET` | `/estudiante/{studentId}/fecha/{fecha}` | Asistencias por fecha |
-| `GET` | `/estudiante/{studentId}/porcentaje` | % asistencia + riesgo repitencia |
+| `GET` | `/estudiante/{studentId}/fecha/{fecha}` | Asistencia por fecha |
+| `GET` | `/estudiante/{studentId}/porcentaje` | % asistencia + riesgo |
+| `POST` | `/` | Registrar asistencia |
 | `PUT` | `/{id}` | Actualizar registro |
 | `DELETE` | `/{id}` | Eliminar registro |
 
 ### Reportes `/api/v1/reportes`
 
 | Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/estudiante/{studentId}` | Reporte académico completo con alertas |
+|---|---|---|
+| `GET` | `/estudiante/{usuarioUuid}` | Reporte académico con alertas |
+
+### Asignación Docente `/api/v1/asignacion-docente`
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `POST` | `/` | Asignar docente a curso + asignatura |
+
+### Ejemplo de uso
+
+```bash
+# Crear un curso
+curl -X POST http://localhost:8080/api/v1/cursos/crear \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"nombre":"1° Básico A","nivel":"Básica"}'
+
+# Obtener calificaciones
+curl http://localhost:8080/api/v1/calificaciones/curso/1/asignatura/3 \
+  -H "Authorization: Bearer <token>"
+```
 
 ---
 
 ## Variables de Entorno
 
-| Variable | Descripción | Valor por defecto |
-|----------|-------------|-------------------|
-| `DB_URL` | URL JDBC PostgreSQL | `jdbc:postgresql://localhost:5432/academico_db` |
-| `DB_USERNAME` | Usuario de la BD | `postgres` |
-| `DB_PASSWORD` | Contraseña de la BD | `postgres` |
-| `EUREKA_URL` | URL del servidor Eureka | `http://localhost:8761/eureka` |
+| Variable | Descripción | Default |
+|---|---|---|
+| `DB_URL` | URL JDBC PostgreSQL | `jdbc:postgresql://localhost:5432/colegio_db` |
+| `DB_USERNAME` | Usuario BD | `colegio` |
+| `DB_PASSWORD` | Contraseña BD | `colegio123` |
+| `SPRING_PROFILES_ACTIVE` | Perfil (`dev`, `prod`) | `dev` |
 
 ---
 
 ## Ejecución Local
 
 ### Pre-requisitos
+
 - Java 17+
 - Maven 3.9+
-- PostgreSQL corriendo (o Supabase)
+- PostgreSQL (schema `academico_schema`)
 
-### Pasos
+### Compilar y ejecutar
 
 ```bash
-# Clonar y entrar al directorio
 cd backend/ms-academico
 
-# Compilar el proyecto
-mvn clean package -DskipTests
+# Perfil dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Ejecutar con variables de entorno
-DB_URL=jdbc:postgresql://... DB_USERNAME=user DB_PASSWORD=pass mvn spring-boot:run
+# Perfil prod
+DB_URL=jdbc:postgresql://localhost:5432/colegio_db \
+DB_USERNAME=colegio \
+DB_PASSWORD=colegio123 \
+SPRING_PROFILES_ACTIVE=prod \
+mvn spring-boot:run
 ```
+
+### Swagger UI
+
+Disponible en: `http://localhost:8082/swagger-ui.html`
 
 ---
 
 ## Pruebas Unitarias y Cobertura
 
-### Ejecutar todas las pruebas
+### Ejecutar pruebas
 
 ```bash
 mvn test
 ```
 
-### Ver reporte de cobertura JaCoCo
+### Reporte de cobertura JaCoCo
 
 ```bash
-mvn test jacoco:report
+mvn verify
+# Reporte HTML en: target/site/jacoco/index.html
 ```
 
-El reporte HTML se genera en:
-```
-target/site/jacoco/index.html
-```
+### Umbral mínimo
 
-Abrí ese archivo en tu navegador para ver la cobertura detallada por clase y método.
-
-### Configuración de umbral mínimo
-
-El proyecto está configurado para **fallar el build** si la cobertura de líneas es menor al **60%**:
+El build **falla** si la cobertura de líneas es menor al **60%**:
 
 ```xml
-<!-- pom.xml — jacoco-maven-plugin -->
 <limit>
     <counter>LINE</counter>
     <value>COVEREDRATIO</value>
@@ -286,15 +243,18 @@ El proyecto está configurado para **fallar el build** si la cobertura de línea
 </limit>
 ```
 
-### Tests implementados
+### Tests implementados (40 tests ✅)
 
-| Clase de Test | Cobertura principal |
-|---------------|---------------------|
-| `StudentTest` | Cálculo de promedios, asistencia, riesgo de repitencia |
-| `GradeTest` | Validación de notas (1.0–7.0), aprobación |
-| `GradeServiceTest` | Casos de uso: registrar, calcular promedio, eliminar |
-| `AttendanceServiceTest` | Porcentaje de asistencia, detección de riesgo |
-| `ReportServiceTest` | Generación de reportes y tipos de alerta |
+| Clase de Test | Cobertura |
+|---|---|
+| `CursoServiceTest` | CRUD de cursos |
+| `AsignaturaServiceTest` | CRUD de asignaturas |
+| `MatriculaServiceTest` | Matriculación y listado |
+| `CalificacionServiceTest` | Registro, promedios, escala 1.0–7.0 |
+| `AsistenciaServiceTest` | Registro, porcentaje, umbral 85% |
+| `ReporteServiceTest` | Generación de reportes y alertas |
+| `AcademicReportFactoryTest` | Factory con tipos de alerta |
+| `DomainModelTest` | Entidades de dominio |
 
 ---
 
@@ -310,33 +270,53 @@ docker build -t ms-academico:1.0.0 .
 
 ```bash
 docker run -p 8082:8082 \
-  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/academico_db \
-  -e DB_USERNAME=postgres \
-  -e DB_PASSWORD=postgres \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/colegio_db \
+  -e DB_USERNAME=colegio \
+  -e DB_PASSWORD=colegio123 \
   ms-academico:1.0.0
 ```
 
-### Con Docker Compose (junto a otros microservicios)
+### Con Docker Compose
 
 ```bash
-# Desde la raíz del proyecto
-docker-compose up ms-academico
+docker compose -f docker-compose.test.yml up --build ms-academico
 ```
 
 ---
 
-## Green IT
+## Estructura del Proyecto
 
-Decisiones tomadas para minimizar el consumo de recursos:
-
-- **HikariCP**: pool de conexiones limitado a 5 (suficiente para el MS)
-- **`@Transactional(readOnly = true)`**: en consultas para optimizar caché de Hibernate
-- **Multi-stage Dockerfile**: imagen final ~180MB (solo JRE Alpine, sin Maven ni código fuente)
-- **`-XX:UseContainerSupport`**: JVM respeta los límites de memoria del contenedor
-- **Queries específicas**: Spring Data JPA con métodos derivados — sin consultas genéricas
-- **`default_batch_fetch_size`**: reduce el problema N+1 en colecciones
+```
+ms-academico/
+├── src/
+│   ├── main/java/cl/duoc/colegio/academico/
+│   │   ├── MsAcademicoApplication.java
+│   │   ├── domain/
+│   │   │   ├── model/          ← Curso, Asignatura, Matricula, Calificacion, Asistencia
+│   │   │   └── exception/      ← AcademicoException, NotFoundException
+│   │   ├── application/
+│   │   │   ├── port/
+│   │   │   │   ├── in/         ← CursoUseCase, AsignaturaUseCase, MatriculaUseCase, etc.
+│   │   │   │   └── out/        ← CursoRepositoryPort, AsignaturaRepositoryPort, etc.
+│   │   │   ├── service/        ← CursoService, AsignaturaService, CalificacionService, etc.
+│   │   │   └── dto/            ← CursoResponse, AsignaturaResponse, CalificacionResponse, etc.
+│   │   └── infrastructure/
+│   │       ├── adapter/
+│   │       │   ├── in/rest/    ← CursoController, AsignaturaController, etc.
+│   │       │   └── out/persistence/ ← JPA Entities, Repos, Adapters
+│   │       ├── config/         ← GlobalExceptionHandler, OpenApiConfig
+│   │       └── factory/        ← AcademicReportFactory
+│   ├── resources/
+│   │   ├── application.yml
+│   │   └── application-prod.yml
+│   └── test/
+├── Dockerfile
+├── pom.xml
+└── README.md
+```
 
 ---
 
-*Equipo: Yaquelin Rugel · Yeider Catari · Victor Barrera · María José Velázquez · Eliezer Carrasco*  
+*Equipo: Yaquelin Rugel · Yeider Catari · Victor Barrera · María José Velázquez · Eliezer Carrasco*
 *Docente: Alexis Jacob Jiménez Parada — Desarrollo Fullstack III*

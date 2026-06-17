@@ -1,8 +1,12 @@
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import '../../styles/MainLayout.css';
 
-function MainLayout({ children, titulo }) {
+function MainLayout() {
+  const [titulo, setTitulo] = useState('Dashboard');
+
   return (
     <div className="main-layout">
       <Sidebar />
@@ -10,7 +14,7 @@ function MainLayout({ children, titulo }) {
       <div className="main-layout__cuerpo">
         <Header titulo={titulo} />
         <main className="main-layout__contenido">
-          {children}
+          <Outlet context={{ setTitulo }} />
         </main>
       </div>
     </div>

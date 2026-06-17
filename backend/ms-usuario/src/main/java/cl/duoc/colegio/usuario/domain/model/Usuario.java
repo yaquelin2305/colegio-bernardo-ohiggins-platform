@@ -21,6 +21,8 @@ public class Usuario {
     private String apellido;
     /** ID del perfil asociado según el rol (ej: id del estudiante, docente, etc.) */
     private Long perfilId;
+    /** UUID del pupilo asociado al apoderado (solo para rol APODERADO). */
+    private UUID pupiloUuid;
     private boolean activo;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
@@ -41,7 +43,7 @@ public class Usuario {
 
     // Constructor para reconstrucción desde persistencia
     public Usuario(UUID id, String rut, String email, String passwordHash, RolUsuario rol,
-                   String nombre, String apellido, Long perfilId,
+                   String nombre, String apellido, Long perfilId, UUID pupiloUuid,
                    boolean activo, LocalDateTime creadoEn, LocalDateTime actualizadoEn) {
         this.id = id;
         this.rut = rut;
@@ -51,6 +53,7 @@ public class Usuario {
         this.nombre = nombre;
         this.apellido = apellido;
         this.perfilId = perfilId;
+        this.pupiloUuid = pupiloUuid;
         this.activo = activo;
         this.creadoEn = creadoEn;
         this.actualizadoEn = actualizadoEn;
@@ -82,6 +85,14 @@ public class Usuario {
     }
 
     /**
+     * Asocia el UUID del pupilo al apoderado (solo para rol APODERADO).
+     */
+    public void asociarPupilo(UUID pupiloUuid) {
+        this.pupiloUuid = pupiloUuid;
+        this.actualizadoEn = LocalDateTime.now();
+    }
+
+    /**
      * Actualiza datos editables del usuario (no cambia RUT ni password aquí).
      */
     public void actualizar(String nombre, String apellido, String email) {
@@ -101,6 +112,7 @@ public class Usuario {
     public String getNombre() { return nombre; }
     public String getApellido() { return apellido; }
     public Long getPerfilId() { return perfilId; }
+    public UUID getPupiloUuid() { return pupiloUuid; }
     public boolean isActivo() { return activo; }
     public LocalDateTime getCreadoEn() { return creadoEn; }
     public LocalDateTime getActualizadoEn() { return actualizadoEn; }

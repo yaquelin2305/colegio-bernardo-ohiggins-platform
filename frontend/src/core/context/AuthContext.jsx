@@ -1,11 +1,21 @@
-import { createContext, useContext, useState } from 'react';
+import { useState } from 'react';
 import { TOKEN_KEY } from '../constants/api.constants';
+import { AuthContext } from './authContext';
 
-const AuthContext = createContext(null);
+function decodeBase64Utf8(b64) {
+  const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
 
 function decodificarToken(token) {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(decodeBase64Utf8(token.split('.')[1]));
+    return {
+      ...payload,
+      rol: payload.role,
+      nombre: payload.nombre,
+    };
   } catch {
     return null;
   }
@@ -41,12 +51,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
-  }
-  return context;
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Users, GraduationCap, AlertTriangle, TrendingUp, CalendarCheck, MessageSquare } from 'lucide-react';
-import MainLayout from '../../../shared/components/layout/MainLayout';
-import { useAuth } from '../../../core/context/AuthContext';
+import { Users, GraduationCap, AlertTriangle, TrendingUp, CalendarCheck, MessageSquare, Award } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
+import { useAuth } from '../../../core/context/useAuth';
 import TarjetaKpi from '../components/TarjetaKpi';
 import { obtenerKpisDashboard } from '../services/gestionAcademicaService';
 import '../styles/DashboardPage.css';
@@ -13,10 +13,14 @@ const ICONOS = {
   TrendingUp:    <TrendingUp size={22} aria-hidden="true" />,
   CalendarCheck: <CalendarCheck size={22} aria-hidden="true" />,
   MessageSquare: <MessageSquare size={22} aria-hidden="true" />,
+  Award:         <Award size={22} aria-hidden="true" />,
 };
 
 function DashboardPage() {
+  const { setTitulo } = useOutletContext();
   const { usuario } = useAuth();
+
+  useEffect(() => { setTitulo('Panel General'); }, [setTitulo]);
   const [kpis, setKpis] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,27 +40,25 @@ function DashboardPage() {
   }, [usuario?.rol]);
 
   return (
-    <MainLayout titulo="Panel General">
-      <section className="dashboard__seccion">
-        <div className="dashboard__bienvenida">
-          <h2 className="dashboard__saludo">
-            {usuario?.nombre ? `Bienvenido, ${usuario.nombre}` : 'Bienvenido'}
-          </h2>
-          <p className="dashboard__fecha">{fechaHoy}</p>
+    <section className="dashboard__seccion">
+      <div className="dashboard__bienvenida">
+        <h2 className="dashboard__saludo">
+          {usuario?.nombre ? `Bienvenido, ${usuario.nombre}` : 'Bienvenido'}
+        </h2>
+        <p className="dashboard__fecha">{fechaHoy}</p>
+      </div>
+
+      {isLoading && <p className="dashboard__cargando">Cargando...</p>}
+      {error && <p className="dashboard__error">{error}</p>}
+
+      {!isLoading && !error && (
+        <div className="dashboard__stats">
+          {kpis.map(kpi => (
+            <TarjetaKpi key={kpi.label} {...kpi} icono={ICONOS[kpi.iconKey]} />
+          ))}
         </div>
-
-        {isLoading && <p className="dashboard__cargando">Cargando...</p>}
-        {error && <p className="dashboard__error">{error}</p>}
-
-        {!isLoading && !error && (
-          <div className="dashboard__stats">
-            {kpis.map(kpi => (
-              <TarjetaKpi key={kpi.label} {...kpi} icono={ICONOS[kpi.iconKey]} />
-            ))}
-          </div>
-        )}
-      </section>
-    </MainLayout>
+      )}
+    </section>
   );
 }
 
