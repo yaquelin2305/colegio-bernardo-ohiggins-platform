@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../../shared/components/layout/ProtectedRoute';
-import { AuthProvider } from '../../core/context/AuthContext';
+import { AuthProvider } from '../../core/context/AuthContext.jsx';
 import { buildFakeJwt } from '../helpers/jwtFake';
 
 const TOKEN_KEY = 'token';
