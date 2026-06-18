@@ -33,21 +33,21 @@ describe('ResumenAsistencia', () => {
   });
 
   it('muestra nombreCurso si está presente en el resumen', () => {
-    render(<ResumenAsistencia resumen={{ ...resumenBase, nombreCurso: '1°A Básica' }} />);
-    expect(screen.getByText('1°A Básica')).toBeInTheDocument();
+    render(<ResumenAsistencia resumen={{ ...resumenBase, nombreCurso: '1\u00B0A B\u00E1sica' }} />);
+    expect(screen.getByText('1\u00B0A B\u00E1sica')).toBeInTheDocument();
   });
 
-  it('no muestra párrafo de curso si no está en el resumen', () => {
+  it('no muestra p\u00E1rrafo de curso si no est\u00E1 en el resumen', () => {
     const { container } = render(<ResumenAsistencia resumen={resumenBase} />);
     expect(container.querySelector('.resumen-asistencia__curso')).not.toBeInTheDocument();
   });
 
-  it('tiene aria-label de sección', () => {
+  it('tiene aria-label de secci\u00F3n', () => {
     render(<ResumenAsistencia resumen={resumenBase} />);
     expect(screen.getByRole('region', { name: 'Resumen de asistencia' })).toBeInTheDocument();
   });
 
-  it('muestra las 5 tarjetas de métricas', () => {
+  it('muestra las 5 tarjetas de m\u00E9tricas', () => {
     const { container } = render(<ResumenAsistencia resumen={resumenBase} />);
     expect(container.querySelectorAll('.resumen-asistencia__card').length).toBe(5);
   });
