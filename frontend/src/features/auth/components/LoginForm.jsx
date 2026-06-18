@@ -35,9 +35,17 @@ function LoginForm() {
     setError('');
 
     try {
+      const rutasPorRol = {
+        ADMIN: '/dashboard',
+        DOCENTE: '/calificaciones',
+        APODERADO: '/mis-calificaciones',
+        ESTUDIANTE: '/mis-calificaciones',
+      };
       const token = await login(form.rut, form.password);
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const rol = payload.role || payload.rol;
       auth.login(token);
-      navigate('/dashboard', { replace: true });
+      navigate(rutasPorRol[rol] || '/dashboard', { replace: true });
     } catch (err) {
       const mensaje = err.response?.data?.mensaje
         || err.response?.data?.detail

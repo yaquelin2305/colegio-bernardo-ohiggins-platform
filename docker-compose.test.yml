@@ -1,11 +1,10 @@
 # =============================================================
 # DOCKER COMPOSE TEST — Plataforma Colegio Bernardo O'Higgins
 #
-# Incluye ms-mock que suplanta ms-comunicaciones y ms-asistencia.
 # Comando único: docker compose -f docker-compose.test.yml up --build
 #
 # Orden de arranque:
-#   postgres → ms-usuario + ms-academico + ms-mock → ms-bff → api-gateway → frontend
+#   postgres → ms-usuario + ms-academico → ms-bff → api-gateway → frontend
 # =============================================================
 
 services:
@@ -32,28 +31,6 @@ services:
       - "5432:5432"
     networks:
       - colegio-network
-
-  # ─────────────────────────────────────────────────────────
-  # MS-MOCK — Suplanta ms-comunicaciones (:8085) y ms-asistencia
-  # ─────────────────────────────────────────────────────────
-  ms-mock:
-    build:
-      context: ./backend/ms-mock
-      dockerfile: Dockerfile
-    container_name: ms-mock
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
-    ports:
-      - "8085:8080"
-    networks:
-      colegio-network:
-        aliases:
-          - ms-comunicaciones
-          - ms-asistencia
 
   # ─────────────────────────────────────────────────────────
   # MS-USUARIO
@@ -129,8 +106,6 @@ services:
       ms-usuario:
         condition: service_healthy
       ms-academico:
-        condition: service_healthy
-      ms-mock:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
