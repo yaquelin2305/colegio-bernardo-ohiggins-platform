@@ -10,15 +10,6 @@ const initialState = {
   password: '',
 };
 
-function obtenerRolDelToken(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.role;
-  } catch {
-    return null;
-  }
-}
-
 function LoginForm() {
   const [form, setForm] = useState(initialState);
   const [error, setError] = useState('');
@@ -44,13 +35,18 @@ function LoginForm() {
     setError('');
 
     try {
+      const rutasPorRol = {
+        ADMIN: '/dashboard',
+        DOCENTE: '/calificaciones',
+        APODERADO: '/mis-calificaciones',
+        ESTUDIANTE: '/mis-calificaciones',
+      };
       const token = await login(form.rut, form.password);
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const rol = payload.role || payload.rol;
       auth.login(token);
 
-      const rol = obtenerRolDelToken(token);
-      const destino = rol === 'ADMIN'   ? '/dashboard'
-                    : rol === 'DOCENTE' ? '/calificaciones'
-                                        : '/mis-calificaciones';
+      const destino = rutasPorRol[rol] || '/dashboard';
       navigate(destino, { replace: true });
     } catch (err) {
       const mensaje = err.response?.data?.mensaje

@@ -43,9 +43,11 @@ function App() {
             <Route path="comunicaciones/redactar" element={<RedactarMensajePage />} />
             <Route path="comunicaciones/:id" element={<DetalleMensajePage />} />
 
-            <Route path="admin/gestion-academica" element={<GestionAcademicaAdminPage />} />
-            <Route path="admin/asignacion-docentes" element={<AsignacionDocentesPage />} />
-            <Route path="admin/usuarios" element={<GestionUsuariosPage />} />
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+              <Route path="admin/gestion-academica" element={<GestionAcademicaAdminPage />} />
+              <Route path="admin/asignacion-docentes" element={<AsignacionDocentesPage />} />
+              <Route path="admin/usuarios" element={<GestionUsuariosPage />} />
+            </Route>
             <Route path="cursos/:cursoId/estudiantes" element={<ListadoEstudiantesCursoPage />} />
           </Route>
 
