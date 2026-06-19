@@ -51,7 +51,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
  */
 @Configuration
 @EnableWebFluxSecurity
-@Profile("prod")
+@Profile({"prod", "docker"})
 public class SecurityConfigProd {
 
     @Bean
@@ -88,6 +88,7 @@ public class SecurityConfigProd {
                         .pathMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .pathMatchers("/api/v1/asignacion-docente/**").hasRole("ADMIN")
                         .pathMatchers("/api/bff/dashboard/**").hasRole("ADMIN")
+                        .pathMatchers("/api/bff/usuarios/**").hasRole("ADMIN")
 
                         // ── ADMIN + DOCENTE ─────────────────────────────────
                         .pathMatchers("/api/v1/cursos/**").hasAnyRole("ADMIN", "DOCENTE")

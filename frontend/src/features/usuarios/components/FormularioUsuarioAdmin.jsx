@@ -7,7 +7,7 @@ const estadoInicial = {
   password: '', confirmPassword: '', rol: '', pupiloUuid: '',
 };
 
-function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando = null, onCancelar }) {
+function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], estudiantesDisponibles = [], usuarioEditando = null, onCancelar }) {
   const modoEdicion = Boolean(usuarioEditando);
 
   const [formulario, setFormulario] = useState(() =>
@@ -60,7 +60,7 @@ function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando =
     return nuevosErrores;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const erroresValidacion = validar();
     if (Object.keys(erroresValidacion).length > 0) {
@@ -68,11 +68,16 @@ function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando =
       return;
     }
 
-    onGuardar({ ...formulario, id: usuarioEditando?.id });
-    setFormulario(estadoInicial);
+    if (modoEdicion) {
+      setMensajeExito('Usuario actualizado correctamente.');
+      setTimeout(() => setMensajeExito(''), 3000);
+    }
+
+    await onGuardar({ ...formulario, id: usuarioEditando?.id });
+    if (!modoEdicion) {
+      setFormulario(estadoInicial);
+    }
     setErrores({});
-    setMensajeExito(modoEdicion ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.');
-    setTimeout(() => setMensajeExito(''), 3000);
   }
 
   function campoInput({ name, label, icono, tipo = 'text', placeholder }) {
@@ -173,7 +178,7 @@ function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando =
                 className="form-usuario__select"
               >
                 <option value="">— Selecciona un estudiante —</option>
-                {estudiantes.map(est => (
+                {estudiantesDisponibles.map(est => (
                   <option key={est.id} value={est.id}>
                     {est.nombres} {est.apellidos} ({est.rut})
                   </option>
