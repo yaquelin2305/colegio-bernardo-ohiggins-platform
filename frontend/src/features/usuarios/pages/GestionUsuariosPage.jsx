@@ -107,8 +107,15 @@ function GestionUsuariosPage() {
           showToast('Usuario guardado, pero no se pudo refrescar la lista.', 'warning');
         }
       }
-    } catch {
-      showToast('No se pudo guardar el usuario.', 'error');
+    } catch (err) {
+      const apiMsg = err?.response?.data?.mensaje
+        || err?.response?.data?.detail
+        || err?.response?.data?.errores
+        || '';
+      const msg = apiMsg
+        ? `No se pudo guardar: ${typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg)}`
+        : 'No se pudo guardar el usuario.';
+      showToast(msg, 'error');
     }
   }
 
