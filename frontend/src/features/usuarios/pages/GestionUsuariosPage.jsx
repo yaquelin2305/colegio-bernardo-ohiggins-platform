@@ -87,21 +87,25 @@ function GestionUsuariosPage() {
         showToast('Usuario actualizado correctamente.');
       } else {
         await crearUsuario(payload);
-        if (rol === 'DOCENTE') {
-          const lista = await obtenerDocentes();
-          setDocentes(lista);
-        } else if (rol === 'APODERADO') {
-          const [listaAp, listaEst] = await Promise.all([obtenerApoderados(), obtenerEstudiantes()]);
-          setEstudiantes(listaEst);
-          setApoderados(listaAp.map(a => {
-            const est = listaEst.find(e => e.id === a.pupiloUuid);
-            return { ...a, pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre };
-          }));
-        } else if (rol === 'ESTUDIANTE') {
-          const lista = await obtenerEstudiantes();
-          setEstudiantes(lista);
-        }
         showToast('Usuario creado correctamente.');
+        try {
+          if (rol === 'DOCENTE') {
+            const lista = await obtenerDocentes();
+            setDocentes(lista);
+          } else if (rol === 'APODERADO') {
+            const [listaAp, listaEst] = await Promise.all([obtenerApoderados(), obtenerEstudiantes()]);
+            setEstudiantes(listaEst);
+            setApoderados(listaAp.map(a => {
+              const est = listaEst.find(e => e.id === a.pupiloUuid);
+              return { ...a, pupiloNombre: est ? `${est.nombres} ${est.apellidos}`.trim() : a.pupiloNombre };
+            }));
+          } else if (rol === 'ESTUDIANTE') {
+            const lista = await obtenerEstudiantes();
+            setEstudiantes(lista);
+          }
+        } catch {
+          showToast('Usuario guardado, pero no se pudo refrescar la lista.', 'warning');
+        }
       }
     } catch {
       showToast('No se pudo guardar el usuario.', 'error');
