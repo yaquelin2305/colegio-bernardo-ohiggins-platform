@@ -328,6 +328,16 @@ spring:
           uri: http://ms-bff:8084
           predicates: [Path=/api/bff/**]
 
+        - id: docker-comunicaciones
+          uri: http://ms-comunicaciones:8081
+          predicates: [Path=/api/v1/comunicaciones/**]
+          filters:
+            - RewritePath=/api/v1/comunicaciones(?<segment>/?.*), /api/comunicaciones${segment}
+
+        - id: docker-asistencia-ms
+          uri: http://ms-asistencia:8085
+          predicates: [Path=/api/v1/asistencia/**]
+
 eureka:
   client:
     enabled: false
