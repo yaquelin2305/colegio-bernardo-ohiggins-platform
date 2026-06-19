@@ -16,4 +16,5 @@ public class UsuarioMsDTO {
     private String nombreCompleto;
     private String rol;
     private Boolean activo;
+    private String pupiloUuid;
 }
