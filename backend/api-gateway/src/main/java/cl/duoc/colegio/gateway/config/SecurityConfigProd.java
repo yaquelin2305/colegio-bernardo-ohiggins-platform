@@ -51,7 +51,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
  */
 @Configuration
 @EnableWebFluxSecurity
-@Profile("prod")
+@Profile({"prod", "docker"})
 public class SecurityConfigProd {
 
     @Bean
