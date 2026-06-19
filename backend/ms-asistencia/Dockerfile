@@ -23,9 +23,6 @@ USER appuser
 
 EXPOSE 8082
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=12 --start-period=90s \
-    CMD wget -qO- http://localhost:8082/actuator/health | grep -q '"status":"UP"' || exit 1
-
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \

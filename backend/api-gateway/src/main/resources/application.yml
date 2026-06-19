@@ -272,7 +272,80 @@ logging:
   level:
     cl.duoc.colegio.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
-    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: TRACE
+    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping:   TRACE
+
+---
+# =============================================
+# PERFIL: docker (docker-compose test — sin Eureka, rutas estaticas a contenedores)
+# =============================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: docker-academico-cursos
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/cursos/**]
+        - id: docker-academico-asignaturas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignaturas/**]
+        - id: docker-academico-matriculas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/matriculas/**]
+        - id: docker-academico-calificaciones
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/calificaciones/**]
+        - id: docker-academico-notas
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/notas/**]
+        - id: docker-academico-asistencias
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asistencias/**]
+        - id: docker-academico-estudiantes
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/estudiantes/**]
+        - id: docker-academico-reportes
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/reportes/**]
+        - id: docker-academico-asignacion
+          uri: http://ms-academico:8082
+          predicates: [Path=/api/v1/asignacion-docente/**]
+        - id: docker-usuario-auth
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/auth/**]
+        - id: docker-usuario-admin
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/admin/**]
+        - id: docker-usuario-public
+          uri: http://ms-usuario:8083
+          predicates: [Path=/api/v1/usuarios/**]
+        - id: docker-bff
+          uri: http://ms-bff:8084
+          predicates: [Path=/api/bff/**]
+
+        - id: docker-comunicaciones
+          uri: http://ms-comunicaciones:8081
+          predicates: [Path=/api/v1/comunicaciones/**]
+          filters:
+            - RewritePath=/api/v1/comunicaciones(?<segment>/?.*), /api/comunicaciones${segment}
+
+        - id: docker-asistencia-ms
+          uri: http://ms-asistencia:8085
+          predicates: [Path=/api/v1/asistencia/**]
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    cl.duoc.colegio.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
 
 ---
 # =============================================
