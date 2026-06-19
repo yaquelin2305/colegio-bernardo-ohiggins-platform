@@ -7,7 +7,7 @@ const estadoInicial = {
   password: '', confirmPassword: '', rol: '', pupiloUuid: '',
 };
 
-function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando = null, onCancelar }) {
+function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], estudiantesDisponibles = [], usuarioEditando = null, onCancelar }) {
   const modoEdicion = Boolean(usuarioEditando);
 
   const [formulario, setFormulario] = useState(() =>
@@ -178,7 +178,7 @@ function FormularioUsuarioAdmin({ onGuardar, estudiantes = [], usuarioEditando =
                 className="form-usuario__select"
               >
                 <option value="">— Selecciona un estudiante —</option>
-                {estudiantes.map(est => (
+                {estudiantesDisponibles.map(est => (
                   <option key={est.id} value={est.id}>
                     {est.nombres} {est.apellidos} ({est.rut})
                   </option>

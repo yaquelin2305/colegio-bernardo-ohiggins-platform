@@ -158,6 +158,10 @@ function GestionUsuariosPage() {
               key={usuarioEditando?.id ?? 'nuevo'}
               onGuardar={handleGuardarDesdeFormulario}
               estudiantes={estudiantes}
+              estudiantesDisponibles={estudiantes.filter(e =>
+                !apoderados.some(a => a.pupiloUuid === e.id)
+              )}
+              apoderados={apoderados}
               usuarioEditando={usuarioEditando}
               onCancelar={() => setUsuarioEditando(null)}
             />
