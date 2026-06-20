@@ -44,7 +44,7 @@ export async function obtenerCalificaciones(cursoId, asignaturaId) {
     id:          item.id,
     usuarioUuid: item.id,
     nombre:      item.nombre ?? item.id,
-    nota1:       item.nota1   ?? 0,
+    nota1:       item.nota1   ?? null,
     nota2:        item.nota2 ?? null,
     nota3:        item.nota3 ?? null,
     promedio:    item.promedio ?? 0,
