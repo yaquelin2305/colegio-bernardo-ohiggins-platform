@@ -4,6 +4,7 @@ import cl.duoc.colegio.academico.domain.exception.AcademicoException;
 import cl.duoc.colegio.academico.domain.exception.AttendanceNotFoundException;
 import cl.duoc.colegio.academico.domain.exception.GradeNotFoundException;
 import cl.duoc.colegio.academico.domain.exception.StudentNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  * Manejador global de excepciones.
  * Traduce excepciones de dominio a respuestas HTTP estandarizadas (RFC 7807 Problem Details).
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -60,6 +62,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneral(Exception ex) {
+        log.error("[ms-academico] Error no manejado", ex);
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
         pd.setTitle("Error interno");
