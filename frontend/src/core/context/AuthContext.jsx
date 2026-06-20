@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { createContext, useState } from 'react';
 import { TOKEN_KEY } from '../constants/api.constants';
-import { AuthContext } from './authContext';
+
+export const AuthContext = createContext(null);
 
 function decodeBase64Utf8(b64) {
   const bin = atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
