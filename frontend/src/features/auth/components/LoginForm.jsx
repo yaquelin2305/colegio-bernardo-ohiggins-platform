@@ -42,7 +42,8 @@ function LoginForm() {
         ESTUDIANTE: '/mis-calificaciones',
       };
       const token = await login(form.rut, form.password);
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(b64));
       const rol = payload.role || payload.rol;
       auth.login(token);
 

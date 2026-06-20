@@ -45,8 +45,8 @@ export async function obtenerCalificaciones(cursoId, asignaturaId) {
     usuarioUuid: item.id,
     nombre:      item.nombre ?? item.id,
     nota1:       item.nota1   ?? 0,
-    nota2:       item.nota2   ?? 0,
-    nota3:       item.nota3   ?? 0,
+    nota2:        item.nota2 ?? null,
+    nota3:        item.nota3 ?? null,
     promedio:    item.promedio ?? 0,
   }));
 }
@@ -55,9 +55,9 @@ export async function guardarCalificaciones(cursoId, asignaturaId, alumnos) {
   const payload = alumnos.map(alumno => ({
     usuarioUuid:  alumno.usuarioUuid ?? alumno.id,
     asignaturaId: Number(asignaturaId),
-    nota1:        Number(alumno.nota1),
-    nota2:        Number(alumno.nota2),
-    nota3:        Number(alumno.nota3),
+    nota1:        alumno.nota1 != null && alumno.nota1 !== '' ? Number(alumno.nota1) : null,
+    nota2:        alumno.nota2 != null && alumno.nota2 !== '' ? Number(alumno.nota2) : null,
+    nota3:        alumno.nota3 != null && alumno.nota3 !== '' ? Number(alumno.nota3) : null,
   }));
   await axiosClient.put('/bff/calificaciones/guardar', payload);
 }
