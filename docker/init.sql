@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS academico_schema.matriculas (
     CONSTRAINT uq_matricula UNIQUE (usuario_uuid, curso_id)
 );
 
-CREATE TABLE IF NOT EXISTS academico_schema.asignacion_docentes (
+CREATE TABLE IF NOT EXISTS academico_schema.asignacion_docente (
     id            BIGSERIAL PRIMARY KEY,
     docente_uuid  UUID      NOT NULL,
     curso_id      BIGINT    NOT NULL REFERENCES academico_schema.cursos(id),
@@ -187,15 +187,15 @@ INSERT INTO academico_schema.matriculas (usuario_uuid, curso_id) VALUES
 ON CONFLICT (usuario_uuid, curso_id) DO NOTHING;
 
 -- ── ASIGNACIONES DOCENTES ──
-INSERT INTO academico_schema.asignacion_docentes (docente_uuid, curso_id, asignatura_id)
+INSERT INTO academico_schema.asignacion_docente (docente_uuid, curso_id, asignatura_id)
 SELECT '11111111-1111-1111-1111-111111111101', 1, 1
-WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docentes WHERE docente_uuid='11111111-1111-1111-1111-111111111101' AND curso_id=1 AND asignatura_id=1);
-INSERT INTO academico_schema.asignacion_docentes (docente_uuid, curso_id, asignatura_id)
+WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docente WHERE docente_uuid='11111111-1111-1111-1111-111111111101' AND curso_id=1 AND asignatura_id=1);
+INSERT INTO academico_schema.asignacion_docente (docente_uuid, curso_id, asignatura_id)
 SELECT '11111111-1111-1111-1111-111111111101', 1, 3
-WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docentes WHERE docente_uuid='11111111-1111-1111-1111-111111111101' AND curso_id=1 AND asignatura_id=3);
-INSERT INTO academico_schema.asignacion_docentes (docente_uuid, curso_id, asignatura_id)
+WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docente WHERE docente_uuid='11111111-1111-1111-1111-111111111101' AND curso_id=1 AND asignatura_id=3);
+INSERT INTO academico_schema.asignacion_docente (docente_uuid, curso_id, asignatura_id)
 SELECT '11111111-1111-1111-1111-111111111102', 1, 2
-WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docentes WHERE docente_uuid='11111111-1111-1111-1111-111111111102' AND curso_id=1 AND asignatura_id=2);
+WHERE NOT EXISTS (SELECT 1 FROM academico_schema.asignacion_docente WHERE docente_uuid='11111111-1111-1111-1111-111111111102' AND curso_id=1 AND asignatura_id=2);
 
 -- ── CALIFICACIONES (1 fila por estudiante × asignatura del curso 1) ──
 INSERT INTO academico_schema.calificaciones (usuario_uuid, asignatura_id, nota_1, nota_2, nota_3, promedio)
