@@ -140,7 +140,7 @@ describe('GestionUsuariosPage', () => {
       expect(s.crearUsuario).toHaveBeenCalledWith(expect.objectContaining({ rol: 'APODERADO', pupiloUuid: 'e1' }));
     });
     await waitFor(() => {
-      expect(screen.getAllByText('Usuario creado correctamente.')).toHaveLength(2);
+      expect(screen.getAllByText('Usuario creado correctamente.')).toHaveLength(1);
     });
   });
 
@@ -165,7 +165,7 @@ describe('GestionUsuariosPage', () => {
       expect(s.crearUsuario).toHaveBeenCalledWith(expect.objectContaining({ rol: 'ESTUDIANTE' }));
     });
     await waitFor(() => {
-      expect(screen.getAllByText('Usuario creado correctamente.')).toHaveLength(2);
+      expect(screen.getAllByText('Usuario creado correctamente.')).toHaveLength(1);
     });
   });
 
