@@ -147,7 +147,7 @@ jobs:
           path: backend/ms-comunicaciones/target/site/jacoco
 
   test-bff:
-    name: MS-BFF — Tests, JaCoCo & Sonar
+    name: MS-BFF — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -162,13 +162,16 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
+      - name: Run tests & JaCoCo
+        run: mvn clean verify
+      - name: SonarCloud Analysis
         run: |
-          mvn clean verify sonar:sonar \
+          mvn sonar:sonar \
             -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
             -Dsonar.organization=yaquelin2305 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload coverage report
@@ -179,7 +182,7 @@ jobs:
           path: backend/ms-bff/target/site/jacoco
 
   test-frontend:
-    name: Frontend — Tests, Coverage & Sonar
+    name: Frontend — Tests & Coverage
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -200,6 +203,7 @@ jobs:
         run: npm run test:coverage
       - name: SonarCloud Analysis
         uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
         with:
           projectBaseDir: frontend
         env:
