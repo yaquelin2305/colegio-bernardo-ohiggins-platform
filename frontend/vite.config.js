@@ -12,6 +12,7 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: ['src/**/*.{js,jsx}'],
       exclude: ['src/main.jsx', 'src/test/**'],
+      reportOnFailure: true,
     },
   },
 })
