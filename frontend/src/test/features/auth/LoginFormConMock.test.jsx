@@ -2,8 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import LoginForm from '../../../features/auth/components/LoginForm';
-import { AuthProvider } from '../../../core/context/AuthContext';
 import { buildFakeJwt } from '../../helpers/jwtFake';
+
+const mockLogin = vi.fn();
+vi.mock('../../../core/context/useAuth', () => ({
+  useAuth: () => ({
+    usuario: null,
+    token: null,
+    login: mockLogin,
+    logout: vi.fn(),
+  }),
+}));
 
 vi.mock('../../../features/auth/services/authService');
 import * as authService from '../../../features/auth/services/authService';
@@ -14,11 +23,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const wrapper = ({ children }) => (
-  <MemoryRouter>
-    <AuthProvider>{children}</AuthProvider>
-  </MemoryRouter>
-);
+const wrapper = ({ children }) => <MemoryRouter>{children}</MemoryRouter>;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -27,7 +32,7 @@ beforeEach(() => {
 
 function llenarYEnviar(rut = '12345678-9', password = 'Admin1234!') {
   fireEvent.change(screen.getByPlaceholderText('12345678-9'), { target: { value: rut } });
-  fireEvent.change(screen.getByPlaceholderText('••••••••'),   { target: { value: password } });
+  fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: password } });
   fireEvent.click(screen.getByRole('button', { name: /Entrar|Iniciando/i }));
 }
 
