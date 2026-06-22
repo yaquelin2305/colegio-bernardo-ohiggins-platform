@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ComunicacionMsRequestDTO {
-    private String usuarioId;
     private String destinatario;
     private String asunto;
     private String mensaje;

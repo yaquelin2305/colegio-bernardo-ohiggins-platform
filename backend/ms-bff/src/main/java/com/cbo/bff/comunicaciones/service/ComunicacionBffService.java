@@ -38,7 +38,6 @@ public class ComunicacionBffService {
 
     public MensajeBffDTO enviarMensaje(EnviarMensajeRequestDTO request, String remitenteUuid) {
         ComunicacionMsRequestDTO msRequest = ComunicacionMsRequestDTO.builder()
-                .usuarioId(remitenteUuid)
                 .destinatario(request.getDestinatario())
                 .asunto(request.getAsunto())
                 .mensaje(request.getMensaje())

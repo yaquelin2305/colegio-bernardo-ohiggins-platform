@@ -24,7 +24,6 @@ public class ComunicacionController {
 
     @PostMapping("/enviar")
     public ResponseEntity<ComunicacionResponseDTO> enviar(@RequestBody ComunicacionRequestDTO request) {
-        try {
         Comunicacion comunicacion = Comunicacion.builder()
                 .usuarioId(request.getUsuarioId())
                 .destinatario(request.getDestinatario())
@@ -38,11 +37,6 @@ public class ComunicacionController {
 
         Comunicacion guardada = useCase.enviar(comunicacion);
         return ResponseEntity.ok(toResponseDTO(guardada));
-        } catch (Exception e) {
-            System.err.println("ERROR enviando comunicacion: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
     }
 
  
