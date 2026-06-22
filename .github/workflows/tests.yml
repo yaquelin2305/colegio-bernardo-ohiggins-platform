@@ -1,4 +1,4 @@
-name: Tests & Coverage (JaCoCo)
+name: Tests (JaCoCo)
 
 on:
   push:
@@ -25,56 +25,38 @@ on:
 
 jobs:
   test-gateway:
-    name: API Gateway — Tests & Sonar
+    name: API Gateway — Tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/api-gateway
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: mvn clean verify
 
   test-usuario:
-    name: MS-Usuario — Tests, JaCoCo & Sonar
+    name: MS-Usuario — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/ms-usuario
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests & JaCoCo
+        run: mvn clean verify
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,30 +65,21 @@ jobs:
           path: backend/ms-usuario/target/site/jacoco
 
   test-academico:
-    name: MS-Academico — Tests, JaCoCo & Sonar
+    name: MS-Academico — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/ms-academico
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests & JaCoCo
+        run: mvn clean verify
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -115,30 +88,21 @@ jobs:
           path: backend/ms-academico/target/site/jacoco
 
   test-comunicaciones:
-    name: MS-Comunicaciones — Tests, JaCoCo & Sonar
+    name: MS-Comunicaciones — Tests & JaCoCo
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend/ms-comunicaciones
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run tests, JaCoCo & Sonar Analysis
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests & JaCoCo
+        run: mvn clean verify
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -154,8 +118,6 @@ jobs:
         working-directory: backend/ms-bff
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -164,16 +126,6 @@ jobs:
           cache: maven
       - name: Run tests & JaCoCo
         run: mvn clean verify
-      - name: SonarCloud Analysis
-        run: |
-          mvn sonar:sonar \
-            -Dsonar.projectKey=plataforma-colegio-ohiggins-oficial \
-            -Dsonar.organization=yaquelin2305 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_GLOBAL }}
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -189,8 +141,6 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up Node 20
         uses: actions/setup-node@v4
         with:
@@ -201,11 +151,3 @@ jobs:
         run: npm ci
       - name: Run tests & coverage
         run: npm run test:coverage
-      - name: SonarCloud Analysis
-        uses: SonarSource/sonarcloud-github-action@master
-        continue-on-error: true
-        with:
-          projectBaseDir: frontend
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_GLOBAL }}
