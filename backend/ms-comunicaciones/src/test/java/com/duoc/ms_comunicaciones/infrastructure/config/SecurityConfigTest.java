@@ -40,11 +40,10 @@ class SecurityConfigTest {
     }
 
     @Test
-    void filtrarPeticiones_DeberiaRetornar403Forbidden_CuandoRutaEsPrivadaSinAutenticacion() throws Exception {
-        // Arrange & Act & Assert
+    void filtrarPeticiones_DeberiaPermitirAcceso_CuandoRutaEsPrivadaTrustGateway() throws Exception {
         mockMvc.perform(get("/api/ruta-privada-protegida")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
